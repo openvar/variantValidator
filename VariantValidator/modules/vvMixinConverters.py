@@ -1623,9 +1623,9 @@ class Mixin(vvMixinInit.Mixin):
                 hgvs_genomic.ac, self.alt_aln_method,
                 hgvs_genomic.posedit.pos.start.base,
                 hgvs_genomic.posedit.pos.end.base)
-        #rts_list_2 = evm.relevant_transcripts(hgvs_genomic)
+
         for tx_dat_2 in rts_list_2:
-            rts_dict[tx_dat_2['tx_ac']] = tx_dat['alt_strand']
+            rts_dict[tx_dat_2['tx_ac']] = tx_dat_2['alt_strand']
         rts = list(rts_dict.keys())
 
         # Filter out transcripts that are not the latest versions
@@ -1741,19 +1741,6 @@ class Mixin(vvMixinInit.Mixin):
             hgvs_input = self.hp.parse_hgvs_variant(query)
         else:
             hgvs_input = query
-
-
-        # if hgvs_input.type == 'p':  # Suspect this is dead code. Makes no sense for p. descriptions
-        #     if not hasattr(hgvs_input.posedit.pos.start, 'offset'):
-        #         hgvs_input.posedit.pos.start.offset = 0
-        #     if not hasattr(hgvs_input.posedit.pos.end, 'offset'):
-        #         hgvs_input.posedit.pos.end.offset = 0
-        #     if not hasattr(hgvs_input.posedit.pos.start, 'datum'):
-        #         hgvs_input.posedit.pos.start.datum = 0
-        #     if not hasattr(hgvs_input.posedit.pos.end, 'datum'):
-        #         hgvs_input.posedit.pos.end.datum = 0
-        #     if not hasattr(hgvs_input.posedit.edit, 'ref_n'):
-        #         hgvs_input.posedit.edit.ref_n = hgvs_input.posedit.pos.end.base - hgvs_input.posedit.pos.start.base + 1
 
         try:
             self.vr.validate(hgvs_input)
@@ -2086,134 +2073,6 @@ class Mixin(vvMixinInit.Mixin):
 
         return hgvs_delins
 
-
-    # Code is being saved as it may be used in the future
-    ######################################################
-    # def merge_hgvs_5pr(self, hgvs_variant_list, genomic_reference=False):
-    #     """
-    #     Function designed to merge multiple HGVS variants (hgvs objects) into a single delins
-    #     using 5 prime normalization
-    #     """
-    #     # Ensure c. is mapped to the
-    #     h_list = []
-    #
-    #     # Sanity check and format the submitted variants
-    #     for hgvs_v in hgvs_variant_list:
-    #         # For testing include parser
-    #         try:
-    #             hgvs_v = self.hp.parse_hgvs_variant(hgvs_v)
-    #         except Exception as e:
-    #             logger.debug("Except passed, %s", e)
-    #
-    #         # Validate
-    #         self.vr.validate(hgvs_v)  # Let hgvs errors deal with invalid variants and not hgvs objects
-    #         if hgvs_v.type == 'c':
-    #             try:
-    #                 hgvs_v = self.vm.c_to_n(hgvs_v)
-    #                 h_list.append(hgvs_v)
-    #             except:
-    #                 raise fn.mergeHGVSerror("Unable to map from c. position to absolute position")
-    #     if h_list:
-    #         hgvs_variant_list = copy.deepcopy(h_list)
-    #
-    #     # Define accession and start/end positions
-    #     accession = None
-    #     merge_start_pos = None
-    #     merge_end_pos = None
-    #     seqtype = None
-    #     full_list = []
-    #
-    #     # Loop through the submitted variants and gather the required info
-    #     for hgvs_v in hgvs_variant_list:
-    #         try:
-    #             # No intronic positions
-    #             if hgvs_v.posedit.pos.start.offset != 0:
-    #                 raise fn.mergeHGVSerror("Base-offset position submitted")
-    #             if hgvs_v.posedit.pos.end.offset != 0:
-    #                 raise fn.mergeHGVSerror("Base-offset position submitted")
-    #         except AttributeError as e:
-    #             logger.debug("Except passed, %s", e)
-    #
-    #         # Normalize the variant (allow cross intron) which also adds the reference sequence (?)
-    #         hgvs_v = self.reverse_hn.normalize(hgvs_v)
-    #
-    #         # Set the accession and ensure that multiple reference sequences have not been queried
-    #         if accession is None:
-    #             accession = hgvs_v.ac
-    #             seqtype = hgvs_v.type
-    #         else:
-    #             if hgvs_v.ac != accession:
-    #                 raise fn.mergeHGVSerror("More than one reference sequence submitted")
-    #
-    #         # Set initial start and end positions
-    #         if merge_start_pos is None:
-    #             merge_start_pos = hgvs_v.posedit.pos.start.base
-    #             merge_end_pos = hgvs_v.posedit.pos.end.base
-    #             # Append to the final list of variants
-    #             full_list.append(hgvs_v)
-    #             continue
-    #         # Ensure variants are in the correct order and not overlapping
-    #         else:
-    #             # ! hgvs_v.posedit.pos.start.base !>
-    #             if hgvs_v.posedit.pos.start.base <= merge_end_pos:
-    #                 raise fn.mergeHGVSerror("Submitted variants are out of order or their ranges overlap")
-    #             else:
-    #                 # Create a fake variant to handle the missing sequence
-    #                 ins_seq = self.sf.fetch_seq(hgvs_v.ac, merge_end_pos, hgvs_v.posedit.pos.start.base - 1)
-    #                 gapping = hgvs_v.ac + ':' + hgvs_v.type + '.' + str(merge_end_pos + 1) + '_' + str(
-    #                     hgvs_v.posedit.pos.start.base - 1) + 'delins' + ins_seq
-    #                 hgvs_gapping = self.hp.parse_hgvs_variant(gapping)
-    #                 full_list.append(hgvs_gapping)
-    #                 # update end_pos
-    #                 merge_end_pos = hgvs_v.posedit.pos.end.base
-    #                 # Append to the final list of variants
-    #                 full_list.append(hgvs_v)
-    #
-    #     # Generate the alt sequence
-    #     alt_sequence = ''
-    #     for hgvs_v in full_list:
-    #         ref_alt = hgvs_utils.hgvs_ref_alt(hgvs_v, self.sf)
-    #         alt_sequence = alt_sequence + ref_alt['alt']
-    #
-    #     # Fetch the reference sequence and copy it for the basis of the alt sequence
-    #     reference_sequence = self.sf.fetch_seq(accession, merge_start_pos - 1, merge_end_pos)
-    #
-    #     # Generate an hgvs_delins
-    #     if alt_sequence == '':
-    #         delins = accession + ':' + seqtype + '.' + str(merge_start_pos) + '_' + str(
-    #             merge_end_pos) + 'del' + reference_sequence
-    #     else:
-    #         delins = accession + ':' + seqtype + '.' + str(merge_start_pos) + '_' + str(
-    #             merge_end_pos) + 'del' + reference_sequence + 'ins' + alt_sequence
-    #     hgvs_delins = self.hp.parse_hgvs_variant(delins)
-    #     try:
-    #         hgvs_delins = self.vm.n_to_c(hgvs_delins)
-    #     except Exception as e:
-    #         logger.debug("Except passed, %s", e)
-    #     # Normalize (allow variants crossing into different exons)
-    #     try:
-    #         hgvs_delins = self.reverse_hn.normalize(hgvs_delins)
-    #     except HGVSUnsupportedOperationError as e:
-    #         logger.debug("Except passed, %s", e)
-    #    return hgvs_delins
-
-    # def merge_pseudo_vcf(self, vcf_list, genome_build, hn):
-    #     """
-    #     Function designed to merge multiple pseudo VCF variants (strings) into a single HGVS delins
-    #     using 5 prime normalization then return a 3 prime normalized final HGVS object
-    #     """
-    #     hgvs_list = []
-    #     # Convert pseudo_vcf list into a HGVS list
-    #     for call in vcf_list:
-    #         x55hgvs = hgvs_utils.pvcf_to_hgvs(call, genome_build, normalization_direction=5, validator=self)
-    #         hgvs_list.append(x55hgvs)
-    #     # Merge
-    #     hgvs_delins = self.merge_hgvs_5pr(hgvs_list)
-    #     # normalize 3 prime
-    #     hgvs_delins = hn.normalize(hgvs_delins)
-    #     # return
-    #     return hgvs_delins
-
     def hgvs_alleles(self, my_variant, genomic_reference=False):
         """
         HGVS allele handling function which takes a single HGVS allele description and
@@ -2234,19 +2093,6 @@ class Mixin(vvMixinInit.Mixin):
                 raise fn.alleleVariantError(
                     f"AlleleVariantError: Unexpected compound accession '{accession}' passed to hgvs_alleles()"
                 )
-
-            # if '(' in accession or ')' in accession:
-            #     logger.info(f"compound accession {accession} identified")
-            #     if not ('(' in accession and ')' in accession):
-            #         raise fn.alleleVariantError(
-            #                 'Unsupported format for allele accession'
-            #                 + ' bad use of brackets ' + accession)
-            #     accession_1, _sep, accession_2 = accession.partition('(')
-            #     accession_2, _sep, _remain = accession_2.partition(')')
-            #     if accession_1[:3] in ['NM_','NR_'] or accession_1[:4] == 'ENST':
-            #         accession = accession_1
-            #     else:
-            #         accession = accession_2
 
             def _parse_allele_part(accession,var_type,pe):
                 try:
@@ -2273,35 +2119,35 @@ class Mixin(vvMixinInit.Mixin):
             def _check_and_fix_for_ex_repeat(accession, var_type, pe, genomic_reference):
                 """
                 Detect expanded repeat syntax within an allele and convert it to a
-                normalised HGVS sequence variant suitable for downstream processing.
+                normalised HGVS SequenceVariant for downstream processing.
 
                 Returns
                 -------
                 tuple
                     (repeat_variant_or_None, genomic_reference)
                 """
-
-                # Not an expanded repeat
-                if not pe.endswith("]"):
+                # Expanded repeat syntax must end with BASES[int].
+                if not pe.endswith("]") or not re.search(r"[GATC]+\[\d+\]$", pe):
                     return None, genomic_reference
 
-                if not re.search(r"[GATC]+\[\d+\]$", pe):
-                    return None, genomic_reference
-
-                logger.info(f"checking allele {pe} for expanded_repeats")
-
-                expanded_repeat = expanded_repeats.convert_tandem(
-                    f"{accession}:{var_type}.{pe}",
-                    self,
-                    my_variant.primary_assembly,
-                    "all",
+                logger.info(
+                    "Checking allele %s for expanded repeats",
+                    pe
                 )
 
-                if not expanded_repeat:
+                # This is the string parsing boundary. Once parsed/reformatted, retain
+                # the HGVS object throughout downstream processing.
+                expanded_variant = expanded_repeats.TandemRepeats.parse_repeat_variant(
+                    f"{accession}:{var_type}.{pe}",
+                    my_variant.primary_assembly,
+                    "all",
+                    self,
+                )
+
+                if expanded_variant is False:
                     return None, genomic_reference
 
-                # Convert expanded repeat annotation to a sequence-state variant
-                repeat_to_delins = copy.deepcopy(expanded_repeat["variant"])
+                repeat_to_delins = expanded_variant.reformat(self)
                 repeat_to_delins.posedit.expanded_rep = False
 
                 try:
@@ -2310,45 +2156,45 @@ class Mixin(vvMixinInit.Mixin):
                     pass
 
                 logger.info(
-                    f"Expanded repeat in allele normalised to {repeat_to_delins}"
+                    "Expanded repeat in allele normalised to %s",
+                    repeat_to_delins
                 )
 
                 # Intronic transcript variants require a genomic reference for
-                # merge_hgvs_3pr().  If one has not already been supplied,
-                # determine the appropriate genomic accession.
+                # merge_hgvs_3pr(). If one has not already been supplied, determine
+                # the appropriate genomic accession.
                 if (
                         genomic_reference is False
-                        and (repeat_to_delins.type == "c" or repeat_to_delins.type == "n")
+                        and repeat_to_delins.type in ("c", "n")
                         and (
                         repeat_to_delins.posedit.pos.start.offset != 0
                         or repeat_to_delins.posedit.pos.end.offset != 0
                 )
                 ):
                     logger.info(
-                        f"Looking up genomic reference for transcript {repeat_to_delins.ac}"
+                        "Looking up genomic reference for transcript %s",
+                        repeat_to_delins.ac
                     )
 
-
-                    mapping = self.hdp.get_tx_mapping_options(repeat_to_delins.ac)
-
-                    for option in mapping:
+                    for option in self.hdp.get_tx_mapping_options(repeat_to_delins.ac):
                         genomic_ac = option[1]
 
-                        if (
-                                seq_data.to_chr_num_refseq(
-                                    genomic_ac,
-                                    my_variant.primary_assembly,
-                                )
-                                is not None
-                        ):
+                        if seq_data.to_chr_num_refseq(
+                                genomic_ac,
+                                my_variant.primary_assembly,
+                        ) is not None:
                             genomic_reference = genomic_ac
+
                             logger.info(
-                                f"Using genomic reference {genomic_reference}"
+                                "Using genomic reference %s",
+                                genomic_reference
                             )
                             break
-
                 else:
-                    logger.info(f"Created return using genomic reference {genomic_reference}")
+                    logger.info(
+                        "Created return using genomic reference %s",
+                        genomic_reference
+                    )
 
                 return repeat_to_delins, genomic_reference
 

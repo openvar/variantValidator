@@ -1558,6 +1558,7 @@ class TestVVGapWarnings(TestCase):
             "TranscriptVersionWarning: A more recent version of the selected reference sequence NM_000088.3 is available for genome build GRCh37 (NM_000088.4)"
         ]
 
+
 # <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors
 #

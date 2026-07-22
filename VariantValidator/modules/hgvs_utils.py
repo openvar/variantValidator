@@ -14,7 +14,8 @@ from . import hgvs_position_utils
 from Bio.Seq import Seq
 import vvhgvs
 import vvhgvs.exceptions
-from vvhgvs.location import BaseOffsetInterval, Interval
+from vvhgvs.location import BaseOffsetInterval, BaseOffsetPosition, Interval, SimplePosition
+
 # used to set coordinate origin point i.e. seq start vs CDS start/end
 from vvhgvs.enums import Datum
 from vvhgvs.location import AAPosition
@@ -332,73 +333,98 @@ def to_vv_hgvs(hgvs):
             unc_posedit=hgvs.posedit.uncertain)
     return hgvs
 
-def hgvs_obj_from_existing_edit(ref_ac,ref_type, starts, edit,
+def hgvs_obj_from_existing_edit(ref_ac, ref_type, starts, edit,
                                 end=None, offset_pos=False,
                                 unc_posedit=None):
     """
-    Converts a set of inputs, including a valid edit from an existing hgvs
-    object into a new hgvs object
-    params:
-     ref_ac: ref accession for output hgvs, required!
-     ref_type: ref type eg. g or c for hgvs object, required!
-     starts: The location where the coordinates for the delins start, or an
-             existing span (as a BaseOffsetInterval which is compatible with
-             the hgvs object code), required!
-     edit: A valid hgvs object edit, required!
+    Build an HGVS variant object using an existing HGVS edit.
 
-     end: The end location, optional, used to avoid recalculating an already
-          known end, and may be also used to test predicted end, though this
-          requires a later validate. Unused if a span is given for "starts".
-     offset_pos: Are the locations simple or do they need to be the more complex
-                 BaseOffsetPosition type? Flag, optional. Unused if span given
-                 for "starts".
-    returns: hgvs variant object (not normalised)
+    starts may be:
+      - an existing Interval/BaseOffsetInterval
+      - an existing SimplePosition/BaseOffsetPosition
+      - a string/integer position
+
+    end may likewise be an existing position or a string/integer position.
     """
+    # Existing interval: use directly.
     if isinstance(starts, (BaseOffsetInterval, Interval)):
-        return vvhgvs.sequencevariant.SequenceVariant(
-                ac=ref_ac,
-                type=ref_type,
-                posedit=VVPosEdit(
-                    starts,
-                    edit,
-                    uncertain=unc_posedit)
-                )
-    if offset_pos or ref_type in ['c', 'n']:
-        # if we got a null ref and no ref end presume ins i.e. bases either side
-        # of insertion variation give 2bp len to substitute for now
-        if edit.ref is None:
-            length = 2
-        else:
-            length = len(edit.ref)
-        start_pos, end_pos = _hgvs_offset_pos_from_str_in(
-                starts,length,ref_type=ref_type,end=end)
-        return vvhgvs.sequencevariant.SequenceVariant(
-                ac=ref_ac,
-                type=ref_type,
-                posedit=VVPosEdit(
-                    vvhgvs.location.BaseOffsetInterval(
-                        start=start_pos,
-                        end=end_pos),
-                    edit,
-                    uncertain=unc_posedit
-                    )
-                )
-    if end:
-        ends = int(end)
-    else:
-        ends = int(starts) + len(edit.ref) - 1
-    return vvhgvs.sequencevariant.SequenceVariant(
-            ac=ref_ac,
-            type=ref_type,
-            posedit=VVPosEdit(
-                vvhgvs.location.Interval(
-                    start=vvhgvs.location.SimplePosition(base=int(starts)),
-                    end=vvhgvs.location.SimplePosition(base=ends),
-                    ),
-                edit,
-                uncertain=unc_posedit
-                )
+        position = starts
+
+    # Existing HGVS position objects: construct the appropriate interval
+    # directly and preserve the object lifecycle.
+    elif isinstance(starts, BaseOffsetPosition):
+        end_pos = end if end is not None else starts
+
+        if not isinstance(end_pos, BaseOffsetPosition):
+            _, end_pos = _hgvs_offset_pos_from_str_in(
+                starts,
+                len(edit.ref) if edit.ref is not None else 2,
+                ref_type=ref_type,
+                end=end
             )
+
+        position = BaseOffsetInterval(
+            start=starts,
+            end=end_pos
+        )
+
+    elif isinstance(starts, SimplePosition):
+        if end is None:
+            if edit.ref is None:
+                end_pos = SimplePosition(base=starts.base + 1)
+            else:
+                end_pos = SimplePosition(
+                    base=starts.base + len(edit.ref) - 1
+                )
+        elif isinstance(end, SimplePosition):
+            end_pos = end
+        else:
+            end_pos = SimplePosition(base=int(end))
+
+        position = Interval(
+            start=starts,
+            end=end_pos
+        )
+
+    # String/numeric coding positions.
+    elif offset_pos or ref_type in ('c', 'n'):
+        length = 2 if edit.ref is None else len(edit.ref)
+
+        start_pos, end_pos = _hgvs_offset_pos_from_str_in(
+            starts,
+            length,
+            ref_type=ref_type,
+            end=end
+        )
+
+        position = BaseOffsetInterval(
+            start=start_pos,
+            end=end_pos
+        )
+
+    # String/numeric simple positions.
+    else:
+        start_pos = int(starts)
+
+        if end is not None:
+            end_pos = int(end)
+        else:
+            end_pos = start_pos + len(edit.ref) - 1
+
+        position = Interval(
+            start=SimplePosition(base=start_pos),
+            end=SimplePosition(base=end_pos)
+        )
+
+    return vvhgvs.sequencevariant.SequenceVariant(
+        ac=ref_ac,
+        type=ref_type,
+        posedit=VVPosEdit(
+            position,
+            edit,
+            uncertain=unc_posedit
+        )
+    )
 
 
 def hgvs_delins_parts_to_hgvs_obj(ref_ac,ref_type, starts, delete, insert,end=None,offset_pos=False):
@@ -1691,28 +1717,29 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
                             # Ensure merged variant is not in a "non-intron" if mapped back to n.
                             if merged_variant is not False:
                                 try:
-                                    if (
-                                            hgvs_position_utils.position_is_intronic(merged_variant, check_start=True)
-                                            or hgvs_position_utils.position_is_intronic(merged_variant, check_end=True)
-                                    ):
+                                    if hgvs_position_utils.either_position_is_intronic(merged_variant):
                                         # Try from normalized genomic
                                         pre_merged_variant = hn.normalize(pre_merged_variant)
-                                        test_merged_variant = vm.g_to_n(pre_merged_variant, tx_ac)
-                                        if (
-                                                not hgvs_position_utils.position_is_intronic(test_merged_variant,
-                                                                                             check_start=True)
-                                                and not hgvs_position_utils.position_is_intronic(test_merged_variant,
-                                                                                                 check_end=True)
+                                        test_merged_variant = vm.g_to_n(
+                                            pre_merged_variant,
+                                            tx_ac
+                                        )
+
+                                        if not hgvs_position_utils.either_position_is_intronic(
+                                                test_merged_variant
                                         ):
                                             merged_variant = pre_merged_variant
                                         else:
-                                            pre_merged_variant = reverse_normalizer.normalize(pre_merged_variant)
-                                            test_merged_variant = vm.g_to_n(pre_merged_variant, tx_ac)
-                                            if (
-                                                    not hgvs_position_utils.position_is_intronic(test_merged_variant,
-                                                                                                 check_start=True)
-                                                    and not hgvs_position_utils.position_is_intronic(
-                                                test_merged_variant, check_end=True)
+                                            pre_merged_variant = reverse_normalizer.normalize(
+                                                pre_merged_variant
+                                            )
+                                            test_merged_variant = vm.g_to_n(
+                                                pre_merged_variant,
+                                                tx_ac
+                                            )
+
+                                            if not hgvs_position_utils.either_position_is_intronic(
+                                                    test_merged_variant
                                             ):
                                                 merged_variant = pre_merged_variant
                                     # Map back to n.
@@ -1895,32 +1922,33 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
                             # Ensure merged variant is not in a "non-intron" if mapped back to n.
                             if merged_variant is not False:
                                 try:
-                                    if (
-                                            hgvs_position_utils.position_is_intronic(merged_variant, check_start=True)
-                                            or hgvs_position_utils.position_is_intronic(merged_variant, check_end=True)
-                                    ):
+                                    if hgvs_position_utils.either_position_is_intronic(merged_variant):
                                         # Try from normalized genomic
                                         try:
                                             pre_merged_variant = hn.normalize(pre_merged_variant)
                                         except vvhgvs.exceptions.HGVSError:
                                             pass
-                                        test_merged_variant = vm.g_to_n(pre_merged_variant, tx_ac)
 
-                                        if (
-                                                not hgvs_position_utils.position_is_intronic(test_merged_variant,
-                                                                                             check_start=True)
-                                                and not hgvs_position_utils.position_is_intronic(test_merged_variant,
-                                                                                                 check_end=True)
+                                        test_merged_variant = vm.g_to_n(
+                                            pre_merged_variant,
+                                            tx_ac
+                                        )
+
+                                        if not hgvs_position_utils.either_position_is_intronic(
+                                                test_merged_variant
                                         ):
                                             merged_variant = pre_merged_variant
                                         else:
-                                            pre_merged_variant = reverse_normalizer.normalize(pre_merged_variant)
-                                            test_merged_variant = vm.g_to_n(pre_merged_variant, tx_ac)
-                                            if (
-                                                    not hgvs_position_utils.position_is_intronic(test_merged_variant,
-                                                                                                 check_start=True)
-                                                    and not hgvs_position_utils.position_is_intronic(
-                                                test_merged_variant, check_end=True)
+                                            pre_merged_variant = reverse_normalizer.normalize(
+                                                pre_merged_variant
+                                            )
+                                            test_merged_variant = vm.g_to_n(
+                                                pre_merged_variant,
+                                                tx_ac
+                                            )
+
+                                            if not hgvs_position_utils.either_position_is_intronic(
+                                                    test_merged_variant
                                             ):
                                                 merged_variant = pre_merged_variant
                                     # Map back to n.
@@ -2345,31 +2373,27 @@ def hard_left_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, s
                             # Ensure merged variant is not in a "non-intron" if mapped back to n.
                             if merged_variant is not False:
                                 try:
-                                    if (
-                                            hgvs_position_utils.position_is_intronic(merged_variant, check_start=True)
-                                            or hgvs_position_utils.position_is_intronic(merged_variant, check_end=True)
-                                    ):
+                                    if hgvs_position_utils.either_position_is_intronic(merged_variant):
                                         # Try from normalized genomic
                                         try:
                                             pre_merged_variant = hn.normalize(pre_merged_variant)
                                         except vvhgvs.exceptions.HGVSError:
                                             pass
-                                        test_merged_variant = vm.g_to_n(pre_merged_variant, tx_ac)
-                                        if (
-                                                not hgvs_position_utils.position_is_intronic(test_merged_variant,
-                                                                                             check_start=True)
-                                                and not hgvs_position_utils.position_is_intronic(test_merged_variant,
-                                                                                                 check_end=True)
+
+                                        test_merged_variant = vm.g_to_n(
+                                            pre_merged_variant,
+                                            tx_ac
+                                        )
+
+                                        if not hgvs_position_utils.either_position_is_intronic(
+                                                test_merged_variant
                                         ):
                                             merged_variant = test_merged_variant
                                         else:
                                             pre_merged_variant = reverse_normalizer.normalize(pre_merged_variant)
                                             test_merged_variant = vm.g_to_n(pre_merged_variant, tx_ac)
-                                            if (
-                                                    not hgvs_position_utils.position_is_intronic(test_merged_variant,
-                                                                                                 check_start=True)
-                                                    and not hgvs_position_utils.position_is_intronic(
-                                                test_merged_variant, check_end=True)
+                                            if not hgvs_position_utils.either_position_is_intronic(
+                                                    test_merged_variant
                                             ):
                                                 merged_variant = pre_merged_variant
                                     # Map back to n.
@@ -2423,10 +2447,7 @@ def hard_left_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, s
 
                     # In transcript gaps, this can push us fully into the gap
                     try:
-                        if (
-                                hgvs_position_utils.position_is_intronic(map_back, check_start=True)
-                                and hgvs_position_utils.position_is_intronic(map_back, check_end=True)
-                        ):
+                        if hgvs_position_utils.both_positions_are_intronic(map_back):
                             needs_a_push = False
                             push_pos_by = push_pos_by + 1
                             break
@@ -2584,28 +2605,29 @@ def hard_left_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, s
                             # Ensure merged variant is not in a "non-intron" if mapped back to n.
                             if merged_variant is not False:
                                 try:
-                                    if (
-                                            hgvs_position_utils.position_is_intronic(merged_variant, check_start=True)
-                                            or hgvs_position_utils.position_is_intronic(merged_variant, check_end=True)
-                                    ):
+                                    if hgvs_position_utils.either_position_is_intronic(merged_variant):
                                         # Try from normalized genomic
                                         pre_merged_variant = hn.normalize(pre_merged_variant)
-                                        test_merged_variant = vm.g_to_n(pre_merged_variant, tx_ac)
-                                        if (
-                                                not hgvs_position_utils.position_is_intronic(test_merged_variant,
-                                                                                             check_start=True)
-                                                and not hgvs_position_utils.position_is_intronic(test_merged_variant,
-                                                                                                 check_end=True)
+                                        test_merged_variant = vm.g_to_n(
+                                            pre_merged_variant,
+                                            tx_ac
+                                        )
+
+                                        if not hgvs_position_utils.either_position_is_intronic(
+                                                test_merged_variant
                                         ):
                                             merged_variant = pre_merged_variant
                                         else:
-                                            pre_merged_variant = reverse_normalizer.normalize(pre_merged_variant)
-                                            test_merged_variant = vm.g_to_n(pre_merged_variant, tx_ac)
-                                            if (
-                                                    not hgvs_position_utils.position_is_intronic(test_merged_variant,
-                                                                                                 check_start=True)
-                                                    and not hgvs_position_utils.position_is_intronic(
-                                                test_merged_variant, check_end=True)
+                                            pre_merged_variant = reverse_normalizer.normalize(
+                                                pre_merged_variant
+                                            )
+                                            test_merged_variant = vm.g_to_n(
+                                                pre_merged_variant,
+                                                tx_ac
+                                            )
+
+                                            if not hgvs_position_utils.either_position_is_intronic(
+                                                    test_merged_variant
                                             ):
                                                 merged_variant = pre_merged_variant
 

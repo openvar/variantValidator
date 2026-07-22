@@ -18,8 +18,12 @@ logger = logging.getLogger(__name__)
 class GeneSymbolFormatError(Exception):
     pass
 
-def initial_format_conversions(variant, validator, select_transcripts_dict_plus_version, batch_list):
-
+def initial_format_conversions(
+        variant,
+        validator,
+        select_transcripts_dict_plus_version,
+        batch_list
+):
     # VCF type 1
     toskip = vcf2hgvs_stage1(variant, batch_list)
     if toskip:
@@ -31,12 +35,22 @@ def initial_format_conversions(variant, validator, select_transcripts_dict_plus_
     if toskip:
         return True
 
-    toskip = gene_symbol_catch(variant, validator, select_transcripts_dict_plus_version, batch_list)
+    toskip = gene_symbol_catch(
+        variant,
+        validator,
+        select_transcripts_dict_plus_version,
+        batch_list
+    )
     if toskip:
         return True
 
     # NG_:c. or NC_:c.
-    toskip = refseq_catch(variant, validator, select_transcripts_dict_plus_version, batch_list)
+    toskip = refseq_catch(
+        variant,
+        validator,
+        select_transcripts_dict_plus_version,
+        batch_list
+    )
     if toskip:
         return True
 
@@ -45,75 +59,103 @@ def initial_format_conversions(variant, validator, select_transcripts_dict_plus_
     if toskip:
         return True
 
-    # Extract variants from HGVS allele descriptions
-    # http://varnomen.hgvs.org/recommendations/DNA/variant/alleles/
-    logger.info("Try find allele syntax in %s", variant.quibble)
-    toskip = allele_parser(variant, validator, validator, batch_list)
-    if toskip:
-        return True
+    # The following checks operate on string syntax only. If an earlier
+    # conversion has already produced an HGVS SequenceVariant, retain the
+    # object and bypass the remaining string-specific processing.
 
-    # Conversions
-    # are not currently supported. The HGVS format for conversions
-    # is rarely seen wrt genomic sequencing data and needs to be re-evaluated
-    # so abort before hgvs object conversion to avoid errors & parsing overhead
-    if 'con' in variant.quibble:
-        variant.warnings.append('Conversions are no longer valid HGVS Sequence Variant Descriptions')
-        logger.info('Conversions are no longer valid HGVS Sequence Variant Descriptions')
-        return True
+    # Extract variants from HGVS allele descriptions.
+    if isinstance(variant.quibble, str):
+        logger.info("Try find allele syntax in %s", variant.quibble)
+        toskip = allele_parser(
+            variant,
+            validator,
+            validator,
+            batch_list
+        )
+        if toskip:
+            return True
 
-    toskip = use_checking.pre_parsing_global_common_mistakes(variant)
-    if toskip:
-        return True
+    # Conversions are no longer supported HGVS syntax.
+    if isinstance(variant.quibble, str):
+        if 'con' in variant.quibble:
+            warning = (
+                'Conversions are no longer valid HGVS Sequence Variant '
+                'Descriptions'
+            )
+            variant.warnings.append(warning)
+            logger.info(warning)
+            return True
 
-    # Remove & store Methylation Syntax suffix before hgvs object parsing
-    methyl_syntax.methyl_syntax(variant)
+    # Check common mistakes in unparsed input.
+    if isinstance(variant.quibble, str):
+        toskip = use_checking.pre_parsing_global_common_mistakes(variant)
+        if toskip:
+            return True
 
-    # Uncertain positions (converts to hgvs object so must be post split/fix)
-    toskip = uncertain_pos(variant, validator)
-    if toskip:
-        return True
+    # Remove and store methylation syntax suffix before HGVS object parsing.
+    if isinstance(variant.quibble, str):
+        methyl_syntax.methyl_syntax(variant)
 
-    # Expanded repeat->delins code can not handle Uncertain positions yet
-    # also does hgvs object conversion if it triggers
-    logger.info("Try find Expanded Repeat syntax in %s", variant.quibble)
-    if isinstance(variant.quibble, str): # not Uncertain
+    # Uncertain positions may convert the input to an HGVS object.
+    if isinstance(variant.quibble, str):
+        toskip = uncertain_pos(variant, validator)
+        if toskip:
+            return True
+
+    # Expanded repeats may convert the input to an HGVS object.
+    if isinstance(variant.quibble, str):
+        logger.info(
+            "Try find Expanded Repeat syntax in %s",
+            variant.quibble
+        )
         toskip = convert_expanded_repeat(variant, validator)
         if toskip:
             return True
 
-    # Catches del12/ins21 type variants, can usfully trigger on the outupt of the expanded repeat conversions
-    # and can not currently handle uncertain positions
-    if isinstance(variant.quibble, str): # not Uncertain
+    # Catch del12/ins21-style descriptions while input remains a string.
+    if isinstance(variant.quibble, str):
         toskip = indel_catching(variant, validator)
         if toskip:
             return True
 
-    # Quibble should now be correctly formatted hgvs & work for object parsing
-    # or else already have been parsed already
+    # Any remaining string should now be correctly formatted HGVS and can
+    # undergo final object parsing. Existing HGVS objects bypass this stage.
     if isinstance(variant.quibble, str):
         try:
             toskip = final_hgvs_convert(variant, validator)
+
         except:
-            # Check for common mistakes
+            # Check for common mistakes.
             toskip = use_checking.refseq_common_mistakes(variant)
             if toskip:
                 return True
-            # try again if corrected
+
+            # Try again if corrected.
             try:
                 toskip = final_hgvs_convert(variant, validator)
+
             except vvhgvs.exceptions.HGVSParseError as err:
-                variant.warnings.append("HgvsSyntaxError: " + str(err))
+                variant.warnings.append(
+                    "HgvsSyntaxError: " + str(err)
+                )
                 return True
-            except vvhgvs.exceptions.HGVSError as err:
-                variant.warnings.append(f"HgvsParserError: Unknown error during"
-                                        "reading of variant {variant.quibble}")
+
+            except vvhgvs.exceptions.HGVSError:
+                variant.warnings.append(
+                    f"HgvsParserError: Unknown error during "
+                    f"reading of variant {variant.quibble}"
+                )
                 return True
-        # fail if un-corrected errors persist (warning should already have been generated)
+
+        # Fail if uncorrected errors persist. A warning should already
+        # have been generated.
         if toskip:
             return True
 
-    # Tackle compound variant descriptions NG or NC (NM_) i.e. correctly input NG/NC_(NM_):c.
+    # Tackle compound variant descriptions NG or NC (NM_), i.e.
+    # correctly input NG/NC_(NM_):c.
     intronic_converter(variant, validator)
+
     return False
 
 def final_hgvs_convert(variant,validator):
@@ -893,14 +935,12 @@ def vcf2hgvs_stage4(variant, batch_list):
                 start = hgvs_re_try.posedit.pos.start
                 offset = start.offset
 
-                if hgvs_position_utils.offset_is_negative(
-                        hgvs_re_try, check_start=True):
+                if hgvs_position_utils.start_offset_is_negative(hgvs_re_try):
                     new_offset = offset + len(delete)
                     hgvs_re_try.posedit.pos.end.base = start.base
                     hgvs_re_try.posedit.pos.end.offset = new_offset - 1
 
-                elif hgvs_position_utils.offset_is_positive(
-                        hgvs_re_try, check_start=True):
+                elif hgvs_position_utils.start_offset_is_positive(hgvs_re_try):
                     end_pos = start.base + (len(delete) - offset - 1)
                     new_offset = offset + (len(delete) - 1)
                     hgvs_re_try.posedit.pos.end.base = end_pos
@@ -920,20 +960,20 @@ def vcf2hgvs_stage4(variant, batch_list):
                     offset_pos=True
                 )
 
-                # attempt to normalise output
+                # Attempt to normalise output while preserving the HGVS object
                 try:
-                    not_delins = str(variant.hn.normalize(hgvs_not_delins))
+                    not_delins = variant.hn.normalize(hgvs_not_delins)
                 except vvhgvs.exceptions.HGVSError as e:
                     error = str(e)
                     if 'Normalization of intronic variants is not supported' in error:
-                        not_delins = str(hgvs_not_delins)
+                        not_delins = hgvs_not_delins
                     else:
                         variant.warnings.append(error)
                         logger.info(error)
                         skipvar = True
 
                 # Create warning
-                automap = variant.quibble + ' automapped to ' + not_delins
+                automap = f'{variant.quibble} automapped to {not_delins}'
                 variant.warnings.append(automap)
 
                 # Change input to normalized variant
@@ -946,18 +986,17 @@ def vcf2hgvs_stage4(variant, batch_list):
     return skipvar
 
 def convert_expanded_repeat(my_variant, validator):
-
-    # Remove gene symbols from reference sequences
-    if '(' in my_variant.quibble and ')' in my_variant.quibble:
-        initial_formatting.remove_gene_symbol_from_ref(my_variant, validator)
-
-    # Format expanded repeat syntax into a usable hgvs variant
     """
-    Waiting for HGVS nomenclature changes
+    Convert expanded repeat syntax into a usable HGVS variant.
+
+    Expanded repeat syntax is inspected as a string at this parsing boundary.
+    Once converted, retain the resulting HGVS SequenceVariant object.
     """
+    quibble = my_variant.quibble
+
     logger.info(
         "Checking my variant: %s for expanded repeats in format_converters",
-        my_variant.quibble
+        quibble
     )
 
     try:
@@ -967,48 +1006,60 @@ def convert_expanded_repeat(my_variant, validator):
             my_variant.primary_assembly,
             "all"
         )
+
     except expanded_repeats.RepeatSyntaxError as e:
         my_variant.warnings = [str(e)]
         return True
+
     except vvhgvs.exceptions.HGVSInvalidVariantError as e:
-        my_variant.warnings = ["HgvsSyntaxError: " + str(e)]
+        my_variant.warnings = [f"HgvsSyntaxError: {e}"]
         return True
+
     except vvhgvs.exceptions.HGVSDataNotAvailableError as e:
         error = str(e)
+
         if "invalid coordinates:" in error:
-            transcript = my_variant.quibble.partition(':')[0]
+            transcript = quibble.partition(':')[0]
             my_variant.warnings = [
-                f"ExonBoundaryError: Stated position "
-                f"does not correspond with an exon boundary for "
-                f"transcript {transcript}"
+                f"ExonBoundaryError: Stated position does not correspond "
+                f"with an exon boundary for transcript {transcript}"
             ]
             return True
+
+        return False
+
     except Exception as e:
-        my_variant.warnings = ["ExpandedRepeatError: " + str(e)]
+        my_variant.warnings = [f"ExpandedRepeatError: {e}"]
         return True
 
     if not has_ex_repeat:
         return False
 
     expanded_repeat_variant = my_variant.expanded_repeat["variant"]
+
+    # String representation is required only to compare the submitted repeat
+    # syntax with the corrected HGVS description presented to the user.
     expanded_repeat_str = str(expanded_repeat_variant)
 
-    if my_variant.quibble != expanded_repeat_str:
-        if re.search(r"\d+_", my_variant.quibble):
+    if quibble != expanded_repeat_str:
+        if re.search(r"\d+_", quibble):
             corrected_format = expanded_repeat_str.partition('[')[0]
+
             my_variant.warnings.append(
-                f"ExpandedRepeatError: The coordinates for the repeat region are stated incorrectly"
-                f" in the submitted description {my_variant.quibble}. The corrected format"
-                f" would be {corrected_format}"
-                f"[int], where int requires you to update the number of repeats"
+                f"ExpandedRepeatError: The coordinates for the repeat region "
+                f"are stated incorrectly in the submitted description "
+                f"{quibble}. The corrected format would be "
+                f"{corrected_format}[int], where int requires you to update "
+                f"the number of repeats"
             )
             return True
-        else:
-            my_variant.warnings.append(
-                f"ExpandedRepeatError: The coordinates for the repeat region are stated incorrectly"
-                f" in the submitted description {my_variant.quibble}. The corrected description is "
-                f"{expanded_repeat_str}"
-            )
+
+        my_variant.warnings.append(
+            f"ExpandedRepeatError: The coordinates for the repeat region "
+            f"are stated incorrectly in the submitted description "
+            f"{quibble}. The corrected description is "
+            f"{expanded_repeat_str}"
+        )
 
     repeat_to_delins = copy.deepcopy(expanded_repeat_variant)
     repeat_to_delins.posedit.expanded_rep = False
@@ -1024,6 +1075,7 @@ def convert_expanded_repeat(my_variant, validator):
     )
 
     my_variant.quibble = repeat_to_delins
+
     my_variant.warnings.append(
         f"ExpandedRepeatWarning: {expanded_repeat_variant} "
         f"should only be used as an annotation for the core "
@@ -1220,12 +1272,10 @@ def intronic_converter(variant, validator, skip_check=False, uncertain=False):
                             'start or end or both are beyond the bounds of '
                             'transcript record' in error
                     ):
-                        if hgvs_position_utils.position_is_intronic(
-                                hgvs_transy, check_start=True):
+                        if hgvs_position_utils.start_position_is_intronic(hgvs_transy):
                             hgvs_transy.posedit.pos.start.offset = 1
 
-                        if hgvs_position_utils.position_is_intronic(
-                                hgvs_transy, check_end=True):
+                        if hgvs_position_utils.end_position_is_intronic(hgvs_transy):
                             hgvs_transy.posedit.pos.end.offset = 1
 
                         remap_intronic(
@@ -1267,8 +1317,7 @@ def intronic_converter(variant, validator, skip_check=False, uncertain=False):
 def remap_intronic(hgvs_transy, hgvs_genomic, variant, validator):
     # Check re-mapping of intronic variants
     try:
-        if not hgvs_position_utils.position_is_intronic(
-                hgvs_transy, check_start=True, check_end=True):
+        if not hgvs_position_utils.either_position_is_intronic(hgvs_transy):
             return
 
         try:
@@ -1588,8 +1637,8 @@ def lrg_to_refseq(variant, validator):
 
 def mitochondrial(variant, validator):
     """
-    Will check if variant is mitochondrial and if so it will reformat the type
-    to 'm' and save a value to the variant hgvs_genomic attribute.
+    Check whether the variant is mitochondrial, ensure the correct reference
+    sequence type is used, and retain the mitochondrial HGVS object.
     """
     mitochondrial_accessions = ('NC_012920.1', 'NC_001807.4')
 
@@ -1597,16 +1646,18 @@ def mitochondrial(variant, validator):
             variant.reftype == ':m.'
             or variant.hgvs_formatted.ac in mitochondrial_accessions
     ):
-        # Set flag
         variant.output_type_flag = 'mitochondrial'
 
-        # Ensure the correct reference sequence type is used, if not, warn the user
+        # Work with a copy of the parsed HGVS object.
         hgvs_mito = copy.deepcopy(variant.hgvs_formatted)
 
         if hgvs_mito.type == 'g' and hgvs_mito.ac in mitochondrial_accessions:
             hgvs_mito.type = 'm'
 
-            if hgvs_mito.ac == 'NC_012920.1' and 'hg19' in variant.selected_assembly:
+            if (
+                    hgvs_mito.ac == 'NC_012920.1'
+                    and 'hg19' in variant.selected_assembly
+            ):
                 wrn = (
                     'NC_012920.1 is not associated with genome build hg19, '
                     'instead use genome build GRCh37'
@@ -1614,7 +1665,10 @@ def mitochondrial(variant, validator):
                 variant.warnings.append(wrn)
                 return True
 
-            elif hgvs_mito.ac == 'NC_001807.4' and 'GRCh37' in variant.selected_assembly:
+            elif (
+                    hgvs_mito.ac == 'NC_001807.4'
+                    and 'GRCh37' in variant.selected_assembly
+            ):
                 wrn = (
                     'NC_001807.4 is not associated with genome build GRCh37, '
                     'instead use genome build hg19'
@@ -1630,7 +1684,7 @@ def mitochondrial(variant, validator):
             )
             variant.warnings.append(wrn)
 
-        # Validate the variant description
+        # Validate the mitochondrial HGVS object.
         try:
             validator.vr.validate(hgvs_mito)
 
@@ -1650,9 +1704,9 @@ def mitochondrial(variant, validator):
             logger.info(error)
             return True
 
-        # Check for movement during normalization
+        # Check for movement during normalization.
         try:
-            norm_check = variant.hn.normalize(variant.hgvs_formatted)
+            norm_check = variant.hn.normalize(hgvs_mito)
 
             if hgvs_mito.posedit.pos != norm_check.posedit.pos:
                 norm_check.type = 'm'
@@ -1678,7 +1732,7 @@ def mitochondrial(variant, validator):
             validator.select_transcripts
         )
 
-        # Add a description of the reference sequence type and continue
+        # Retain the mitochondrial HGVS object.
         variant.hgvs_genomic = hgvs_mito
 
         if not rel_var:

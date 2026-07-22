@@ -350,15 +350,8 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
         logger.info(str(errors))
         return True
 
-    if (
-            hgvs_position_utils.position_is_intronic(
-                quibble_input_hgvs_obj,
-                check_start=True
-            )
-            or hgvs_position_utils.position_is_intronic(
-        quibble_input_hgvs_obj,
-        check_end=True
-    )
+    if hgvs_position_utils.either_position_is_intronic(
+            quibble_input_hgvs_obj
     ):
         if 'error' in str(to_g):
             if validator.alt_aln_method != 'genebuild':
@@ -396,18 +389,10 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
             # Insertions at exon boundaries are miss-handled by vm.g_to_t
             if (
                     obj.posedit.edit.type == 'ins'
-                    and (
-                    (
-                            not hgvs_position_utils.position_is_intronic(obj, check_start=True)
-                            and hgvs_position_utils.position_is_intronic(obj, check_end=True)
-                    )
-                    or (
-                            hgvs_position_utils.position_is_intronic(obj, check_start=True)
-                            and not hgvs_position_utils.position_is_intronic(obj, check_end=True)
-                    )
-            )
+                    and hgvs_position_utils.only_one_position_is_intronic(obj)
             ):
                 out_hgvs_obj = obj
+
             else:
                 try:
                     out_hgvs_obj = validator.myevm_g_to_t(variant.evm, to_g, tx_ac)
@@ -425,10 +410,7 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
 
 
     elif quibble_input_hgvs_obj.type == 'g':
-        if (
-                hgvs_position_utils.position_is_intronic(out_hgvs_obj, check_start=True)
-                or hgvs_position_utils.position_is_intronic(out_hgvs_obj, check_end=True)
-        ):
+        if hgvs_position_utils.either_position_is_intronic(out_hgvs_obj):
             to_g = validator.genomic(
                 out_hgvs_obj,
                 variant.no_norm_evm,
@@ -453,16 +435,7 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
             # Insertions at exon boundaries are miss-handled by vm.g_to_t
             if (
                     obj.posedit.edit.type == 'ins'
-                    and (
-                    (
-                            not hgvs_position_utils.position_is_intronic(obj, check_start=True)
-                            and hgvs_position_utils.position_is_intronic(obj, check_end=True)
-                    )
-                    or (
-                            hgvs_position_utils.position_is_intronic(obj, check_start=True)
-                            and not hgvs_position_utils.position_is_intronic(obj, check_end=True)
-                    )
-            )
+                    and hgvs_position_utils.only_one_position_is_intronic(obj)
             ):
                 out_hgvs_obj = obj
             else:
@@ -499,16 +472,8 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
             return True
 
     # Tackle intronic offsets
-    cck = (
-            hgvs_position_utils.position_is_intronic(
-                quibble_input_hgvs_obj,
-                check_start=True
-            )
-            or
-            hgvs_position_utils.position_is_intronic(
-                quibble_input_hgvs_obj,
-                check_end=True
-            )
+    cck = hgvs_position_utils.either_position_is_intronic(
+        quibble_input_hgvs_obj
     )
 
     # COORDINATE CHECKER
@@ -571,24 +536,24 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
                 can_we_autocorrect = False
                 if (
                         (
-                            hgvs_position_utils.offset_is_negative(test, check_start=True)
-                            and hgvs_position_utils.offset_is_positive(post_var, check_start=True)
-                            and post_var.posedit.pos.start.base == test.posedit.pos.start.base - 1
+                                hgvs_position_utils.start_offset_is_negative(test)
+                                and hgvs_position_utils.start_offset_is_positive(post_var)
+                                and post_var.posedit.pos.start.base == test.posedit.pos.start.base - 1
                         )
                         or (
-                            hgvs_position_utils.offset_is_positive(test, check_start=True)
-                            and hgvs_position_utils.offset_is_negative(post_var, check_start=True)
-                            and post_var.posedit.pos.start.base == test.posedit.pos.start.base + 1
+                        hgvs_position_utils.start_offset_is_positive(test)
+                        and hgvs_position_utils.start_offset_is_negative(post_var)
+                        and post_var.posedit.pos.start.base == test.posedit.pos.start.base + 1
                 )
                         or (
-                            hgvs_position_utils.offset_is_negative(test, check_end=True)
-                            and hgvs_position_utils.offset_is_positive(post_var, check_end=True)
-                            and post_var.posedit.pos.end.base == test.posedit.pos.end.base - 1
+                        hgvs_position_utils.end_offset_is_negative(test)
+                        and hgvs_position_utils.end_offset_is_positive(post_var)
+                        and post_var.posedit.pos.end.base == test.posedit.pos.end.base - 1
                 )
                         or (
-                            hgvs_position_utils.offset_is_positive(test, check_end=True)
-                            and hgvs_position_utils.offset_is_negative(post_var, check_end=True)
-                            and post_var.posedit.pos.end.base == test.posedit.pos.end.base + 1
+                        hgvs_position_utils.end_offset_is_positive(test)
+                        and hgvs_position_utils.end_offset_is_negative(post_var)
+                        and post_var.posedit.pos.end.base == test.posedit.pos.end.base + 1
                 )
                 ):
                     can_we_autocorrect = True
@@ -670,24 +635,24 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
                 can_we_autocorrect = False
                 if (
                         (
-                            hgvs_position_utils.offset_is_negative(test, check_start=True)
-                            and hgvs_position_utils.offset_is_positive(post_var, check_start=True)
-                            and post_var.posedit.pos.start.base == test.posedit.pos.start.base - 1
+                                hgvs_position_utils.start_offset_is_negative(test)
+                                and hgvs_position_utils.start_offset_is_positive(post_var)
+                                and post_var.posedit.pos.start.base == test.posedit.pos.start.base - 1
                         )
                         or (
-                            hgvs_position_utils.offset_is_positive(test, check_start=True)
-                            and hgvs_position_utils.offset_is_negative(post_var, check_start=True)
-                            and post_var.posedit.pos.start.base == test.posedit.pos.start.base + 1
+                        hgvs_position_utils.start_offset_is_positive(test)
+                        and hgvs_position_utils.start_offset_is_negative(post_var)
+                        and post_var.posedit.pos.start.base == test.posedit.pos.start.base + 1
                 )
                         or (
-                            hgvs_position_utils.offset_is_negative(test, check_end=True)
-                            and hgvs_position_utils.offset_is_positive(post_var, check_end=True)
-                            and post_var.posedit.pos.end.base == test.posedit.pos.end.base - 1
+                        hgvs_position_utils.end_offset_is_negative(test)
+                        and hgvs_position_utils.end_offset_is_positive(post_var)
+                        and post_var.posedit.pos.end.base == test.posedit.pos.end.base - 1
                 )
                         or (
-                            hgvs_position_utils.offset_is_positive(test, check_end=True)
-                            and hgvs_position_utils.offset_is_negative(post_var, check_end=True)
-                            and post_var.posedit.pos.end.base == test.posedit.pos.end.base + 1
+                        hgvs_position_utils.end_offset_is_positive(test)
+                        and hgvs_position_utils.end_offset_is_negative(post_var)
+                        and post_var.posedit.pos.end.base == test.posedit.pos.end.base + 1
                 )
                 ):
                     can_we_autocorrect = True
@@ -982,8 +947,7 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
     # This code is triggered by variant NM_000088.3:c.589-1GG>G
     # Note, this will not correct read-through stop codons, but it will try!
     if (
-            not hgvs_position_utils.position_is_intronic(hgvs_coding, check_start=True)
-            and not hgvs_position_utils.position_is_intronic(hgvs_coding, check_end=True)
+            not hgvs_position_utils.either_position_is_intronic(hgvs_coding)
             and hgvs_protein != ''
             and hgvs_protein.posedit.uncertain
     ):
@@ -1048,11 +1012,14 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
                 except vvhgvs.exceptions.HGVSInvalidVariantError as e:
                     error = str(e)
                     if 'out of the bound' in error:
-                        cds_len = re.findall('\d+', error)
+                        cds_len = re.findall(r'\d+', error)
                         start_out = hgvs_updated.posedit.pos.start.base - int(cds_len[0])
                         end_out = hgvs_updated.posedit.pos.end.base - int(cds_len[0])
-                        hgvs_updated.posedit.pos.start.base = '*' + str(start_out)
-                        hgvs_updated.posedit.pos.end.base = '*' + str(end_out)
+
+                        hgvs_updated.posedit.pos.start.base = start_out
+                        hgvs_updated.posedit.pos.end.base = end_out
+
+                        hgvs_position_utils.set_both_positions_as_3_prime_utr(hgvs_updated)
 
         # set ref to empty (without re-parsing from text)
         updated_transcript_variant = unset_hgvs_obj_ref(hgvs_updated)
