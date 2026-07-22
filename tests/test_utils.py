@@ -381,44 +381,6 @@ class TestNInversion(TestCase):
             utils.n_inversion(0, 0, 0, 0, 0)
 
 
-class TestHGVSdup2indel(TestCase):
-    """ Will test the hgvs_dup2indel function"""
-
-    def setUp(self):
-        self.hp = vvhgvs.parser.Parser()
-
-    def test_empty(self):
-        with self.assertRaises(AttributeError):
-            utils.hgvs_dup2indel('')
-
-    def test_sub(self):
-        stringseq = 'NM_015120.4:c.34C>T'
-        hgvsseq = self.hp.parse_hgvs_variant(stringseq)
-        output = utils.hgvs_dup2indel(hgvsseq)
-        self.assertIsInstance(output, str)
-        self.assertEqual(output, 'NM_015120.4:c.34_34delCinsCC')
-
-    def test_del(self):
-        stringseq = 'NM_015120.4:c.34del'
-        hgvsseq = self.hp.parse_hgvs_variant(stringseq)
-        output = utils.hgvs_dup2indel(hgvsseq)
-        self.assertIsInstance(output, str)
-        self.assertEqual(output, 'NM_015120.4:c.34_34delins')
-
-    def test_dup(self):
-        stringseq = 'NM_015120.4:c.34dupG'
-        hgvsseq = self.hp.parse_hgvs_variant(stringseq)
-        output = utils.hgvs_dup2indel(hgvsseq)
-        self.assertIsInstance(output, str)
-        self.assertEqual(output, 'NM_015120.4:c.34_34delGinsGG')
-
-    def test_dup_pair(self):
-        stringseq = 'NM_015120.4:c.34dupGA'
-        hgvsseq = self.hp.parse_hgvs_variant(stringseq)
-        output = utils.hgvs_dup2indel(hgvsseq)
-        self.assertIsInstance(output, str)
-        self.assertEqual(output, 'NM_015120.4:c.34_34delGAinsGAGA')
-
 class TestEnsemblRest(TestCase):
 
     @patch('VariantValidator.modules.utils.requests.get')

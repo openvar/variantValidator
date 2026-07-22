@@ -878,7 +878,6 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
             try:
                 hgvs_refseq = variant.hn.normalize(hgvs_refseq)
             except Exception:
-                # if re.search('insertion length must be 1', error):
                 hgvs_refseq = 'RefSeqGene record not available'
     else:
         hgvs_refseq = 'RefSeqGene record not available'
@@ -1011,16 +1010,19 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
     ac_root, ac_version = hgvs_coding.ac.split('.')
     version_tracking = '0'
     update = ''
+
     for accession in tx_for_gene:
         if genomic_ac not in accession[4]:
             continue
+
         try:
-            if re.match(ac_root, accession[3]):
-                query_version = accession[3].split('.')[1]
-                if int(query_version) > int(ac_version) and int(query_version) > int(
-                        version_tracking):
+            query_root, query_version = accession[3].split('.')
+
+            if query_root == ac_root:
+                if int(query_version) > int(ac_version) and int(query_version) > int(version_tracking):
                     version_tracking = query_version
                     update = accession[3]
+
         except ValueError as e:
             logger.debug("Except passed, %s", e)
 
@@ -1120,9 +1122,9 @@ def final_tx_to_multiple_genomic(variant, validator, tx_variant, liftover_level=
         logger.debug("Trying to do final gap mapping with %s", alt_chr)
 
         # Loop out NCBI36 refs
-        if 'NC_' in alt_chr:
-            if not re.match('NC_000', alt_chr):
-                continue
+        if alt_chr.startswith('NC_') and not alt_chr.startswith('NC_000'):
+            continue
+
         try:
             # Re set ori
             ori = variant.map_dat.tx_exons(

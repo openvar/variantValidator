@@ -2660,53 +2660,59 @@ def hard_left_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, s
 
 
 def hgvs_ref_alt(hgvs_variant, sf):
-    if re.search(r'[GATC]+=', str(hgvs_variant.posedit)):
-        ref = hgvs_variant.posedit.edit.ref
-        alt = hgvs_variant.posedit.edit.ref
+    edit = hgvs_variant.posedit.edit
+    edit_type = edit.type
+
+    # Identity
+    if edit_type == 'identity':
+        ref = edit.ref
+        alt = edit.ref
 
     # Insertions
-    elif 'ins' in str(hgvs_variant.posedit) and 'del' not in str(hgvs_variant.posedit):
-        end = int(hgvs_variant.posedit.pos.end.base)
-        start = int(hgvs_variant.posedit.pos.start.base)
-        alt_start = start - 1  #
+    elif edit_type == 'ins':
+        end = hgvs_variant.posedit.pos.end.base
+        start = hgvs_variant.posedit.pos.start.base
+        alt_start = start - 1
+
         # Recover sequences
-        ref_seq = sf.fetch_seq(str(hgvs_variant.ac), alt_start, end)
-        ins_seq = hgvs_variant.posedit.edit.alt
+        ref_seq = sf.fetch_seq(hgvs_variant.ac, alt_start, end)
+        ins_seq = edit.alt
+
         # Assemble
         ref = ref_seq
         alt = ref_seq[:1] + ins_seq + ref_seq[-1:]
 
     # Substitutions
-    elif '>' in str(hgvs_variant.posedit):
-        ref = hgvs_variant.posedit.edit.ref
-        alt = hgvs_variant.posedit.edit.alt
+    elif edit_type == 'sub':
+        ref = edit.ref
+        alt = edit.alt
 
     # Deletions
-    elif 'del' in str(hgvs_variant.posedit) and 'ins' not in str(hgvs_variant.posedit):
-        ref = hgvs_variant.posedit.edit.ref
+    elif edit_type == 'del':
+        ref = edit.ref
         alt = ''
 
-    # inv
-    elif 'inv' in str(hgvs_variant.posedit):
-        ref = hgvs_variant.posedit.edit.ref
+    # Inversions
+    elif edit_type == 'inv':
+        ref = edit.ref
         my_seq = Seq(ref)
         alt = str(my_seq.reverse_complement())
 
     # Delins
-    elif 'del' in str(hgvs_variant.posedit) and 'ins' in str(hgvs_variant.posedit):
-        ref = hgvs_variant.posedit.edit.ref
-        alt = hgvs_variant.posedit.edit.alt
+    elif edit_type == 'delins':
+        ref = edit.ref
+        alt = edit.alt
 
     # Duplications
-    elif 'dup' in str(hgvs_variant.posedit):
-        ref = hgvs_variant.posedit.edit.ref
-        alt = hgvs_variant.posedit.edit.ref + hgvs_variant.posedit.edit.ref
+    elif edit_type == 'dup':
+        ref = edit.ref
+        alt = edit.ref + edit.ref
+
     else:
         ref = ''
         alt = ''
 
-    ref_alt_dict = {'ref': ref, 'alt': alt}
-    return ref_alt_dict
+    return {'ref': ref, 'alt': alt}
 
 
 def incomplete_alignment_mapping_t_to_g(validator, variant):

@@ -1,12 +1,6 @@
 # -*- coding: utf-8 -*-
-import re
-import copy
 import vvhgvs.exceptions
-import vvhgvs.assemblymapper
-import vvhgvs.variantmapper
-import vvhgvs.normalizer
 from . import utils
-import VariantFormatter.formatter as formatter  # VariantFormatter has handy lightweight functions that make this easier
 
 
 # Custom Exceptions
@@ -16,28 +10,23 @@ class RnaVariantSyntaxError(Exception):
 
 class RnaDescriptions(object):
     # Initialise and add initialisation data to the object
-    def __init__(self, alt_aln_method, genome_build, validator):
+    def __init__(self, alt_aln_method, genome_build, validator, variant):
         """
         Setup the object
         :param alt_aln_method: String - "splign" or "genebuild"
         :param genome_build: String - "GRCh37" or "GRCh38"
         """
         self.input = None
-        self.vfo = validator
-        self.alt_aln_method = alt_aln_method
-        self.genome_build = genome_build
-        self.cross_normalizer = vvhgvs.normalizer.Normalizer(validator.hdp,
-                                                             cross_boundaries=True,
-                                                             shuffle_direction=3,
-                                                             alt_aln_method=self.alt_aln_method)
+        self.cross_normalizer = variant.cross_hn
+        self.evm = variant.evm
+        self.normalizer = variant.hn
         self.protein_variant = None
         self.protein_variant_slr = None
         self.rna_variant = None
         self.dna_variant = None
         self.is_a_prediction = False
-        self.translate = formatter.hgvs_transcript2hgvs_protein
-        self.parse = formatter.parse
-        self.remove_reference = formatter.remove_reference
+        self.translate = validator.myc_to_p
+        self.parse = validator.hp.parse
         self.usage_warnings = ["RNA (r.) descriptions are independent of cDNA descriptions (c.)",
                                "RNA descriptions must only be used if the RNA has been sequenced and must not be "
                                "inferred from a cDNA description",
@@ -87,37 +76,45 @@ class RnaDescriptions(object):
         :param hgvs_variant: must be c.
         :return: None
         """
-        protein_variant = self.translate(hgvs_variant, self.genome_build, self.vfo)
-        protein_variant_slr = str(utils.single_letter_protein(protein_variant))
-        protein_variant = str(protein_variant)
+        # myc_to_p(self, hgvs_transcript, evm, re_to_p, hn):
+        translation = self.translate(hgvs_variant, self.evm, re_to_p=False, hn=self.normalizer)
+        protein_variant = translation["hgvs_protein"]
 
         if self.is_a_prediction is False:
-            protein_variant = protein_variant.replace("(", "")
-            protein_variant = protein_variant.replace(")", "")
-            protein_variant_slr = protein_variant_slr.replace("(", "")
-            protein_variant_slr = protein_variant_slr.replace(")", "")
+            protein_variant.posedit.uncertain = False
         else:
             self.input = self.is_a_prediction
+
         self.protein_variant = protein_variant
-        self.protein_variant_slr = protein_variant_slr
+        self.protein_variant_slr = utils.single_letter_protein(protein_variant)
 
     def check_syntax(self, variant_string, variant):
         """
         Checks the syntax of the variant string which is a submitted cRNA description string and performs necessary
         transformations to populate the object
         :param variant_string:
+        :param variant:
         :return: None
         """
-        # Check the content of the object
-        if ":r." not in str(variant_string):
-            raise RnaVariantSyntaxError("VariantSyntaxError: The variant type for an RNA description must be r.")
-        if re.search("[GATCU]", variant_string):
-            raise RnaVariantSyntaxError("VariantSyntaxError: RNA sequence must be lower-case")
-        if re.search("t", variant_string.split("r.")[1]):
-            raise RnaVariantSyntaxError("VariantSyntaxError: RNA sequence contains Uracil (u) not Thymine (T)")
-        if re.search(":r.\(", variant_string):
-            self.is_a_prediction = copy.copy(variant_string)
-            variant_string = variant_string.replace(":r.(", ":r.")
+        # Check the submitted RNA description
+        if ":r." not in variant_string:
+            raise RnaVariantSyntaxError(
+                "VariantSyntaxError: The variant type for an RNA description must be r."
+            )
+
+        if any(base in variant_string for base in "GATCU"):
+            raise RnaVariantSyntaxError(
+                "VariantSyntaxError: RNA sequence must be lower-case"
+            )
+
+        if "t" in variant_string.split(":r.", 1)[1]:
+            raise RnaVariantSyntaxError(
+                "VariantSyntaxError: RNA sequence contains Uracil (u) not Thymine (T)"
+            )
+
+        if ":r.(" in variant_string:
+            self.is_a_prediction = variant_string
+            variant_string = variant_string.replace(":r.(", ":r.", 1)
             variant_string = variant_string[:-1]
 
         # Record if passes
@@ -126,28 +123,31 @@ class RnaDescriptions(object):
         # Replace and uppercase base sequences
         self.replace_and_upper(self.input)
 
-        # parse the string into hgvs object
+        # Parse the string into HGVS object
         if "NR_" in self.input or variant.transcript_type == "n":
             raise RnaVariantSyntaxError("VariantSyntaxError: Invalid variant type for non-coding transcript. "
                                         "Instead use n.")
-        else:
-            hgvs_rna = self.parse(self.dna_variant, self.vfo)
 
-        # normalize
+        hgvs_rna = self.parse(self.dna_variant)
+
+        # Normalize
         try:
             hgvs_rna = self.cross_normalizer.normalize(hgvs_rna)
         except vvhgvs.exceptions.HGVSUnsupportedOperationError as e:
             if "Normalization of intronic variants is not supported" in str(e):
-                raise RnaVariantSyntaxError("VariantSyntaxError: Intronic descriptions are only valid in the context "
-                                            "of a c. description")
-        self.dna_variant = str(hgvs_rna)
+                raise RnaVariantSyntaxError(
+                    "VariantSyntaxError: Intronic descriptions are only valid in the context "
+                    "of a c. description"
+                )
+            raise
 
-        # translate
+        self.dna_variant = hgvs_rna
+
+        # Translate
         self.translate_from_rna_variant(hgvs_rna)
 
-        # Convert back to rna
-        hgvs_rna = self.remove_reference(hgvs_rna)
-        self.replace_and_lower(str(hgvs_rna))
+        # Convert back to RNA
+        self.replace_and_lower(utils.valstr(hgvs_rna))
 
     def output_dict(self):
         """
@@ -157,7 +157,7 @@ class RnaDescriptions(object):
         variant_dict = {"usage_warnings": self.usage_warnings,
                         "rna_variant": self.rna_variant,
                         "translation": str(self.protein_variant),
-                        "translation_slr": str(self.protein_variant_slr)}
+                        "translation_slr": self.protein_variant_slr}
         return variant_dict
 
 # <LICENSE>
