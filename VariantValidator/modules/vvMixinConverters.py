@@ -1788,316 +1788,447 @@ class Mixin(vvMixinInit.Mixin):
         revcomp = revcomp[::-1]
         return revcomp
 
-    def merge_hgvs_3pr(self, hgvs_variant_list, hn, genomic_reference=False, final_norm=True, hgvs_strict=False, map_dat=None):
+    def merge_hgvs_3pr(
+            self,
+            hgvs_variant_list,
+            hn,
+            genomic_reference=False,
+            final_norm=True,
+            hgvs_strict=False,
+            map_dat=None
+    ):
         """
-        Function designed to merge multiple HGVS variants (hgvs objects) into a single delins
-        using 3 prime normalization
+        Merge multiple HGVS variants into a single delins using 3-prime
+        normalization.
+
+        Production paths are expected to supply parsed HGVS objects. Unit tests
+        may supply HGVS strings, which are parsed at the testing boundary.
         """
-        # Ensure c. is mapped to the
         h_list = []
         store_ref_type = ""
 
-        # Have we mapped from c to g
-        c_to_g_mapped = {"mapped": False, "ori": None, "transcript": None}
+        c_to_g_mapped = {
+            "mapped": False,
+            "ori": None,
+            "transcript": None
+        }
 
-        # Sanity check and format the submitted variants
-        # First get a cached exon fetch, this is normally == for all variants submitted
         tx_map_dat = map_dat
         if not tx_map_dat:
             tx_map_dat = TranscriptMapData(hdp=self.hdp)
-        for hgvs_v in hgvs_variant_list:
-            # For testing include parser
-            if type(hgvs_v) is str:
-                try:
-                    hgvs_v = self.hp.parse_hgvs_variant(hgvs_v)
-                except Exception as e:
-                    logger.debug("Except passed, %s" % e)
-                    pass
 
-            # Validate
+        # Prepare and validate submitted HGVS variants.
+        for hgvs_v in hgvs_variant_list:
+
+            # Validate the HGVS object BEFORE converting c. coordinates to the
+            # internal n. representation used by the merge.
             try:
-                self.vr.validate(hgvs_v)  # Let hgvs errors deal with invalid variants and not hgvs objects
+                self.vr.validate(hgvs_v)
+
             except vvhgvs.exceptions.HGVSInvalidVariantError as e:
                 if 'Cannot validate sequence of an intronic variant' in str(e):
                     if genomic_reference is not False:
                         c_to_g_mapped["mapped"] = True
                         c_to_g_mapped["ori"] = tx_map_dat.mapped_exons(
-                                hgvs_v.ac,
-                                genomic_reference,
-                                alt_aln_method=self.alt_aln_method)[0][3]
+                            hgvs_v.ac,
+                            genomic_reference,
+                            alt_aln_method=self.alt_aln_method
+                        )[0][3]
                         c_to_g_mapped["transcript"] = hgvs_v.ac
                     else:
-                        raise fn.mergeHGVSerror("AlleleSyntaxError: Intronic variants can only be validated if a "
-                                                "genomic/gene reference "
-                                                "sequence is also provided e.g. NC_000017.11(NM_000088.3):c.589-1G>T")
+                        raise fn.mergeHGVSerror(
+                            "AlleleSyntaxError: Intronic variants can only be "
+                            "validated if a genomic/gene reference sequence is "
+                            "also provided e.g. "
+                            "NC_000017.11(NM_000088.3):c.589-1G>T"
+                        )
                 else:
-                    self.vr.validate(hgvs_v) # Let hgvs errors deal with invalid variants and not hgvs objects
-            except AssertionError:
-                raise AlleleSyntaxError(f"AlleleVariantError: {hgvs_v} is not a valid HGVS variant description. Please"
-                                        f" submit individually for additional guidance")
+                    raise
 
+            except AssertionError:
+                raise AlleleSyntaxError(
+                    f"AlleleVariantError: {hgvs_v} is not a valid HGVS variant "
+                    f"description. Please submit individually for additional "
+                    f"guidance"
+                )
+
+            # Convert coding coordinates only AFTER validation.
             if hgvs_v.type == 'c':
-                store_ref_type = "c"
+                store_ref_type = 'c'
+
                 try:
                     hgvs_v = self.vm.c_to_n(hgvs_v)
-                    h_list.append(hgvs_v)
-                except:
-                    raise fn.mergeHGVSerror("AlleleSyntaxError: Unable to map from c. position to absolute position")
+                except Exception:
+                    raise fn.mergeHGVSerror(
+                        "AlleleSyntaxError: Unable to map from c. position to "
+                        "absolute position"
+                    )
 
-            elif hgvs_v.type == 'g':
-                h_list.append(hgvs_v)
+            elif hgvs_v.type not in ('g', 'n', 'm'):
+                raise fn.mergeHGVSerror(
+                    "AlleleSyntaxError: Unsupported HGVS reference type"
+                )
 
-        if h_list:
-            if c_to_g_mapped["mapped"] is True:
-                cp_h_list = []
-                for tx_variant in h_list:
-                    tx_variant = self.vm.n_to_c(tx_variant)
-                    hgvs_v = self.vm.t_to_g(tx_variant, genomic_reference, alt_aln_method=self.alt_aln_method)
-                    cp_h_list.append(hgvs_v)
-                if c_to_g_mapped["ori"] == -1:
-                    cp_h_list.reverse()
-                h_list = cp_h_list
-            hgvs_variant_list = copy.deepcopy(h_list)
+            h_list.append(hgvs_v)
 
-        # Define accession and start/end positions
-        accession = None
-        merge_start_pos = None
-        merge_end_pos = None
-        seqtype = None
-        full_list = []
+        # Map intronic transcript variants to the supplied genomic reference.
+        if c_to_g_mapped["mapped"]:
+            mapped_list = []
 
-        # Loop through the submitted variants to remove any identity variants, these will be re-created as required
-        # Except if it is the first variant in which case we need the start position. We cannot assume non-gap
+            for hgvs_v in h_list:
+                try:
+                    hgvs_v = self.vm.n_to_c(hgvs_v)
+                except Exception:
+                    pass
+
+                hgvs_v = self.vm.t_to_g(
+                    hgvs_v,
+                    genomic_reference,
+                    alt_aln_method=self.alt_aln_method
+                )
+                mapped_list.append(hgvs_v)
+
+            h_list = mapped_list
+
+            if c_to_g_mapped["ori"] == -1:
+                h_list.reverse()
+
+        # All downstream merge logic operates on the prepared HGVS objects,
+        # rather than the original c. objects supplied by the caller.
+        hgvs_variant_list = h_list
+
+        # Identity preprocessing is required by gap handling.
+        #
+        # Do not simplify this independently of the gap-mapping tests. Identity
+        # variants are re-created below, but their initial coordinate contributes
+        # to construction of the merged interval.
         elec = 0
-        cp_hgvs_v = []
-        for hgvs_v in hgvs_variant_list:
-            if hgvs_v.posedit.edit.type == "identity":
+        cp_h_list = []
+
+        for hgvs_v in h_list:
+            if hgvs_v.posedit.edit.type == 'identity':
                 if elec == 0:
-                    hgvs_v.posedit.pos.end.base = hgvs_v.posedit.pos.start.base
+                    hgvs_v.posedit.pos.end.base = (
+                        hgvs_v.posedit.pos.start.base
+                    )
                     hgvs_v.posedit.edit.ref = hgvs_v.posedit.edit.ref[0]
                     hgvs_v.posedit.edit.alt = hgvs_v.posedit.edit.alt[0]
-                    cp_hgvs_v.append(hgvs_v)
+                    cp_h_list.append(hgvs_v)
                 continue
-            else:
-                cp_hgvs_v.append(hgvs_v)
 
-        # Loop through the submitted variants and gather the required info
-        hgvs_variant_list = cp_hgvs_v
-        for hgvs_v in hgvs_variant_list:
-            store_hgvs_v = hgvs_v
-            # No intronic positions
+            cp_h_list.append(hgvs_v)
+
+        h_list = cp_h_list
+
+        # Construct the complete interval to merge.
+        full_list = []
+        accession = None
+        seqtype = None
+        merge_start_pos = None
+        merge_end_pos = None
+
+        for hgvs_v in h_list:
+
+            # Intronic positions require a genomic reference.
             try:
-                if hgvs_v.posedit.pos.start.offset != 0 and genomic_reference is False:
-                    raise fn.mergeHGVSerror("Base-offset position submitted")
-                if hgvs_v.posedit.pos.end.offset != 0 and genomic_reference is False:
-                    raise fn.mergeHGVSerror("Base-offset position submitted")
+                if (
+                        hgvs_v.posedit.pos.start.offset != 0
+                        and genomic_reference is False
+                ):
+                    raise fn.mergeHGVSerror(
+                        "Base-offset position submitted"
+                    )
+
+                if (
+                        hgvs_v.posedit.pos.end.offset != 0
+                        and genomic_reference is False
+                ):
+                    raise fn.mergeHGVSerror(
+                        "Base-offset position submitted"
+                    )
+
             except AttributeError as e:
                 logger.debug("Except passed, %s", e)
 
-            # Normalize the variant (allow cross intron) which also adds the reference sequence (?)
             try:
                 hgvs_v = hn.normalize(hgvs_v)
             except vvhgvs.exceptions.HGVSUnsupportedOperationError:
                 pass
 
-            # Set the accession and ensure that multiple reference sequences have not been queried
             if accession is None:
                 accession = hgvs_v.ac
                 seqtype = hgvs_v.type
-            else:
-                if hgvs_v.ac != accession:
-                    raise fn.mergeHGVSerror("AlleleSyntaxError: More than one reference sequence submitted")
 
-            # Set initial start and end positions
+            elif hgvs_v.ac != accession:
+                raise fn.mergeHGVSerror(
+                    "AlleleSyntaxError: More than one reference sequence submitted"
+                )
+
             if merge_start_pos is None:
                 merge_start_pos = hgvs_v.posedit.pos.start.base
                 merge_end_pos = hgvs_v.posedit.pos.end.base
-                # Append to the final list of variants
                 full_list.append(hgvs_v)
                 continue
-            # Ensure variants are in the correct order and not overlapping
-            else:
-                if hgvs_v.posedit.pos.start.base > merge_end_pos:
-                    if hgvs_v.posedit.pos.start.base > merge_end_pos + 1:
-                        # Create a fake variant to handle the missing sequence
-                        ins_seq = self.sf.fetch_seq(hgvs_v.ac, merge_end_pos, hgvs_v.posedit.pos.start.base - 1)
-                        hgvs_gapping = hgvs_delins_parts_to_hgvs_obj(
-                                hgvs_v.ac,
-                                hgvs_v.type,
-                                merge_end_pos + 1,ins_seq,ins_seq,
-                                end = hgvs_v.posedit.pos.start.base - 1,)
-                        full_list.append(hgvs_gapping)
-                    # update end_pos
-                    merge_end_pos = hgvs_v.posedit.pos.end.base
-                    # Append to the final list of variants
-                    full_list.append(hgvs_v)
-                else:
-                    raise fn.mergeHGVSerror("AlleleSyntaxError: Submitted variants are out of order or their ranges "
-                                            "overlap")
 
-        # Strict application of the HGVS merge rule
-        # Flag for fame shifts that restore frame
+            if hgvs_v.posedit.pos.start.base <= merge_end_pos:
+                raise fn.mergeHGVSerror(
+                    "AlleleSyntaxError: Submitted variants are out of order or "
+                    "their ranges overlap"
+                )
+
+            # Re-create sequence between submitted variants as identity.
+            if hgvs_v.posedit.pos.start.base > merge_end_pos + 1:
+                identity_sequence = self.sf.fetch_seq(
+                    hgvs_v.ac,
+                    merge_end_pos,
+                    hgvs_v.posedit.pos.start.base - 1
+                )
+
+                full_list.append(
+                    hgvs_delins_parts_to_hgvs_obj(
+                        hgvs_v.ac,
+                        hgvs_v.type,
+                        merge_end_pos + 1,
+                        identity_sequence,
+                        identity_sequence,
+                        end=hgvs_v.posedit.pos.start.base - 1
+                    )
+                )
+
+            merge_end_pos = hgvs_v.posedit.pos.end.base
+            full_list.append(hgvs_v)
+
+        # Strict HGVS merge-rule handling.
         check_frame_restore = False
         p_reference = None
+        cp_hgvs_variant_list = hgvs_variant_list
 
-        if hgvs_strict is True:
-            # Set merge_within_bases length
+        if hgvs_strict:
             merge_within_bases = 1
 
-            cp_hgvs_variant_list = copy.deepcopy(hgvs_variant_list)
-            for vt in range(len(hgvs_variant_list)-1):
+            # Preserve independent HGVS objects because this path may manipulate
+            # them below.
+            cp_hgvs_variant_list = copy.deepcopy(
+                hgvs_variant_list
+            )
+
+            for vt in range(len(hgvs_variant_list) - 1):
                 v1 = hgvs_variant_list[vt]
-                v2 = hgvs_variant_list[vt+1]
+                v2 = hgvs_variant_list[vt + 1]
+
                 vn1 = hn.normalize(v1)
                 vn2 = self.reverse_hn.normalize(v2)
 
-                # Merge variants that affect the same codon
-                if (vn2.posedit.pos.start.base - vn1.posedit.pos.end.base > merge_within_bases) and \
-                   (vn1.posedit.pos.start.base - vn2.posedit.pos.end.base < 3) and (store_ref_type == "c") and \
-                   (vn1.type != "g") and (vn1.posedit.edit.type == "sub" and vn2.posedit.edit.type == "sub"):
+                distance = (
+                        vn2.posedit.pos.start.base -
+                        vn1.posedit.pos.end.base
+                )
+
+                if (
+                        distance > merge_within_bases
+                        and (
+                        vn1.posedit.pos.start.base -
+                        vn2.posedit.pos.end.base
+                ) < 3
+                        and store_ref_type == 'c'
+                        and vn1.type != 'g'
+                        and vn1.posedit.edit.type == 'sub'
+                        and vn2.posedit.edit.type == 'sub'
+                ):
                     tx_info = self.hdp.get_tx_identity_info(vn1.ac)
                     same_aa_span = False
 
-                    for i in range(int(tx_info[3] + 1), int(tx_info[4]) + 1, 3):
-                        sublist = [i, i + 2]
-                        if int(vn1.posedit.pos.end.base) >= sublist[0] and \
-                                int(vn2.posedit.pos.start.base) <= sublist[1]:
+                    for i in range(
+                            int(tx_info[3] + 1),
+                            int(tx_info[4]) + 1,
+                            3
+                    ):
+                        if (
+                                vn1.posedit.pos.end.base >= i
+                                and vn2.posedit.pos.start.base <= i + 2
+                        ):
                             same_aa_span = True
                             break
 
-                    if same_aa_span is False:
+                    if not same_aa_span:
                         cp_hgvs_variant_list.remove(v1)
 
-                # Merge variants within "merge_within_bases" bases
-                elif vn2.posedit.pos.start.base - vn1.posedit.pos.end.base > merge_within_bases:
+                elif distance > merge_within_bases:
                     cp_hgvs_variant_list.remove(v1)
 
-            check_frame_restore = False
             if len(cp_hgvs_variant_list) == 1:
-                if store_ref_type == "c" and hgvs_variant_list[0].type != "g":
-                    cp_hgvs_variant_list = copy.deepcopy(hgvs_variant_list)
-                    first_fs = False
-                    last_fs = False
-                    p_reference = self.hdp.get_pro_ac_for_tx_ac(cp_hgvs_variant_list[0].ac)
+                if (
+                        store_ref_type == 'c'
+                        and hgvs_variant_list[0].type != 'g'
+                ):
+                    cp_hgvs_variant_list = copy.deepcopy(
+                        hgvs_variant_list
+                    )
 
-                    # Find all variants between last and first frame-shifts
-                    element = 0
-                    for n_variant in cp_hgvs_variant_list:
+                    first_fs = None
+                    last_fs = None
+
+                    p_reference = self.hdp.get_pro_ac_for_tx_ac(
+                        cp_hgvs_variant_list[0].ac
+                    )
+
+                    for index, n_variant in enumerate(
+                            cp_hgvs_variant_list
+                    ):
                         c_variant = self.vm.n_to_c(n_variant)
-                        p_variant = self.vm.c_to_p(c_variant, p_reference)
-                        if p_variant.posedit.edit.type == "fs":
-                            if first_fs is False:
-                                first_fs = element
-                            else:
-                                last_fs = element
-                        element = element + 1
+                        p_variant = self.vm.c_to_p(
+                            c_variant,
+                            p_reference
+                        )
 
-                    # if first_fs and last_fs are not the same, remove all flanking variants
-                    if first_fs is not False and last_fs is not False:
-                        hgvs_variant_list = cp_hgvs_variant_list[first_fs:last_fs + 1]
+                        if p_variant.posedit.edit.type == 'fs':
+                            if first_fs is None:
+                                first_fs = index
+                            else:
+                                last_fs = index
+
+                    if first_fs is not None and last_fs is not None:
+                        hgvs_variant_list = cp_hgvs_variant_list[
+                                            first_fs:last_fs + 1
+                                            ]
                         check_frame_restore = True
+
                     else:
                         return False
 
                 else:
                     hgvs_variant_list = cp_hgvs_variant_list
+
             else:
                 hgvs_variant_list = cp_hgvs_variant_list
 
-        # Generate the alt sequence
+        # Build the merged alternate sequence directly from HGVS objects.
         alt_sequence = ''
+
         for hgvs_v in full_list:
-            ref_alt = hgvs_utils.hgvs_ref_alt(hgvs_v, self.sf)
-            alt_sequence = alt_sequence + ref_alt['alt']
+            ref_alt = hgvs_utils.hgvs_ref_alt(
+                hgvs_v,
+                self.sf
+            )
+            alt_sequence += ref_alt['alt']
 
-        # Fetch the reference sequence and copy it for the basis of the alt sequence
-        reference_sequence = self.sf.fetch_seq(accession, merge_start_pos - 1, merge_end_pos)
+        reference_sequence = self.sf.fetch_seq(
+            accession,
+            merge_start_pos - 1,
+            merge_end_pos
+        )
 
-        # Generate an hgvs_delins
-        if alt_sequence == '':
-            hgvs_delins = hgvs_delins_parts_to_hgvs_obj(
-                    accession,
-                    seqtype,
-                    merge_start_pos,reference_sequence,'',
-                    end=merge_end_pos)
-        else:
-            hgvs_delins = hgvs_delins_parts_to_hgvs_obj(
-                    accession,
-                    seqtype,
-                    merge_start_pos,reference_sequence,alt_sequence,
-                    end=merge_end_pos)
+        hgvs_delins = hgvs_delins_parts_to_hgvs_obj(
+            accession,
+            seqtype,
+            merge_start_pos,
+            reference_sequence,
+            alt_sequence,
+            end=merge_end_pos
+        )
+
         try:
             hgvs_delins = self.vm.n_to_c(hgvs_delins)
         except Exception as e:
             logger.debug("Except passed, %s", e)
 
-        # Normalize (allow variants crossing into different exons)
-        if final_norm is True:
+        if final_norm:
             try:
                 hgvs_delins = hn.normalize(hgvs_delins)
             except HGVSUnsupportedOperationError as e:
                 logger.debug("Except passed, %s", e)
 
-        if hgvs_strict is True and len(cp_hgvs_variant_list) > 1:
+        if hgvs_strict and len(cp_hgvs_variant_list) > 1:
             merge_these = []
-            if c_to_g_mapped["mapped"] is True:
-                cp_hgvs_variant_list = []
+
+            if c_to_g_mapped["mapped"]:
+                transcript_variants = []
+
                 if c_to_g_mapped["ori"] == -1:
                     hgvs_variant_list.reverse()
-                for gen_var in hgvs_variant_list:
-                    tx_var = self.vm.g_to_t(gen_var, c_to_g_mapped["transcript"], alt_aln_method=self.alt_aln_method)
-                    cp_hgvs_variant_list.append(tx_var)
-                hgvs_delins = self.vm.g_to_t(hgvs_delins, c_to_g_mapped["transcript"], alt_aln_method=self.alt_aln_method)
-                hgvs_variant_list = copy.deepcopy(cp_hgvs_variant_list)
 
-            for var in hgvs_variant_list:
+                for genomic_variant in hgvs_variant_list:
+                    transcript_variant = self.vm.g_to_t(
+                        genomic_variant,
+                        c_to_g_mapped["transcript"],
+                        alt_aln_method=self.alt_aln_method
+                    )
+                    transcript_variants.append(
+                        transcript_variant
+                    )
+
+                hgvs_delins = self.vm.g_to_t(
+                    hgvs_delins,
+                    c_to_g_mapped["transcript"],
+                    alt_aln_method=self.alt_aln_method
+                )
+
+                hgvs_variant_list = transcript_variants
+
+            # Convert to strings only at the warning/output boundary.
+            for variant in hgvs_variant_list:
                 try:
-                    var = self.vm.n_to_c(var)
+                    variant = self.vm.n_to_c(variant)
                 except Exception:
                     pass
-                var = fn.valstr(var).split(".")[2]
-                merge_these.append(var)
 
-            if check_frame_restore is False:
-                raise AlleleSyntaxError(f"AlleleSyntaxError: Variants [{';'.join(merge_these)}] should be merged into "
-                                        f"{fn.valstr(hgvs_delins)}")
+                merge_these.append(
+                    fn.valstr(variant).split('.')[2]
+                )
 
-            # Flag for fame shifts that restore frame
-            if check_frame_restore is True:
-                if hgvs_delins.type == "c":
-                    hgvs_delins_p = self.vm.c_to_p(hgvs_delins, p_reference)
-                    if "fs" not in str(hgvs_delins_p.posedit.edit):
-                        raise AlleleSyntaxError(
-                            f"AlleleSyntaxError: Merging variants [{';'.join(merge_these)}] restores the original "
-                            f"reading frame, so should be described as {fn.valstr(hgvs_delins)}")
+            if not check_frame_restore:
+                raise AlleleSyntaxError(
+                    f"AlleleSyntaxError: Variants "
+                    f"[{';'.join(merge_these)}] should be merged into "
+                    f"{fn.valstr(hgvs_delins)}"
+                )
+
+            if hgvs_delins.type == 'c':
+                hgvs_delins_p = self.vm.c_to_p(
+                    hgvs_delins,
+                    p_reference
+                )
+
+                if 'fs' not in str(hgvs_delins_p.posedit.edit):
+                    raise AlleleSyntaxError(
+                        f"AlleleSyntaxError: Merging variants "
+                        f"[{';'.join(merge_these)}] restores the original "
+                        f"reading frame, so should be described as "
+                        f"{fn.valstr(hgvs_delins)}"
+                    )
 
         return hgvs_delins
 
     def hgvs_alleles(self, my_variant, genomic_reference=False):
         """
-        HGVS allele handling function which takes a single HGVS allele description and
-        separates each allele into a list of HGVS variants
+        HGVS allele handling function which takes a single HGVS allele description
+        and separates each allele into a list of HGVS variants.
         """
-        logger.info(f'HGVS allele handling function with variant {my_variant.quibble} and genomnic reference set to '
-                    f'{genomic_reference}')
+        logger.info(
+            "HGVS allele handling function with variant %s and genomic reference "
+            "set to %s",
+            my_variant.quibble,
+            genomic_reference
+        )
 
         try:
-            # Split up the description
             accession, remainder = my_variant.quibble.split(':')
-            logger.info(f"Accession: {accession} and remainder: {remainder}")
-
-            # Code now likely redundant as genomic reference is set to a value for variants like
-            # ["NC_000017.11(NM_000088.3):c.[600C>A;589-1G[3]]"]
+            logger.info(
+                "Accession: %s and remainder: %s",
+                accession,
+                remainder
+            )
 
             if ("(" in accession or ")" in accession) and not genomic_reference:
                 raise fn.alleleVariantError(
-                    f"AlleleVariantError: Unexpected compound accession '{accession}' passed to hgvs_alleles()"
+                    f"AlleleVariantError: Unexpected compound accession "
+                    f"'{accession}' passed to hgvs_alleles()"
                 )
 
-            def _parse_allele_part(accession,var_type,pe):
+            def _parse_allele_part(accession, var_type, pe):
                 try:
                     if var_type == 'c':
-                        posedit  =self.hp.parse_c_posedit(pe)
+                        posedit = self.hp.parse_c_posedit(pe)
                     elif var_type == 'g':
                         posedit = self.hp.parse_g_posedit(pe)
                     elif var_type == 'm':
@@ -2105,18 +2236,41 @@ class Mixin(vvMixinInit.Mixin):
                     elif var_type == 'n':
                         posedit = self.hp.parse_n_posedit(pe)
                     elif var_type == 'r':
-                        logger.info(f"RNA variant {my_variant.quibble} identified with accession {accession}")
-                        raise fn.alleleVariantError(f"UnsupportedFormatError: RNA allele syntax variants are not currently supported. Please submit individually for additional guidance")
+                        logger.info(
+                            "RNA variant %s identified with accession %s",
+                            my_variant.quibble,
+                            accession
+                        )
+                        raise fn.alleleVariantError(
+                            "UnsupportedFormatError: RNA allele syntax variants "
+                            "are not currently supported. Please submit "
+                            "individually for additional guidance"
+                        )
+                    else:
+                        raise fn.alleleVariantError(
+                            f"UnsupportedFormatError: Unsupported HGVS reference "
+                            f"type '{var_type}'"
+                        )
+
                 except vvhgvs.exceptions.HGVSError:
                     raise AlleleSyntaxError(
-                            f"AlleleVariantError: {accession}:{var_type}.{pe} is not a valid HGVS variant description."
-                            " Please submit individually for additional guidance")
-                return vvhgvs.sequencevariant.SequenceVariant(
-                        ac = accession,
-                        type = var_type,
-                        posedit = posedit)
+                        f"AlleleVariantError: {accession}:{var_type}.{pe} is not "
+                        f"a valid HGVS variant description. Please submit "
+                        f"individually for additional guidance"
+                    )
 
-            def _check_and_fix_for_ex_repeat(accession, var_type, pe, genomic_reference):
+                return vvhgvs.sequencevariant.SequenceVariant(
+                    ac=accession,
+                    type=var_type,
+                    posedit=posedit
+                )
+
+            def _check_and_fix_for_ex_repeat(
+                    accession,
+                    var_type,
+                    pe,
+                    genomic_reference
+            ):
                 """
                 Detect expanded repeat syntax within an allele and convert it to a
                 normalised HGVS SequenceVariant for downstream processing.
@@ -2126,8 +2280,10 @@ class Mixin(vvMixinInit.Mixin):
                 tuple
                     (repeat_variant_or_None, genomic_reference)
                 """
-                # Expanded repeat syntax must end with BASES[int].
-                if not pe.endswith("]") or not re.search(r"[GATC]+\[\d+\]$", pe):
+                if (
+                        not pe.endswith("]")
+                        or not re.search(r"[GATC]+\[\d+\]$", pe)
+                ):
                     return None, genomic_reference
 
                 logger.info(
@@ -2135,13 +2291,13 @@ class Mixin(vvMixinInit.Mixin):
                     pe
                 )
 
-                # This is the string parsing boundary. Once parsed/reformatted, retain
-                # the HGVS object throughout downstream processing.
-                expanded_variant = expanded_repeats.TandemRepeats.parse_repeat_variant(
-                    f"{accession}:{var_type}.{pe}",
-                    my_variant.primary_assembly,
-                    "all",
-                    self,
+                expanded_variant = (
+                    expanded_repeats.TandemRepeats.parse_repeat_variant(
+                        f"{accession}:{var_type}.{pe}",
+                        my_variant.primary_assembly,
+                        "all",
+                        self,
+                    )
                 )
 
                 if expanded_variant is False:
@@ -2160,9 +2316,6 @@ class Mixin(vvMixinInit.Mixin):
                     repeat_to_delins
                 )
 
-                # Intronic transcript variants require a genomic reference for
-                # merge_hgvs_3pr(). If one has not already been supplied, determine
-                # the appropriate genomic accession.
                 if (
                         genomic_reference is False
                         and repeat_to_delins.type in ("c", "n")
@@ -2176,12 +2329,14 @@ class Mixin(vvMixinInit.Mixin):
                         repeat_to_delins.ac
                     )
 
-                    for option in self.hdp.get_tx_mapping_options(repeat_to_delins.ac):
+                    for option in self.hdp.get_tx_mapping_options(
+                            repeat_to_delins.ac
+                    ):
                         genomic_ac = option[1]
 
                         if seq_data.to_chr_num_refseq(
                                 genomic_ac,
-                                my_variant.primary_assembly,
+                                my_variant.primary_assembly
                         ) is not None:
                             genomic_reference = genomic_ac
 
@@ -2198,43 +2353,93 @@ class Mixin(vvMixinInit.Mixin):
 
                 return repeat_to_delins, genomic_reference
 
-            # Branch
+            def _parse_posedits(posedits, prefix=''):
+                """
+                Parse one semicolon-separated allele into HGVS objects.
+
+                The returned list contains HGVS SequenceVariant objects only.
+                """
+                nonlocal genomic_reference
+
+                current_allele = []
+
+                for pe in posedits.split(';'):
+                    if '?' in pe or pe == '0':
+                        continue
+
+                    pe = prefix + pe
+
+                    tandem, genomic_reference = _check_and_fix_for_ex_repeat(
+                        accession,
+                        var_type,
+                        pe,
+                        genomic_reference
+                    )
+
+                    if tandem:
+                        current_allele.append(tandem)
+                    else:
+                        current_allele.append(
+                            _parse_allele_part(
+                                accession,
+                                var_type,
+                                pe
+                            )
+                        )
+
+                return current_allele
+
+            def _validate_merges(alleles):
+                """
+                Apply strict HGVS merge validation to each non-empty allele.
+
+                merge_hgvs_3pr() is called for its validation behaviour here; its
+                returned merged variant is not required.
+                """
+                for each_allele in alleles:
+                    if not each_allele:
+                        continue
+
+                    self.merge_hgvs_3pr(
+                        each_allele,
+                        my_variant.hn,
+                        genomic_reference,
+                        hgvs_strict=True
+                    )
+
+            # Shared-positions allele syntax:
+            # NM_004006.2:c.2376[G>C];[G>C]
             if re.search(r'[gcn]\.\d+\[', remainder):
-                # NM_004006.2:c.2376[G>C];[(G>C)]
-                # if re.search('\(', remainder):
-                #   raise fn.alleleVariantError('Unsupported format ' + remainder)
-                # NM_004006.2:c.2376[G>C];[G>C]
-                type, remainder = remainder.split('.')
-                pos = re.match(r'\d+', remainder)
-                pos = pos.group(0)
-                remainder = remainder.replace(pos, '')
+                var_type, remainder = remainder.split('.', 1)
+
+                pos_match = re.match(r'\d+', remainder)
+                pos = pos_match.group(0)
+
+                # Remove the shared position and surrounding allele brackets.
+                remainder = remainder[len(pos):]
                 remainder = remainder[1:-1]
+
                 alleles = remainder.split('];[')
                 my_alleles = []
+
                 for posedit in alleles:
+                    # NM_004006.2:c.2376[G>C];[(G>C)]
                     if '(' in posedit:
-                        # NM_004006.2:c.2376[G>C];[(G>C)]
                         continue
-                    posedit_list = [posedit]
-                    current_allele = []
-                    for pe in posedit_list:
-                        if '?' in pe or pe == '0':
-                            continue
-                        tandem, genomic_reference = _check_and_fix_for_ex_repeat(
-                                accession,
-                                type,
-                                str(pos) +pe, genomic_reference)
-                        if tandem:
-                            current_allele.append(tandem)
-                        else:
-                            vrt = _parse_allele_part(accession,type,str(pos) + pe)
-                            current_allele.append(vrt)
+
+                    current_allele = _parse_posedits(
+                        posedit,
+                        prefix=pos
+                    )
                     my_alleles.append(current_allele)
+
             else:
-                type, remainder = remainder.split('.')
+                var_type, remainder = remainder.split('.', 1)
+
                 if '(;)' in remainder and '];' in remainder:
                     # NM_004006.2:c.[296T>G];[476T>C](;)1083A>C(;)1406del
                     pre_alleles = remainder.split('(;)')
+
                     pre_merges = []
                     alleles = []
 
@@ -2243,154 +2448,96 @@ class Mixin(vvMixinInit.Mixin):
                             pre_merges.append(allele)
                         else:
                             alleles.append(allele)
-                    # Extract descriptions
+
                     my_alleles = []
-                    # First alleles
+
+                    # Unbracketed alleles.
                     for posedits in alleles:
-                        posedit_list = posedits.split(';')
-                        current_allele = []
-                        for pe in posedit_list:
-                            if '?' in pe or pe == '0':
-                                continue
-                            tandem, genomic_reference = _check_and_fix_for_ex_repeat(
-                                    accession,
-                                    type,
-                                    pe, genomic_reference)
-                            if tandem:
-                                current_allele.append(tandem)
-                            else:
-                                vrt = _parse_allele_part(accession,type,pe)
-                                current_allele.append(vrt)
-                        my_alleles.append(current_allele)
+                        my_alleles.append(
+                            _parse_posedits(posedits)
+                        )
 
-                    # Then Merges
-                    remainder = ';'.join(pre_merges)
-                    remainder = remainder[1:-1]  # removes the first [ and the last ]
-                    alleles = remainder.split('];[')
-                    # now separate out the variants in each allele |
-                    for posedits in alleles:
-                        posedit_list = posedits.split(';')
-                        current_allele = []
-                        for pe in posedit_list:
-                            if '?' in pe or pe == '0':
-                                # e.g. NM_004006.2:c.[2376G>C];[?]
-                                continue
-                            tandem, genomic_reference = _check_and_fix_for_ex_repeat(
-                                    accession,
-                                    type,
-                                    pe, genomic_reference)
-                            if tandem:
-                                current_allele.append(tandem)
-                            else:
-                                vrt = _parse_allele_part(accession,type,pe)
-                                current_allele.append(vrt)
+                    # Bracketed alleles requiring merge validation.
+                    merge_remainder = ';'.join(pre_merges)
+                    merge_remainder = merge_remainder[1:-1]
 
-                        my_alleles.append(current_allele)
-                    # Now merge the alleles into a single variant
-                    merged_alleles = []
+                    for posedits in merge_remainder.split('];['):
+                        my_alleles.append(
+                            _parse_posedits(posedits)
+                        )
 
-                    for each_allele in my_alleles:
-                        if '?' in str(each_allele) or not each_allele:
-                            # NM_004006.2:c.[2376G>C];[?]
-                            continue
-                        merge = []
-                        allele = str(self.merge_hgvs_3pr(each_allele, my_variant.hn, genomic_reference,
-                                                         hgvs_strict=True))
-                        merge.append(allele)
-                        for variant in each_allele:
-                            merged_alleles.append([variant])
-                    my_alleles = merged_alleles
+                    _validate_merges(my_alleles)
+
+                    # Preserve the existing behaviour: return the individual
+                    # variants after strict merge validation.
+                    my_alleles = [
+                        [variant]
+                        for each_allele in my_alleles
+                        if each_allele
+                        for variant in each_allele
+                    ]
 
                 elif '(;)' in remainder:
-                    # If statement for uncertainties
-                    # NM_004006.2:c.[296T>G;476C>T];[476C>T](;)1083A>C
-                    if '[' in remainder:
-                        raise fn.alleleVariantError('Unsupported format ' + type + '.' + remainder)
+                    # Uncertain phase without bracketed allele syntax.
+                    #
                     # NM_004006.2:c.2376G>C(;)3103del
                     # NM_000548.3:c.3623_3647del(;)3745_3756dup
-                    alleles = remainder.split('(;)')
-                    # now separate out the variants in each allele |
-                    my_alleles = []
-                    for posedits in alleles:
-                        posedit_list = posedits.split(';')
-                        current_allele = []
-                        for pe in posedit_list:
-                            if '?' in pe or pe == '0':
-                                continue
-                            tandem, genomic_reference = _check_and_fix_for_ex_repeat(
-                                    accession,
-                                    type,
-                                    pe, genomic_reference)
-                            if tandem:
-                                current_allele.append(tandem)
-                            else:
-                                vrt = _parse_allele_part(accession,type, pe)
-                                current_allele.append(vrt)
-                        my_alleles.append(current_allele)
+                    if '[' in remainder:
+                        raise fn.alleleVariantError(
+                            'Unsupported format ' +
+                            var_type +
+                            '.' +
+                            remainder
+                        )
+
+                    my_alleles = [
+                        _parse_posedits(posedits)
+                        for posedits in remainder.split('(;)')
+                    ]
+
                 else:
-                    # If statement for uncertainties
-                    if '(' in remainder:
-                        raise fn.alleleVariantError('Unsupported format ' + type + '.' + remainder)
+                    # Standard bracketed allele syntax.
+                    #
                     # NM_004006.2:c.[2376G>C];[3103del]
-                    # NM_004006.2:c.[2376G>C];[3103del]
-                    # NM_004006.2:c.[296T>G;476C>T;1083A>C];[296T>G;1083A>C]
+                    # NM_004006.2:c.[296T>G;476C>T;1083A>C];
+                    #                  [296T>G;1083A>C]
                     # NM_000548.3:c.[4358_4359del;4361_4372del]
-                    remainder = remainder[1:-1]  # removes the first [ and the last ]
-                    alleles = remainder.split('];[')
-                    # now separate out the variants in each allele |
-                    my_alleles = []
-                    for posedits in alleles:
-                        posedit_list = posedits.split(';')
-                        current_allele = []
-                        for pe in posedit_list:
-                            if '?' in pe or pe == '0':
-                                continue
-                            tandem, genomic_reference = _check_and_fix_for_ex_repeat(
-                                    accession,
-                                    type,
-                                    pe, genomic_reference)
-                            if tandem:
-                                current_allele.append(tandem)
-                            else:
-                                vrt = _parse_allele_part(accession,type, pe)
-                                current_allele.append(vrt)
-                        my_alleles.append(current_allele)
+                    if '(' in remainder:
+                        raise fn.alleleVariantError(
+                            'Unsupported format ' +
+                            var_type +
+                            '.' +
+                            remainder
+                        )
 
-                    # Now merge the alleles into a single variant
-                    merged_alleles = []
+                    remainder = remainder[1:-1]
 
-                    for each_allele in my_alleles:
-                        if '?' in str(each_allele) or not each_allele:
-                            # NM_004006.2:c.[2376G>C];[?]
-                            continue
-                        if 'c.0' in str(each_allele):
-                            # NM_004006.2:c.[2376G>C];[0]
-                            continue
+                    my_alleles = [
+                        _parse_posedits(posedits)
+                        for posedits in remainder.split('];[')
+                    ]
 
-                        merge = []
+                    _validate_merges(my_alleles)
 
-                        allele = str(self.merge_hgvs_3pr(each_allele, my_variant.hn, genomic_reference,
-                                                         hgvs_strict=True))
-                        merge.append(allele)
-                        for variant in each_allele:
-                            merged_alleles.append([variant])
+                    # Preserve the existing behaviour: return individual variants,
+                    # not the merged representation.
+                    my_alleles = [
+                        [variant]
+                        for each_allele in my_alleles
+                        if each_allele
+                        for variant in each_allele
+                    ]
 
-                    my_alleles = merged_alleles
-
-            # Extract alleles into strings
-            allele_strings = []
-            for alleles_l in my_alleles:
-                for allele in alleles_l:
-                    allele_strings.append(str(allele))
-            my_alleles = allele_strings
-
-            # return
-            return my_alleles
+            # String conversion belongs at the output boundary.
+            return [
+                str(allele)
+                for alleles_l in my_alleles
+                for allele in alleles_l
+            ]
 
         except Exception as e:
             exc_type, exc_value, last_traceback = sys.exc_info()
-            logger.error(str(exc_type) + " " + str(exc_value))
-            # traceback.print_tb(last_traceback, file=sys.stdout)
+            logger.error("%s %s", exc_type, exc_value)
             raise fn.alleleVariantError(str(e))
 
     def chr_to_rsg(self, hgvs_genomic, hn):

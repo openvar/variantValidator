@@ -107,7 +107,7 @@ class TestVVMixinConvertersFunctional(TestCase):
         variant = "NR_110010.2:n.[138del;150_150+1G[2]]"
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert "NR_110010.2:n.150_150+1delinsG" in results.keys()
+        assert "NR_110010.2:n.150_150+1=" in results.keys()
         assert "NR_110010.2:n.138del" in results.keys()
 
 
@@ -115,7 +115,7 @@ class TestVVMixinConvertersFunctional(TestCase):
         variant = "NC_000017.10(NR_110010.2):n.[138del;150_150+1G[2]]"
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert "NR_110010.2:n.150_150+1delinsG" in results.keys()
+        assert "NR_110010.2:n.150_150+1=" in results.keys()
         assert "NR_110010.2:n.138del" in results.keys()
 
     def test_mito_allele(self):

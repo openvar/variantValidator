@@ -1,9 +1,7 @@
 from unittest import TestCase
-from VariantValidator.modules import utils
 import vvhgvs.parser
 import json
 from unittest.mock import patch, MagicMock
-import requests
 
 
 class TestHGNCRest(TestCase):

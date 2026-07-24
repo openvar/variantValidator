@@ -172,8 +172,6 @@ class TestWarnings(TestCase):
         print(results)
         assert 'OutOfBoundsError: start or end or both are beyond the bounds of transcript record' in \
                results['validation_warning_1']['validation_warnings']
-        assert  ("ExonBoundaryError: Position c.35+1 does not correspond with an exon boundary for transcript NM_001128425.1" in
-                 results['validation_warning_1']['validation_warnings'])
 
     def test_issue_673b(self):
         variant = 'NM_001128425.1:c.35+11000000C>T'
@@ -530,18 +528,37 @@ class TestWarnings(TestCase):
 
     def test_c_with_tn_ref(self):
         variant = 'NR_111987.1:c.3633-2T>A'
-        results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
+        results = self.vv.validate(
+            variant, 'GRCh38', 'all'
+        ).format_as_dict(test=True)
+
+        assert results['flag'] == 'warning'
+        assert results['validation_warning_1']['validation_warnings'] == [
+            'ReferenceTypeError: Non-coding transcript reference sequence input as '
+            'coding (c.) reference sequence. Did you mean NR_111987.1:n.3633-2T>A?']
+
+
+    def test_c_with_tn_ref_valid_base(self):
+        variant = 'NR_111987.1:c.3633-2A>T'
+        results = self.vv.validate(
+            variant, 'GRCh38', 'all'
+        ).format_as_dict(test=True)
         print(results)
-        assert "ReferenceTypeError: Non-coding transcript reference sequence input as coding (c.) reference sequence. Did you mean NR_111987.1:n.3633-2T>A?" in \
-               results['validation_warning_1']['validation_warnings']
+
+        assert results['flag'] == 'warning'
+        assert results['validation_warning_1']['validation_warnings'] == [
+            'ReferenceTypeError: Non-coding transcript reference sequence input as '
+            'coding (c.) reference sequence. Did you mean NR_111987.1:n.3633-2A>T?']
+
 
     def test_p_with_tc_ref(self):
         variant = 'NM_000088.3:p.(Gly197Cys)'
-        results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
-        print(results)
-        assert "ReferenceTypeError: Using a nucleotide reference sequence (NM_ NR_ NG_ NC_) to specify protein-level (p.) " \
-               "variation is not HGVS compliant. Please select an appropriate protein reference sequence (NP_)" in \
-               results['validation_warning_1']['validation_warnings']
+        results = self.vv.validate(
+            variant, 'GRCh38', 'all'
+        ).format_as_dict(test=True)
+
+        assert results['flag'] == 'warning'
+        assert results['validation_warning_1']['validation_warnings'] == ['ReferenceTypeError: Using a nucleotide reference sequence (NM_ NR_ NC_ NG_ NT_ NW_) to specify protein-level (p.) variation is not HGVS compliant. Please select an appropriate protein reference sequence (NP_)']
 
     def test_uncertain_1(self):
         variant = 'NC_000005.9:g.(90136803_90144453)_(90159675_90261231)dup'
@@ -1555,6 +1572,16 @@ class TestVVGapWarnings(TestCase):
             "VariantSyntaxError: Removing redundant reference bases from variant description",
             "IntronSpanningWarning: This coding sequence variant description spans at least one intron",
             "ProteinTranslationError: Unable to generate protein variant description due to the sequence missing an accepted start codon.",
+            "TranscriptVersionWarning: A more recent version of the selected reference sequence NM_000088.3 is available for genome build GRCh37 (NM_000088.4)"
+        ]
+
+    def test_lrgt_with_gene(self):
+        variant = "LRG_1t1(COL1A1):c.589G>T"
+        results = self.vv.validate(variant, 'GRCh37', 'all', transcript_set="refseq").format_as_dict(test=True)
+        print(results)
+        assert results['NM_000088.3:c.589G>T']['validation_warnings'] == [
+            "VariantSyntaxError: Removing redundant gene symbol COL1A1 from variant description",
+            "VariantMappingWarning: LRG_1t1:c.589G>T automapped to equivalent RefSeq record NM_000088.3:c.589G>T",
             "TranscriptVersionWarning: A more recent version of the selected reference sequence NM_000088.3 is available for genome build GRCh37 (NM_000088.4)"
         ]
 

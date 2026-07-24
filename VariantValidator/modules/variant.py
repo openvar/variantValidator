@@ -27,6 +27,9 @@ class Variant(object):
         self.lovd_messages = None
         self.lovd_corrections = None
 
+        # Placeholder for alt_reference
+        self.genomic_context_ac = None  #  For compound hgvs NC_(NM_) only.
+
         if warnings is None:
             self.warnings = []
         else:

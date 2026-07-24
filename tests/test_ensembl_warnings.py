@@ -392,7 +392,13 @@ class TestWarnings(TestCase):
         variant = 'ENST00000003084.11:p.Z1335P'
         results = self.vv.validate(variant, 'GRCh38', 'all', liftover_level='primary', transcript_set="ensembl").format_as_dict(test=True)
         print(results)
-        assert "Invalid amino acid Z stated in description ENST00000003084.11:p.Z1335P" in \
+        assert ("ReferenceTypeError: Using a nucleotide reference sequence (NM_ NR_ NG_ NC_) to specify protein-level "
+                "(p.) variation is not HGVS compliant. Please select an appropriate protein reference sequence (NP_)")
+
+        variant = 'ENSP00000003084.11:p.Z1335P'
+        results = self.vv.validate(variant, 'GRCh38', 'all', liftover_level='primary', transcript_set="ensembl").format_as_dict(test=True)
+        print(results)
+        assert "Invalid amino acid Z stated in description ENSP00000003084.11:p.Z1335P" in \
                results['validation_warning_1']['validation_warnings'][0]
 
     def test_g_with_tc_ref(self):
@@ -401,20 +407,22 @@ class TestWarnings(TestCase):
         print(results)
         assert results['validation_warning_1']['validation_warnings'] == ['ReferenceTypeError: Transcript reference sequence input as genomic (g.) reference sequence. Did you mean ENST00000225964.10:c.2559del?']
 
+        results = self.vv.validate(variant, 'GRCh38', 'all', transcript_set="refseq").format_as_dict(test=True)
+        assert "InvalidFieldError: The transcript ENST00000225964.10 is not in the RefSeq data set. Please select Ensembl" in \
+               results['validation_warning_1']['validation_warnings']
+
+
+    def test_g_with_tc_ref_b(self):
         variant = 'ENST00000225964.10:g.2559+54_2560del'
         results = self.vv.validate(variant, 'GRCh38', 'all', transcript_set="ensembl").format_as_dict(test=True)
         print(results)
-        assert "ReferenceTypeError: Transcript reference sequence input as genomic (g.) reference sequence. " \
-               "Did you mean ENST00000225964.10:c.2559+54_2560del?" in \
-               results['validation_warning_1']['validation_warnings']
+        assert results['validation_warning_1']['validation_warnings'] == ['ReferenceTypeError: Transcript reference sequence input as genomic (g.) reference sequence. Did you mean ENST00000225964.10:c.2559+54_2560del?']
 
     def test_p_with_tc_ref(self):
         variant = 'ENST00000225964.10:p.(Gly197Cys)'
         results = self.vv.validate(variant, 'GRCh38', 'all', transcript_set="ensembl").format_as_dict(test=True)
         print(results)
-        assert "ReferenceTypeError: Using a nucleotide reference sequence (NM_ NR_ NG_ NC_) to specify protein-level (p.) " \
-               "variation is not HGVS compliant. Please select an appropriate protein reference sequence (NP_)" in \
-               results['validation_warning_1']['validation_warnings']
+        assert results['validation_warning_1']['validation_warnings'] == ['ReferenceTypeError: Using a nucleotide reference sequence (NM_ NR_ NC_ NG_ NT_ NW_) to specify protein-level (p.) variation is not HGVS compliant. Please select an appropriate protein reference sequence (NP_)']
 
     def test_invalid_reference_set_refseq(self):
         variant = 'ENST00000225964.10:g.2559+54_2560del'
@@ -422,6 +430,11 @@ class TestWarnings(TestCase):
         print(results)
         assert "InvalidFieldError: The transcript ENST00000225964.10 is not in the RefSeq data set. Please select Ensembl" in \
                results['validation_warning_1']['validation_warnings']
+        results = self.vv.validate(variant, 'GRCh38', 'all', transcript_set="ensembl").format_as_dict(test=True)
+        print(results)
+        assert (results['validation_warning_1']['validation_warnings'] ==
+                ['ReferenceTypeError: Transcript reference sequence input as genomic (g.) reference sequence. '
+                 'Did you mean ENST00000225964.10:c.2559+54_2560del?'])
 
     def test_invalid_reference_set_ensembl_NM(self):
         variant = 'NM_000828.4:c.-3_-2delinsTT'

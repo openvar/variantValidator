@@ -10,8 +10,7 @@ from . import seq_data
 from . import utils
 from . import hgvs_position_utils
 
-# Import Biopython modules
-from Bio.Seq import Seq
+# Import vv_hgvs modules
 import vvhgvs
 import vvhgvs.exceptions
 from vvhgvs.location import BaseOffsetInterval, BaseOffsetPosition, Interval, SimplePosition
@@ -723,7 +722,7 @@ def hgvs2vcf(hgvs_genomic, primary_assembly, reverse_normalizer, sf, extra_flank
         start = int(reverse_normalized_hgvs_genomic.posedit.pos.start.base)
         alt_start = start - 1  #
         # Recover sequences
-        ref_seq = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac), alt_start, end - 1)
+        ref_seq = sf.fetch_seq(reverse_normalized_hgvs_genomic.ac, alt_start, end - 1)
         ins_seq = reverse_normalized_hgvs_genomic.posedit.edit.alt
         # Assemble
         pos = start
@@ -744,51 +743,54 @@ def hgvs2vcf(hgvs_genomic, primary_assembly, reverse_normalizer, sf, extra_flank
         start = start - 1
         # Recover sequences
         hgvs_del_seq_w_pre_base = sf.fetch_seq(
-                str(reverse_normalized_hgvs_genomic.ac),
+                reverse_normalized_hgvs_genomic.ac,
                 adj_start, end)
         pos = str(start)
         ref = hgvs_del_seq_w_pre_base
         alt = hgvs_del_seq_w_pre_base[0]
 
     # inv
-    # inv
     elif reverse_normalized_hgvs_genomic.posedit.edit.type == 'inv':
         end = int(reverse_normalized_hgvs_genomic.posedit.pos.end.base)
         start = int(reverse_normalized_hgvs_genomic.posedit.pos.start.base)
         adj_start = start - 1
 
-        # Recover sequences
-        vcf_del_seq = sf.fetch_seq(
-            str(reverse_normalized_hgvs_genomic.ac),
-            adj_start,
-            end
-        )
+        # Use the reference sequence already available on the HGVS object where
+        # possible. Sequence retrieval is only required when ref is unavailable.
+        try:
+            vcf_del_seq = reverse_normalized_hgvs_genomic.posedit.edit.ref
+        except AttributeError:
+            vcf_del_seq = None
+
+        if not vcf_del_seq:
+            vcf_del_seq = sf.fetch_seq(
+                reverse_normalized_hgvs_genomic.ac,
+                adj_start,
+                end
+            )
 
         # Assemble
         pos = str(start)
         ref = vcf_del_seq
-        my_seq = Seq(vcf_del_seq)
-        alt = str(my_seq.reverse_complement())
+        alt = utils.simple_dna_revcomp(vcf_del_seq)
 
     # Delins
     elif reverse_normalized_hgvs_genomic.posedit.edit.type == 'delins':
         end = int(reverse_normalized_hgvs_genomic.posedit.pos.end.base)
-        start = int(reverse_normalized_hgvs_genomic.posedit.pos.start.base - 1)
-        adj_start = start - 1
-        start = start
-        try:
-            ins_seq = reverse_normalized_hgvs_genomic.posedit.edit.alt
-        except:
-            ins_seq = ''
-        else:
-            if ins_seq is None:
-                ins_seq = ''
-                # Recover sequences
-        vcf_del_seq = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac), adj_start, end)
-        # Assemble
-        pos = str(start)
+        start = int(reverse_normalized_hgvs_genomic.posedit.pos.start.base)
+        adj_start = start - 2
+
+        ins_seq = reverse_normalized_hgvs_genomic.posedit.edit.alt or ''
+
+        vcf_del_seq = sf.fetch_seq(
+            reverse_normalized_hgvs_genomic.ac,
+            adj_start,
+            end
+        )
+
+        pos = str(start - 1)
         ref = vcf_del_seq
-        alt = vcf_del_seq[:1] + ins_seq
+        alt = vcf_del_seq[0] + ins_seq
 
     # Duplications
     elif reverse_normalized_hgvs_genomic.posedit.edit.type == 'dup':
@@ -798,7 +800,7 @@ def hgvs2vcf(hgvs_genomic, primary_assembly, reverse_normalizer, sf, extra_flank
         start = start - 1  #
         # Recover sequences
         dup_seq = reverse_normalized_hgvs_genomic.posedit.edit.ref
-        vcf_ref_seq = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac), adj_start, end)
+        vcf_ref_seq = sf.fetch_seq(reverse_normalized_hgvs_genomic.ac, adj_start, end)
         # Assemble
         pos = str(start)
         ref = vcf_ref_seq
@@ -814,7 +816,7 @@ def hgvs2vcf(hgvs_genomic, primary_assembly, reverse_normalizer, sf, extra_flank
         if len(ref) > 1:
             if reverse_normalized_hgvs_genomic.posedit.edit.type == 'identity':
                 pos = int(pos) - 1
-                prev = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac), pos - 1, pos)
+                prev = sf.fetch_seq(reverse_normalized_hgvs_genomic.ac, pos - 1, pos)
                 pos = str(pos)
                 ref = prev + ref
                 alt = prev + alt
@@ -823,8 +825,8 @@ def hgvs2vcf(hgvs_genomic, primary_assembly, reverse_normalizer, sf, extra_flank
     if extra_flank_bases > 0:
         original_pos = pos
         pos = str(int(pos) - extra_flank_bases)
-        left_flank = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac), int(pos) - 1, int(original_pos) - 1)
-        right_flank = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac), int(original_pos) + len(ref) - 1,
+        left_flank = sf.fetch_seq(reverse_normalized_hgvs_genomic.ac, int(pos) - 1, int(original_pos) - 1)
+        right_flank = sf.fetch_seq(reverse_normalized_hgvs_genomic.ac, int(original_pos) + len(ref) - 1,
                                    int(original_pos) + len(ref) - 1 + extra_flank_bases)
         ref = left_flank + ref + right_flank
         alt = left_flank + alt + right_flank
@@ -922,7 +924,7 @@ def report_hgvs2vcf(hgvs_genomic, primary_assembly, reverse_normalizer, sf):
         start = int(reverse_normalized_hgvs_genomic.posedit.pos.start.base)
         alt_start = start - 1  #
         # Recover sequences
-        ref_seq = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac), alt_start, end - 1)
+        ref_seq = sf.fetch_seq(reverse_normalized_hgvs_genomic.ac, alt_start, end - 1)
         ins_seq = reverse_normalized_hgvs_genomic.posedit.edit.alt
         # Assemble
         pos = start
@@ -944,14 +946,14 @@ def report_hgvs2vcf(hgvs_genomic, primary_assembly, reverse_normalizer, sf):
         # Recover sequences
         if adj_start >= 0:
             hgvs_del_seq_w_pre_base = sf.fetch_seq(
-                    str(reverse_normalized_hgvs_genomic.ac),
+                    reverse_normalized_hgvs_genomic.ac,
                     adj_start, end)
             ref = hgvs_del_seq_w_pre_base
             alt = hgvs_del_seq_w_pre_base[0]
             pos = str(start)
         else:
             hgvs_del_seq_w_post_base = sf.fetch_seq(
-                    str(reverse_normalized_hgvs_genomic.ac),
+                    reverse_normalized_hgvs_genomic.ac,
                     start, end + 1)
             ref = hgvs_del_seq_w_post_base
             alt = hgvs_del_seq_w_post_base[-1]
@@ -963,40 +965,40 @@ def report_hgvs2vcf(hgvs_genomic, primary_assembly, reverse_normalizer, sf):
         start = int(reverse_normalized_hgvs_genomic.posedit.pos.start.base)
         adj_start = start - 1
 
-        # Recover sequences
-        vcf_del_seq = sf.fetch_seq(
-            str(reverse_normalized_hgvs_genomic.ac),
-            adj_start,
-            end
-        )
+        # Use the existing reference sequence where available, avoiding the
+        # relatively expensive sequence fetch.
+        try:
+            vcf_del_seq = reverse_normalized_hgvs_genomic.posedit.edit.ref
+        except AttributeError:
+            vcf_del_seq = None
+
+        if not vcf_del_seq:
+            vcf_del_seq = sf.fetch_seq(
+                reverse_normalized_hgvs_genomic.ac,
+                adj_start,
+                end
+            )
 
         # Assemble
         pos = str(start)
         ref = vcf_del_seq
-        my_seq = Seq(vcf_del_seq)
-        alt = str(my_seq.reverse_complement())
+        alt = utils.simple_dna_revcomp(vcf_del_seq)
 
     # Delins
     elif reverse_normalized_hgvs_genomic.posedit.edit.type == 'delins':
+        start = int(reverse_normalized_hgvs_genomic.posedit.pos.start.base)
         end = int(reverse_normalized_hgvs_genomic.posedit.pos.end.base)
-        start = int(reverse_normalized_hgvs_genomic.posedit.pos.start.base - 1)
-        adj_start = start - 1
-        start = start
-        try:
-            ins_seq = reverse_normalized_hgvs_genomic.posedit.edit.alt
-        except:
-            ins_seq = ''
-        else:
-            if ins_seq is None:
-                ins_seq = ''
-        # Recover sequences
-        vcf_del_seq = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac), adj_start, end)
-        # Assemble
-        # pos = str(start)
-        # ref = vcf_del_seq
-        # alt = vcf_del_seq[:1] + ins_seq
-        pos = str(start + 1)
-        ref = vcf_del_seq[1:]
+
+        ins_seq = reverse_normalized_hgvs_genomic.posedit.edit.alt or ''
+
+        vcf_del_seq = sf.fetch_seq(
+            reverse_normalized_hgvs_genomic.ac,
+            start - 1,
+            end
+        )
+
+        pos = str(start)
+        ref = vcf_del_seq
         alt = ins_seq
 
     # Duplications
@@ -1006,7 +1008,7 @@ def report_hgvs2vcf(hgvs_genomic, primary_assembly, reverse_normalizer, sf):
         adj_start = start - 2  #
         start = start - 1  #
         # Recover sequences
-        vcf_ref_seq = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac), adj_start, end)
+        vcf_ref_seq = sf.fetch_seq(reverse_normalized_hgvs_genomic.ac, adj_start, end)
         # Assemble
         pos = str(start)
         ref = vcf_ref_seq[0]
@@ -1033,7 +1035,7 @@ def pos_lock_hgvs2vcf(hgvs_genomic, primary_assembly, reverse_normalizer, sf):
     """
     # Replace reference manually
     if hgvs_genomic.posedit.edit.ref == '':
-        hgvs_genomic.posedit.edit.ref = sf.fetch_seq(str(hgvs_genomic.ac), hgvs_genomic.posedit.pos.start.base - 1,
+        hgvs_genomic.posedit.edit.ref = sf.fetch_seq(hgvs_genomic.ac, hgvs_genomic.posedit.pos.start.base - 1,
                                                      hgvs_genomic.posedit.pos.end.base)
 
     reverse_normalized_hgvs_genomic = hgvs_genomic
@@ -1062,7 +1064,7 @@ def pos_lock_hgvs2vcf(hgvs_genomic, primary_assembly, reverse_normalizer, sf):
         start = int(reverse_normalized_hgvs_genomic.posedit.pos.start.base)
         alt_start = start - 1  #
         # Recover sequences
-        ref_seq = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac), alt_start, end - 1)
+        ref_seq = sf.fetch_seq(reverse_normalized_hgvs_genomic.ac, alt_start, end - 1)
         ins_seq = reverse_normalized_hgvs_genomic.posedit.edit.alt
         # Assemble
         pos = start
@@ -1083,7 +1085,7 @@ def pos_lock_hgvs2vcf(hgvs_genomic, primary_assembly, reverse_normalizer, sf):
         start = start - 1
         # Recover sequences
         hgvs_del_seq_w_pre_base = sf.fetch_seq(
-                str(reverse_normalized_hgvs_genomic.ac),
+                reverse_normalized_hgvs_genomic.ac,
                 adj_start, end)
         # Assemble
         pos = str(start)
@@ -1092,42 +1094,43 @@ def pos_lock_hgvs2vcf(hgvs_genomic, primary_assembly, reverse_normalizer, sf):
 
     # inv
     elif reverse_normalized_hgvs_genomic.posedit.edit.type == 'inv':
-        end = int(reverse_normalized_hgvs_genomic.posedit.pos.end.base)
         start = int(reverse_normalized_hgvs_genomic.posedit.pos.start.base)
-        adj_start = start - 1
+        end = int(reverse_normalized_hgvs_genomic.posedit.pos.end.base)
 
-        # Recover sequences
+        try:
+            vcf_del_seq = reverse_normalized_hgvs_genomic.posedit.edit.ref
+        except AttributeError:
+            vcf_del_seq = None
+
+        if not vcf_del_seq:
+            vcf_del_seq = sf.fetch_seq(
+                reverse_normalized_hgvs_genomic.ac,
+                start - 1,
+                end
+            )
+
+        # Assemble
+        pos = str(start)
+        ref = vcf_del_seq
+        alt = utils.simple_dna_revcomp(vcf_del_seq)
+
+    # Delins
+    elif reverse_normalized_hgvs_genomic.posedit.edit.type == 'delins':
+        start = int(reverse_normalized_hgvs_genomic.posedit.pos.start.base)
+        end = int(reverse_normalized_hgvs_genomic.posedit.pos.end.base)
+        adj_start = start - 2
+
+        ins_seq = reverse_normalized_hgvs_genomic.posedit.edit.alt or ''
+
         vcf_del_seq = sf.fetch_seq(
-            str(reverse_normalized_hgvs_genomic.ac),
+            reverse_normalized_hgvs_genomic.ac,
             adj_start,
             end
         )
 
-        # Assemble
-        pos = str(start)
+        pos = str(start - 1)
         ref = vcf_del_seq
-        my_seq = Seq(vcf_del_seq)
-        alt = str(my_seq.reverse_complement())
-
-    # Delins
-    elif reverse_normalized_hgvs_genomic.posedit.edit.type == 'delins':
-        end = int(reverse_normalized_hgvs_genomic.posedit.pos.end.base)
-        start = int(reverse_normalized_hgvs_genomic.posedit.pos.start.base - 1)
-        adj_start = start - 1
-        start = start
-        try:
-            ins_seq = reverse_normalized_hgvs_genomic.posedit.edit.alt
-        except:
-            ins_seq = ''
-        else:
-            if ins_seq is None:
-                ins_seq = ''
-        # Recover sequences
-        vcf_del_seq = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac), adj_start, end)
-        # Assemble
-        pos = str(start)
-        ref = vcf_del_seq
-        alt = vcf_del_seq[:1] + ins_seq
+        alt = vcf_del_seq[0] + ins_seq
 
     # Duplications
     elif reverse_normalized_hgvs_genomic.posedit.edit.type == 'dup':
@@ -1137,7 +1140,7 @@ def pos_lock_hgvs2vcf(hgvs_genomic, primary_assembly, reverse_normalizer, sf):
         start = start - 1  #
         # Recover sequences
         dup_seq = reverse_normalized_hgvs_genomic.posedit.edit.ref
-        vcf_ref_seq = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac), adj_start, end)
+        vcf_ref_seq = sf.fetch_seq(reverse_normalized_hgvs_genomic.ac, adj_start, end)
         # Assemble
         pos = str(start)
         ref = vcf_ref_seq
@@ -1356,7 +1359,7 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
         start = int(normalized_hgvs_genomic.posedit.pos.start.base)
         alt_start = start - 1  #
         # Recover sequences
-        ref_seq = sf.fetch_seq(str(normalized_hgvs_genomic.ac), alt_start, end - 1)
+        ref_seq = sf.fetch_seq(normalized_hgvs_genomic.ac, alt_start, end - 1)
         ins_seq = normalized_hgvs_genomic.posedit.edit.alt
         # Assemble
         pos = start
@@ -1376,7 +1379,7 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
         adj_start = start - 2
         start = start - 1
         # Recover sequences
-        hgvs_del_seq_w_adj_start = sf.fetch_seq(str(normalized_hgvs_genomic.ac), adj_start, end)
+        hgvs_del_seq_w_adj_start = sf.fetch_seq(normalized_hgvs_genomic.ac, adj_start, end)
         # Assemble
         pos = str(start)
         ref = hgvs_del_seq_w_adj_start
@@ -1384,44 +1387,43 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
 
     # inv
     elif normalized_hgvs_genomic.posedit.edit.type == 'inv':
-        end = int(normalized_hgvs_genomic.posedit.pos.end.base)
         start = int(normalized_hgvs_genomic.posedit.pos.start.base)
-        adj_start = start - 1
-        start = start
+        end = int(normalized_hgvs_genomic.posedit.pos.end.base)
+
         try:
-            ins_seq = normalized_hgvs_genomic.posedit.edit.alt
-        except:
-            ins_seq = ''
-        else:
-            if ins_seq is None:
-                ins_seq = ''
-        # Recover sequences
-        vcf_del_seq = sf.fetch_seq(str(normalized_hgvs_genomic.ac), adj_start, end)
+            vcf_del_seq = normalized_hgvs_genomic.posedit.edit.ref
+        except AttributeError:
+            vcf_del_seq = None
+
+        if not vcf_del_seq:
+            vcf_del_seq = sf.fetch_seq(
+                normalized_hgvs_genomic.ac,
+                start - 1,
+                end
+            )
+
         # Assemble
         pos = str(start)
         ref = vcf_del_seq
-        my_seq = Seq(vcf_del_seq)
-        alt = str(my_seq.reverse_complement())
+        alt = utils.simple_dna_revcomp(vcf_del_seq)
 
     # Delins
     elif normalized_hgvs_genomic.posedit.edit.type == 'delins':
+        start = int(normalized_hgvs_genomic.posedit.pos.start.base)
         end = int(normalized_hgvs_genomic.posedit.pos.end.base)
-        start = int(normalized_hgvs_genomic.posedit.pos.start.base - 1)
-        adj_start = start - 1
-        start = start
-        try:
-            ins_seq = normalized_hgvs_genomic.posedit.edit.alt
-        except:
-            ins_seq = ''
-        else:
-            if ins_seq is None:
-                ins_seq = ''
-        # Recover sequences
-        vcf_del_seq = sf.fetch_seq(str(normalized_hgvs_genomic.ac), adj_start, end)
-        # Assemble
-        pos = str(start)
+        adj_start = start - 2
+
+        ins_seq = normalized_hgvs_genomic.posedit.edit.alt or ''
+
+        vcf_del_seq = sf.fetch_seq(
+            normalized_hgvs_genomic.ac,
+            adj_start,
+            end
+        )
+
+        pos = str(start - 1)
         ref = vcf_del_seq
-        alt = vcf_del_seq[:1] + ins_seq
+        alt = vcf_del_seq[0] + ins_seq
 
     # Duplications
     elif normalized_hgvs_genomic.posedit.edit.type == 'dup':
@@ -1431,7 +1433,7 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
         start = start - 1  #
         # Recover sequences
         dup_seq = normalized_hgvs_genomic.posedit.edit.ref
-        vcf_ref_seq = sf.fetch_seq(str(normalized_hgvs_genomic.ac), adj_start, end)
+        vcf_ref_seq = sf.fetch_seq(normalized_hgvs_genomic.ac, adj_start, end)
         # Assemble
         pos = str(start)
         ref = vcf_ref_seq
@@ -1484,7 +1486,7 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
         # Loop and add bases - up to the range defined below - unless we go into an intron/past the transcript
         max_push_length = 50
         try:
-            flank_seq = sf.fetch_seq(str(normalized_hgvs_genomic.ac), working_pos - 1, working_pos + max_push_length)
+            flank_seq = sf.fetch_seq(normalized_hgvs_genomic.ac, working_pos - 1, working_pos + max_push_length)
         except  vvhgvs.exceptions.HGVSDataNotAvailableError as e:
             if "ValueError: stop out of range" in str(e):
                 flank_seq = False
@@ -1498,7 +1500,7 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
                     push_ref = push_ref + flank_seq[push]
                     push_alt = push_alt + flank_seq[push]
                 else:
-                    post = sf.fetch_seq(str(normalized_hgvs_genomic.ac), working_pos - 1, working_pos)
+                    post = sf.fetch_seq(normalized_hgvs_genomic.ac, working_pos - 1, working_pos)
                     push_ref = push_ref + post
                     push_alt = push_alt + post
             except IndexError:
@@ -2054,7 +2056,7 @@ def hard_left_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, s
         start = int(reverse_normalized_hgvs_genomic.posedit.pos.start.base)
         alt_start = start - 1  #
         # Recover sequences
-        ref_seq = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac), alt_start, end - 1)
+        ref_seq = sf.fetch_seq(reverse_normalized_hgvs_genomic.ac, alt_start, end - 1)
         ins_seq = reverse_normalized_hgvs_genomic.posedit.edit.alt
         # Assemble
         pos = start
@@ -2074,51 +2076,52 @@ def hard_left_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, s
         adj_start = start - 2
         start = start - 1
         # Recover sequences
-        hgvs_del_seq_w_pre_base = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac), adj_start, end)
+        hgvs_del_seq_w_pre_base = sf.fetch_seq(reverse_normalized_hgvs_genomic.ac, adj_start, end)
         # Assemble
         pos = str(start)
         ref = hgvs_del_seq_w_pre_base
         alt = hgvs_del_seq_w_pre_base[0]
 
     # inv
-    # inv
     elif reverse_normalized_hgvs_genomic.posedit.edit.type == 'inv':
-        end = int(reverse_normalized_hgvs_genomic.posedit.pos.end.base)
         start = int(reverse_normalized_hgvs_genomic.posedit.pos.start.base)
-        adj_start = start - 1
+        end = int(reverse_normalized_hgvs_genomic.posedit.pos.end.base)
 
-        # Recover sequences
+        try:
+            vcf_del_seq = reverse_normalized_hgvs_genomic.posedit.edit.ref
+        except AttributeError:
+            vcf_del_seq = None
+
+        if not vcf_del_seq:
+            vcf_del_seq = sf.fetch_seq(
+                reverse_normalized_hgvs_genomic.ac,
+                start - 1,
+                end
+            )
+
+        # Assemble
+        pos = str(start)
+        ref = vcf_del_seq
+        alt = utils.simple_dna_revcomp(vcf_del_seq)
+
+    # Delins
+    elif reverse_normalized_hgvs_genomic.posedit.edit.type == 'delins':
+        start = int(reverse_normalized_hgvs_genomic.posedit.pos.start.base)
+        end = int(reverse_normalized_hgvs_genomic.posedit.pos.end.base)
+        adj_start = start - 2
+
+        ins_seq = reverse_normalized_hgvs_genomic.posedit.edit.alt or ''
+
         vcf_del_seq = sf.fetch_seq(
-            str(reverse_normalized_hgvs_genomic.ac),
+            reverse_normalized_hgvs_genomic.ac,
             adj_start,
             end
         )
 
         # Assemble
-        pos = str(start)
+        pos = str(start - 1)
         ref = vcf_del_seq
-        my_seq = Seq(vcf_del_seq)
-        alt = str(my_seq.reverse_complement())
-
-    # Delins
-    elif reverse_normalized_hgvs_genomic.posedit.edit.type == 'delins':
-        end = int(reverse_normalized_hgvs_genomic.posedit.pos.end.base)
-        start = int(reverse_normalized_hgvs_genomic.posedit.pos.start.base - 1)
-        adj_start = start - 1
-        start = start
-        try:
-            ins_seq = reverse_normalized_hgvs_genomic.posedit.edit.alt
-        except:
-            ins_seq = ''
-        else:
-            if ins_seq is None:
-                ins_seq = ''
-        # Recover sequences
-        vcf_del_seq = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac), adj_start, end)
-        # Assemble
-        pos = str(start)
-        ref = vcf_del_seq
-        alt = vcf_del_seq[:1] + ins_seq
+        alt = vcf_del_seq[0] + ins_seq
 
     # Duplications
     elif reverse_normalized_hgvs_genomic.posedit.edit.type == 'dup':
@@ -2128,7 +2131,7 @@ def hard_left_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, s
         start = start - 1  #
         # Recover sequences
         dup_seq = reverse_normalized_hgvs_genomic.posedit.edit.ref
-        vcf_ref_seq = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac), adj_start, end)
+        vcf_ref_seq = sf.fetch_seq(reverse_normalized_hgvs_genomic.ac, adj_start, end)
         # Assemble
         pos = str(start)
         ref = vcf_ref_seq
@@ -2717,8 +2720,7 @@ def hgvs_ref_alt(hgvs_variant, sf):
     # Inversions
     elif edit_type == 'inv':
         ref = edit.ref
-        my_seq = Seq(ref)
-        alt = str(my_seq.reverse_complement())
+        alt = utils.simple_dna_revcomp(ref)
 
     # Delins
     elif edit_type == 'delins':

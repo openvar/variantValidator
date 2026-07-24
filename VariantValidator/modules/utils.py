@@ -829,6 +829,9 @@ WARNING_CODE_MAP = {
     "Reference type incorrectly stated":
         ("ReferenceTypeError", None),
 
+    "is not compatible with variant type":
+        ("ReferenceTypeError", None),
+
     "invalid reference sequence identifier":
         ("ReferenceSequenceError", None),
 
@@ -904,9 +907,6 @@ WARNING_CODE_MAP = {
 
     "Mapping unavailable for RefSeqGene":
         ("TranscriptMappingError", None),
-
-    # "Transcript ":
-    #     ("TranscriptDataError", None),
 
     "Required information for ":
         ("TranscriptDataError", None),

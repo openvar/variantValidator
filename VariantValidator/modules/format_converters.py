@@ -3,7 +3,7 @@ import vvhgvs.exceptions
 import copy
 import logging
 from VariantValidator.modules.variant import Variant
-from VariantValidator.modules import seq_data, initial_formatting
+from VariantValidator.modules import seq_data
 from VariantValidator.modules import utils as fn
 import VariantValidator.modules.rna_formatter
 from VariantValidator.modules import complex_descriptions, use_checking, \
@@ -12,10 +12,17 @@ from VariantValidator.modules.vvMixinConverters import AlleleSyntaxError
 from VariantValidator.modules.hgvs_utils import hgvs_delins_parts_to_hgvs_obj,\
         unset_hgvs_obj_ref
 from . import hgvs_position_utils
+from vvhgvs.assemblymapper import AssemblyMapper
 
 logger = logging.getLogger(__name__)
 
 class GeneSymbolFormatError(Exception):
+    pass
+
+class AltPrimaryMappingError(Exception):
+    pass
+
+class AltPrimaryIntronError(Exception):
     pass
 
 def initial_format_conversions(
@@ -35,24 +42,28 @@ def initial_format_conversions(
     if toskip:
         return True
 
-    toskip = gene_symbol_catch(
-        variant,
-        validator,
-        select_transcripts_dict_plus_version,
-        batch_list
-    )
-    if toskip:
-        return True
+    # Gene symbols used in place of reference sequence identifiers.
+    if isinstance(variant.quibble, str):
+        toskip = gene_symbol_catch(
+            variant,
+            validator,
+            select_transcripts_dict_plus_version,
+            batch_list
+        )
+        if toskip:
+            return True
 
     # NG_:c. or NC_:c.
-    toskip = refseq_catch(
-        variant,
-        validator,
-        select_transcripts_dict_plus_version,
-        batch_list
-    )
-    if toskip:
-        return True
+    # Catch genomic references used with transcript-level descriptions.
+    if not variant.quibble.startswith(('NM_', 'NR_', 'ENST')):
+        toskip = refseq_catch(
+            variant,
+            validator,
+            select_transcripts_dict_plus_version,
+            batch_list
+        )
+        if toskip:
+            return True
 
     # Find not_sub type in input e.g. GGGG>G
     toskip = vcf2hgvs_stage4(variant, batch_list)
@@ -64,7 +75,13 @@ def initial_format_conversions(
     # object and bypass the remaining string-specific processing.
 
     # Extract variants from HGVS allele descriptions.
-    if isinstance(variant.quibble, str):
+    if (
+            isinstance(variant.quibble, str)
+            and (
+            ('[' in variant.quibble and ']' in variant.quibble)
+            or '(;)' in variant.quibble
+    )
+    ):
         logger.info("Try find allele syntax in %s", variant.quibble)
         toskip = allele_parser(
             variant,
@@ -79,7 +96,7 @@ def initial_format_conversions(
     if isinstance(variant.quibble, str):
         if 'con' in variant.quibble:
             warning = (
-                'Conversions are no longer valid HGVS Sequence Variant '
+                'DeprecatedSyntaxError: Conversions are no longer valid HGVS Sequence Variant '
                 'Descriptions'
             )
             variant.warnings.append(warning)
@@ -101,9 +118,17 @@ def initial_format_conversions(
         toskip = uncertain_pos(variant, validator)
         if toskip:
             return True
+        # Correct reference sequence/type mismatches before HGVS parsing.
+        if isinstance(variant.quibble, str):
+            toskip = use_checking.refseq_common_mistakes(variant, validator)
+            if toskip:
+                return True
 
     # Expanded repeats may convert the input to an HGVS object.
-    if isinstance(variant.quibble, str):
+    if (
+            isinstance(variant.quibble, str)
+            and ('[' in variant.quibble or ']' in variant.quibble)
+    ):
         logger.info(
             "Try find Expanded Repeat syntax in %s",
             variant.quibble
@@ -113,8 +138,23 @@ def initial_format_conversions(
             return True
 
     # Catch del12/ins21-style descriptions while input remains a string.
-    if isinstance(variant.quibble, str):
+    if (
+            isinstance(variant.quibble, str)
+            and variant.quibble
+            and variant.quibble[-1].isdigit()
+    ):
         toskip = indel_catching(variant, validator)
+        if toskip:
+            return True
+
+    # Process compound genomic/transcript descriptions while input is still
+    # available as a string.
+    if isinstance(variant.quibble, str):
+        intronic_converter(variant, validator)
+
+    # Correct reference sequence/type mismatches before final HGVS parsing.
+    if isinstance(variant.quibble, str):
+        toskip = use_checking.refseq_common_mistakes(variant, validator)
         if toskip:
             return True
 
@@ -124,37 +164,21 @@ def initial_format_conversions(
         try:
             toskip = final_hgvs_convert(variant, validator)
 
-        except:
-            # Check for common mistakes.
-            toskip = use_checking.refseq_common_mistakes(variant)
-            if toskip:
-                return True
-
-            # Try again if corrected.
-            try:
-                toskip = final_hgvs_convert(variant, validator)
-
-            except vvhgvs.exceptions.HGVSParseError as err:
-                variant.warnings.append(
-                    "HgvsSyntaxError: " + str(err)
-                )
-                return True
-
-            except vvhgvs.exceptions.HGVSError:
-                variant.warnings.append(
-                    f"HgvsParserError: Unknown error during "
-                    f"reading of variant {variant.quibble}"
-                )
-                return True
-
-        # Fail if uncorrected errors persist. A warning should already
-        # have been generated.
-        if toskip:
+        except vvhgvs.exceptions.HGVSParseError as err:
+            variant.warnings.append(
+                "HgvsSyntaxError: " + str(err)
+            )
             return True
 
-    # Tackle compound variant descriptions NG or NC (NM_), i.e.
-    # correctly input NG/NC_(NM_):c.
-    intronic_converter(variant, validator)
+        except vvhgvs.exceptions.HGVSError:
+            variant.warnings.append(
+                f"HgvsParserError: Unknown error during "
+                f"reading of variant {variant.quibble}"
+            )
+            return True
+
+        if toskip:
+            return True
 
     return False
 
@@ -207,7 +231,7 @@ def vcf2hgvs_stage1(variant, batch_list):
     VCF variants into HGVS - hence the need for conversion step 2
     """
     skipvar = False
-    vcf_data = re.split(r'[-:]', variant.quibble)
+    vcf_data = variant.quibble.replace('-', ':').split(':')
 
     if len(vcf_data) < 4:
         logger.debug("Completed VCF-HVGS step 1 for %s", variant.quibble)
@@ -519,7 +543,12 @@ def vcf2hgvs_stage2(variant, validator):
     return skipvar
 
 
-def gene_symbol_catch(variant, validator, select_transcripts_dict_plus_version, batch_list):
+def gene_symbol_catch(
+        variant,
+        validator,
+        select_transcripts_dict_plus_version,
+        batch_list
+):
     """
     Searches for gene symbols that have been used as reference sequence
     identifiers. Provides a sufficiently repremanding warning, but also provides
@@ -527,145 +556,156 @@ def gene_symbol_catch(variant, validator, select_transcripts_dict_plus_version, 
     reference sequence identifiers i.e. NM_ ....
     Note: the output from the function must be validated because VV has no way
     of knowing which the users intended reference sequence was, and the exon
-    boundaries etc of the alternative transcript variants may not be equivalent
+    boundaries etc of the alternative transcript variants may not be equivalent.
     """
     skipvar = False
     query_a_symbol, _sep, tx_edit = variant.quibble.partition(':')
+
+    # Gene-symbol handling only applies to transcript-level descriptions.
+    if not tx_edit.startswith(('c.', 'n.', 'r.')):
+        return False
+
+    # Known reference sequence identifiers cannot be gene symbols.
+    if query_a_symbol.startswith(
+            ('NC_', 'NG_', 'NT_', 'NW_', 'NM_', 'NR_', 'ENST', 'LRG_')
+    ):
+        return False
+
     logger.info("Extracted query_a_symbol: %s", query_a_symbol)
 
-    if (
-            not query_a_symbol.startswith(
-                ('NC_', 'NW_', 'NM_', 'NR_', 'NG_', 'LRG', 'ENST')
+    try:
+        if '(' in query_a_symbol and ')' in query_a_symbol:
+            variant.warnings.append(
+                f"ReferenceSequenceError: {query_a_symbol} is an invalid "
+                f"reference sequence identifier"
             )
-            and tx_edit.startswith(('c.', 'n.'))
-    ):
-        try:
-            if '(' in query_a_symbol and ')' in query_a_symbol:
-                variant.warnings.append(
-                    f"ReferenceSequenceError: {query_a_symbol} is an invalid "
-                    f"reference sequence identifier"
-                )
-                raise GeneSymbolFormatError(
-                    f"{query_a_symbol} contains parentheses, which is not allowed "
-                    f"in gene symbols."
-                )
+            raise GeneSymbolFormatError(
+                f"{query_a_symbol} contains parentheses, which is not allowed "
+                f"in gene symbols."
+            )
 
-            is_it_a_gene = validator.db.get_hgnc_symbol(query_a_symbol)
+        is_it_a_gene = validator.db.get_hgnc_symbol(query_a_symbol)
 
-            if is_it_a_gene == 'none':
-                warning = (
-                    f"{query_a_symbol} identified as the reference sequence for "
-                    f"{variant.quibble} and is not a valid, and is also not a valid "
-                    f"gene symbol"
-                )
-                variant.warnings.append(warning)
-                logger.info(warning)
-                skipvar = True
+        if is_it_a_gene == 'none':
+            warning = (
+                f"{query_a_symbol} identified as the reference sequence for "
+                f"{variant.quibble} and is not a valid, and is also not a valid "
+                f"gene symbol"
+            )
+            variant.warnings.append(warning)
+            logger.info(warning)
+            skipvar = True
 
-            else:
-                uta_symbol = validator.db.get_uta_symbol(is_it_a_gene)
-                available_transcripts = validator.hdp.get_tx_for_gene(uta_symbol)
-                select_from_these_transcripts = []
+        else:
+            uta_symbol = validator.db.get_uta_symbol(is_it_a_gene)
+            available_transcripts = validator.hdp.get_tx_for_gene(uta_symbol)
+            select_from_these_transcripts = []
 
-                for tx in available_transcripts:
-                    transcript = tx[3]
+            for tx in available_transcripts:
+                transcript = tx[3]
 
-                    if (
-                            validator.alt_aln_method == 'splign'
-                            and transcript.startswith(('NM_', 'NR_'))
-                            and transcript not in select_from_these_transcripts
-                    ):
-                        select_from_these_transcripts.append(transcript)
+                if (
+                        validator.alt_aln_method == 'splign'
+                        and transcript.startswith(('NM_', 'NR_'))
+                        and transcript not in select_from_these_transcripts
+                ):
+                    select_from_these_transcripts.append(transcript)
 
-                    elif (
-                            validator.alt_aln_method == 'genebuild'
-                            and transcript.startswith('ENST')
-                            and transcript not in select_from_these_transcripts
-                    ):
-                        select_from_these_transcripts.append(transcript)
+                elif (
+                        validator.alt_aln_method == 'genebuild'
+                        and transcript.startswith('ENST')
+                        and transcript not in select_from_these_transcripts
+                ):
+                    select_from_these_transcripts.append(transcript)
 
-                if validator.select_transcripts not in ('all', 'raw'):
-                    variant.write = False
+            if validator.select_transcripts not in ('all', 'raw'):
+                variant.write = False
 
-                    for transcript in select_transcripts_dict_plus_version:
-                        if transcript == 'mane':
-                            for tx in select_from_these_transcripts:
-                                annotation = validator.db.get_transcript_annotation(tx)
-                                if (
-                                        '"mane_select": true' in annotation
-                                        or '"mane_plus_clinical": true' in annotation
-                                ):
-                                    transcript = tx
-                                else:
-                                    continue
+                for transcript in select_transcripts_dict_plus_version:
+                    if transcript == 'mane':
+                        for tx in select_from_these_transcripts:
+                            annotation = (
+                                validator.db.get_transcript_annotation(tx)
+                            )
+                            if (
+                                    '"mane_select": true' in annotation
+                                    or '"mane_plus_clinical": true'
+                                    in annotation
+                            ):
+                                transcript = tx
+                            else:
+                                continue
 
-                        elif transcript == 'mane_select':
-                            for tx in select_from_these_transcripts:
-                                annotation = validator.db.get_transcript_annotation(tx)
-                                if '"mane_select": true' in annotation:
-                                    transcript = tx
-                                else:
-                                    continue
-
-                        variant.warnings.append(
-                            'InvalidReferenceError: HGVS variant nomenclature does not '
-                            'allow the use of a gene symbol (' +
-                            query_a_symbol +
-                            ') in place of a valid reference sequence'
-                        )
-
-                        refreshed_description = transcript + ':' + tx_edit
-
-                        query = Variant(
-                            variant.original,
-                            quibble=refreshed_description,
-                            warnings=variant.warnings,
-                            primary_assembly=variant.primary_assembly,
-                            order=variant.order
-                        )
-                        batch_list.append(query)
-
-                        logger.info(
-                            'HGVS variant nomenclature does not allow the use of a '
-                            'gene symbol (%s) in place of a valid reference sequence',
-                            query_a_symbol
-                        )
-                        logger.info(
-                            "Submitting new variant with format %s",
-                            refreshed_description
-                        )
-
-                else:
-                    select_from_these_transcripts = '|'.join(
-                        select_from_these_transcripts
-                    )
+                    elif transcript == 'mane_select':
+                        for tx in select_from_these_transcripts:
+                            annotation = (
+                                validator.db.get_transcript_annotation(tx)
+                            )
+                            if '"mane_select": true' in annotation:
+                                transcript = tx
+                            else:
+                                continue
 
                     variant.warnings.append(
-                        'InvalidReferenceError: HGVS variant nomenclature does not allow '
-                        'the use of a gene symbol (' +
+                        'InvalidReferenceError: HGVS variant nomenclature '
+                        'does not allow the use of a gene symbol (' +
                         query_a_symbol +
-                        ') in place of a valid reference sequence: Re-submit ' +
-                        str(variant.quibble) +
-                        ' and specify transcripts from the following: ' +
-                        'select_transcripts=' +
-                        select_from_these_transcripts
+                        ') in place of a valid reference sequence'
                     )
+
+                    refreshed_description = transcript + ':' + tx_edit
+
+                    query = Variant(
+                        variant.original,
+                        quibble=refreshed_description,
+                        warnings=variant.warnings,
+                        primary_assembly=variant.primary_assembly,
+                        order=variant.order
+                    )
+                    batch_list.append(query)
 
                     logger.info(
-                        'HGVS variant nomenclature does not allow the use of a gene '
-                        'symbol (' +
-                        query_a_symbol +
-                        ') in place of a valid reference sequence: Re-submit ' +
-                        str(variant.quibble) +
-                        ' and specify transcripts from the following: '
-                        'select_transcripts=' +
-                        select_from_these_transcripts
+                        'HGVS variant nomenclature does not allow the use of '
+                        'a gene symbol (%s) in place of a valid reference '
+                        'sequence',
+                        query_a_symbol
+                    )
+                    logger.info(
+                        "Submitting new variant with format %s",
+                        refreshed_description
                     )
 
-                skipvar = True
+            else:
+                select_from_these_transcripts = '|'.join(
+                    select_from_these_transcripts
+                )
 
-        except Exception as e:
-            logger.debug("Except passed, %s", e)
+                variant.warnings.append(
+                    'InvalidReferenceError: HGVS variant nomenclature does '
+                    'not allow the use of a gene symbol (' +
+                    query_a_symbol +
+                    ') in place of a valid reference sequence: Re-submit ' +
+                    str(variant.quibble) +
+                    ' and specify transcripts from the following: '
+                    'select_transcripts=' +
+                    select_from_these_transcripts
+                )
+
+                logger.info(
+                    'HGVS variant nomenclature does not allow the use of a '
+                    'gene symbol (' +
+                    query_a_symbol +
+                    ') in place of a valid reference sequence: Re-submit ' +
+                    str(variant.quibble) +
+                    ' and specify transcripts from the following: '
+                    'select_transcripts=' +
+                    select_from_these_transcripts
+                )
+
+            skipvar = True
+
+    except Exception as e:
+        logger.debug("Except passed, %s", e)
 
     logger.debug("Gene symbol reference catching complete")
     return skipvar
@@ -680,7 +720,7 @@ def refseq_catch(variant, validator, select_transcripts_dict_plus_version, batch
     skipvar = False
     query_a_seq, _sep, tx_edit = variant.quibble.partition(':')
 
-    if tx_edit.startswith(('c.', 'n.')):
+    if tx_edit.startswith(('c.', 'n.', 'r')):
         # remove, handle, and sometimes fix, some complex broken input types, e.g.
         # 'NC_000017.11(NC_000017.11(ENST00000357654.9)' warn and abort otherwise.
         # Since genes like ENST(GEN_ID):c. may be found tolerate junk, but
@@ -1230,12 +1270,18 @@ def intronic_converter(variant, validator, skip_check=False, uncertain=False):
         if skip_check:
             return genomic_ref
 
+
         # Check the specified base is correct
         hgvs_genomic = validator.nr_vm.c_to_g(
-            variant.quibble,
+            hgvs_transy,
             genomic_ref,
             alt_aln_method=validator.alt_aln_method
         )
+
+        logger.info(f"{variant.quibble} mapped to {hgvs_transy} which maps to {hgvs_genomic}")
+
+        # log the desired genomic reference
+        variant.genomic_context_ac = genomic_ref
 
         try:
             validator.vr.validate(hgvs_genomic)
@@ -1312,7 +1358,13 @@ def intronic_converter(variant, validator, skip_check=False, uncertain=False):
             validator
         )
 
-    logger.debug("HVGS typesetting complete")
+        # Retain the parsed HGVS object.
+        variant.quibble = hgvs_transy
+
+        if map_alt_intron_to_primary(variant, validator):
+            return True
+
+        logger.debug(f"HVGS typesetting complete mapping variant.quibble to {hgvs_transy}")
 
 def remap_intronic(hgvs_transy, hgvs_genomic, variant, validator):
     # Check re-mapping of intronic variants
@@ -1932,7 +1984,7 @@ def uncertain_pos(variant, validator):
             return True
 
         except complex_descriptions.IncompatibleTypeError:
-            use_checking.refseq_common_mistakes(variant)
+            use_checking.refseq_common_mistakes(variant, validator)
             return True
 
         except (
@@ -1951,6 +2003,629 @@ def uncertain_pos(variant, validator):
 
     except Exception:
         return False
+
+def map_alt_intron_to_primary(variant, validator):
+    """
+    Check an intronic transcript variant submitted in an alternate genomic
+    context (NW_, NT_ or NG_).
+
+    First confirm that the submitted intronic coordinate is valid for the
+    incoming genomic alignment itself. If it is not, report ExonBoundaryError.
+
+    If valid, inspect primary chromosome alignments to determine whether the
+    corresponding transcript exon boundary also has genomic intronic sequence
+    on the selected primary assembly. If not, try the other primary assembly.
+
+    Returns True if validation should stop, otherwise False.
+    """
+    hgvs_transcript = variant.quibble
+    genomic_context_ac = variant.genomic_context_ac
+    aln_method = validator.alt_aln_method
+
+    logger.info(
+        "map_alt_intron_to_primary(): transcript=%s, genomic_context=%s, "
+        "primary_assembly=%s, alignment_method=%s",
+        hgvs_transcript,
+        genomic_context_ac,
+        variant.primary_assembly,
+        aln_method
+    )
+
+    # This helper only handles alternate genomic/reference contexts.
+    if (
+            genomic_context_ac is None or
+            not genomic_context_ac.startswith(('NW_', 'NT_', 'NG_'))
+    ):
+        logger.info(
+            "map_alt_intron_to_primary(): genomic context %s is not "
+            "NW_/NT_/NG_; skipping",
+            genomic_context_ac
+        )
+        return False
+
+    # Only intronic transcript variants need checking.
+    if not hgvs_position_utils.either_position_is_intronic(hgvs_transcript):
+        logger.info(
+            "map_alt_intron_to_primary(): %s is not intronic; skipping",
+            hgvs_transcript
+        )
+        return False
+
+    # Set mappers (which will be removed on refactor)
+    if variant.no_norm_evm is None:
+        variant.no_norm_evm = AssemblyMapper(
+                        validator.hdp,
+                        assembly_name=variant.primary_assembly,
+                        alt_aln_method=validator.alt_aln_method,
+                        normalize=False,
+                        replace_reference=True
+                        )
+    if variant.evm is None:
+        variant.evm = AssemblyMapper(
+                        validator.hdp,
+                        assembly_name=variant.primary_assembly,
+                        alt_aln_method=validator.alt_aln_method,
+                        normalize=True,
+                        replace_reference=True
+                        )
+
+
+    # Work in n. coordinates so CDS start/end do not affect comparison with
+    # transcript exon coordinates returned by UTA.
+    if hgvs_transcript.type == 'c':
+        hgvs_n = validator.vm.c_to_n(hgvs_transcript)
+        logger.info(
+            "map_alt_intron_to_primary(): converted %s to %s for exon "
+            "structure comparison",
+            hgvs_transcript,
+            hgvs_n
+        )
+    else:
+        hgvs_n = copy.deepcopy(hgvs_transcript)
+
+    start_intronic = hgvs_position_utils.start_position_is_intronic(hgvs_n)
+
+    if start_intronic:
+        intronic_position = hgvs_n.posedit.pos.start
+    else:
+        intronic_position = hgvs_n.posedit.pos.end
+
+    boundary = intronic_position.base
+    offset = intronic_position.offset
+
+    logger.info(
+        "map_alt_intron_to_primary(): intronic position=%s, "
+        "transcript boundary=n.%s, offset=%s",
+        intronic_position,
+        boundary,
+        offset
+    )
+
+    # Collect orientation from the submitted genomic alignment.
+    # This is populated during the existing get_tx_exons() call for
+    # genomic_context_ac, avoiding another HDP query.
+    orientation = None
+
+    def alignment_has_intron(genomic_ac):
+        """
+        Determine whether the transcript boundary used by the submitted
+        intronic coordinate has intervening genomic sequence on this specific
+        transcript/genomic alignment.
+
+        Returns:
+            True  - boundary exists and has genomic intronic sequence
+            False - boundary exists but has no genomic intronic sequence,
+                    or the transcript boundary is not valid on this alignment
+            None  - alignment data could not be obtained/tested
+        """
+        nonlocal orientation
+
+        logger.info(
+            "map_alt_intron_to_primary(): HDP call "
+            "get_tx_exons(%s, %s, %s)",
+            hgvs_transcript.ac,
+            genomic_ac,
+            aln_method
+        )
+
+        try:
+            exons = validator.hdp.get_tx_exons(
+                hgvs_transcript.ac,
+                genomic_ac,
+                aln_method
+            )
+        except vvhgvs.exceptions.HGVSError as error:
+            logger.info(
+                "map_alt_intron_to_primary(): get_tx_exons failed for "
+                "%s -> %s: %s",
+                hgvs_transcript.ac,
+                genomic_ac,
+                error
+            )
+            return None
+
+        if not exons:
+            logger.info(
+                "map_alt_intron_to_primary(): no exon records returned for "
+                "%s -> %s",
+                hgvs_transcript.ac,
+                genomic_ac
+            )
+            return None
+
+        logger.info(
+            "map_alt_intron_to_primary(): %s exon records returned for "
+            "%s -> %s",
+            len(exons),
+            hgvs_transcript.ac,
+            genomic_ac
+        )
+
+        # Capture strand only from the submitted alternate genomic context.
+        # All exon records for this alignment should have the same alt_strand.
+        if genomic_ac == genomic_context_ac:
+            orientation = exons[0]['alt_strand']
+
+            logger.info(
+                "map_alt_intron_to_primary(): collected orientation %s "
+                "for submitted alignment %s -> %s",
+                orientation,
+                hgvs_transcript.ac,
+                genomic_context_ac
+            )
+
+        # UTA exon coordinates are interbase. A transcript exon ending at
+        # tx_end_i therefore has its final n. base at tx_end_i.
+        #
+        # For + offsets:
+        #     n.518+1
+        # we need the exon ending at transcript boundary 518 and the following
+        # exon.
+        #
+        # For - offsets:
+        #     n.519-1
+        # we need the exon beginning at transcript base 519 and the preceding
+        # exon.
+        for index, exon in enumerate(exons):
+            tx_start_i = exon['tx_start_i']
+            tx_end_i = exon['tx_end_i']
+
+            if offset > 0:
+                if tx_end_i != boundary:
+                    continue
+
+                if index + 1 >= len(exons):
+                    logger.info(
+                        "map_alt_intron_to_primary(): boundary n.%s is at "
+                        "the final exon for %s",
+                        boundary,
+                        genomic_ac
+                    )
+                    return False
+
+                adjacent_exon = exons[index + 1]
+
+            else:
+                if tx_start_i + 1 != boundary:
+                    continue
+
+                if index == 0:
+                    logger.info(
+                        "map_alt_intron_to_primary(): boundary n.%s is at "
+                        "the first exon for %s",
+                        boundary,
+                        genomic_ac
+                    )
+                    return False
+
+                adjacent_exon = exons[index - 1]
+
+            current_g_start = exon['alt_start_i']
+            current_g_end = exon['alt_end_i']
+            adjacent_g_start = adjacent_exon['alt_start_i']
+            adjacent_g_end = adjacent_exon['alt_end_i']
+
+            logger.info(
+                "map_alt_intron_to_primary(): %s boundary n.%s found; "
+                "current exon tx=%s-%s genomic=%s-%s; "
+                "adjacent exon tx=%s-%s genomic=%s-%s",
+                genomic_ac,
+                boundary,
+                tx_start_i,
+                tx_end_i,
+                current_g_start,
+                current_g_end,
+                adjacent_exon['tx_start_i'],
+                adjacent_exon['tx_end_i'],
+                adjacent_g_start,
+                adjacent_g_end
+            )
+
+            if current_g_end <= adjacent_g_start:
+                genomic_gap = adjacent_g_start - current_g_end
+            elif adjacent_g_end <= current_g_start:
+                genomic_gap = current_g_start - adjacent_g_end
+            else:
+                genomic_gap = 0
+
+            logger.info(
+                "map_alt_intron_to_primary(): %s boundary n.%s has %s "
+                "genomic bases between adjacent exons",
+                genomic_ac,
+                boundary,
+                genomic_gap
+            )
+
+            if genomic_gap > 0:
+                logger.info(
+                    "map_alt_intron_to_primary(): %s contains an intron at "
+                    "transcript boundary n.%s",
+                    genomic_ac,
+                    boundary
+                )
+                return True
+
+            logger.info(
+                "map_alt_intron_to_primary(): %s has adjacent genomic exons "
+                "at transcript boundary n.%s; no intronic sequence exists",
+                genomic_ac,
+                boundary
+            )
+            return False
+
+        logger.info(
+            "map_alt_intron_to_primary(): transcript boundary n.%s was not "
+            "found in exon structure for %s",
+            boundary,
+            genomic_ac
+        )
+        return False
+
+    # ------------------------------------------------------------------
+    # 1. Validate the submitted NW_/NT_/NG_ context itself.
+    # ------------------------------------------------------------------
+
+    logger.info(
+        "map_alt_intron_to_primary(): validating submitted genomic context %s",
+        genomic_context_ac
+    )
+
+    submitted_has_intron = alignment_has_intron(genomic_context_ac)
+
+    if submitted_has_intron is False:
+        position = (
+            hgvs_transcript.posedit.pos.start
+            if hgvs_position_utils.start_position_is_intronic(hgvs_transcript)
+            else hgvs_transcript.posedit.pos.end
+        )
+
+        warning = (
+            f'ExonBoundaryError: Position c.{position} does not correspond '
+            f'with an exon boundary for transcript reference {hgvs_transcript.ac} and genomic reference '
+            f'{genomic_context_ac}'
+        )
+
+        variant.warnings.append(warning)
+
+        logger.info(
+            "map_alt_intron_to_primary(): submitted genomic context %s "
+            "does not contain the required intron: %s",
+            genomic_context_ac,
+            warning
+        )
+
+        raise AltPrimaryIntronError(warning)
+
+    if submitted_has_intron is None:
+        logger.info(
+            "map_alt_intron_to_primary(): unable to establish exon structure "
+            "for submitted genomic context %s",
+            genomic_context_ac
+        )
+
+        variant.coding = hgvs_transcript
+
+        warning = (
+            f"AlignmentDataError: Unable to establish the exon structure for "
+            f"{hgvs_transcript.ac} aligned to {genomic_context_ac} using "
+            f"{validator.alt_aln_method}; the submitted intronic variant "
+            f"cannot be validated"
+        )
+
+        logger.info(
+            "map_alt_intron_to_primary(): %s",
+            warning
+        )
+
+        raise AltPrimaryIntronError(warning)
+
+    logger.info(
+        "map_alt_intron_to_primary(): submitted genomic context %s contains "
+        "the required intron; submitted intronic coordinates are valid",
+        genomic_context_ac
+    )
+
+    # ------------------------------------------------------------------
+    # 2. Find primary chromosome alignments.
+    # ------------------------------------------------------------------
+
+    if variant.primary_assembly.lower() in ('grch38', 'hg38'):
+        current_assembly = 'GRCh38'
+        other_assembly = 'GRCh37'
+    else:
+        current_assembly = 'GRCh37'
+        other_assembly = 'GRCh38'
+
+    logger.info(
+        "map_alt_intron_to_primary(): HDP call "
+        "get_tx_mapping_options(%s)",
+        hgvs_transcript.ac
+    )
+
+    mapping_options = validator.hdp.get_tx_mapping_options(
+        hgvs_transcript.ac
+    )
+
+    logger.info(
+        "map_alt_intron_to_primary(): mapping options for %s: %s",
+        hgvs_transcript.ac,
+        mapping_options
+    )
+
+    current_ac = None
+    other_ac = None
+
+    for mapping in mapping_options:
+        genomic_ac = mapping[1]
+        mapping_method = mapping[2]
+
+        if mapping_method != aln_method:
+            continue
+
+        if not genomic_ac.startswith('NC_'):
+            continue
+
+        if seq_data.supported_for_mapping(
+                genomic_ac,
+                current_assembly
+        ):
+            current_ac = genomic_ac
+            logger.info(
+                "map_alt_intron_to_primary(): selected %s primary "
+                "chromosome alignment %s",
+                current_assembly,
+                current_ac
+            )
+
+        elif seq_data.supported_for_mapping(
+                genomic_ac,
+                other_assembly
+        ):
+            other_ac = genomic_ac
+            logger.info(
+                "map_alt_intron_to_primary(): selected %s primary "
+                "chromosome alignment %s",
+                other_assembly,
+                other_ac
+            )
+
+    # ------------------------------------------------------------------
+    # 3. Does the selected primary assembly contain the same intron?
+    # ------------------------------------------------------------------
+
+    current_has_intron = None
+
+    if current_ac is not None:
+        current_has_intron = alignment_has_intron(current_ac)
+
+    if current_has_intron:
+        logger.info(
+            "map_alt_intron_to_primary(): %s contains the corresponding "
+            "intron on %s; continuing on selected primary assembly",
+            current_ac,
+            current_assembly
+        )
+
+        try:
+            variant.hgvs_genomic = validator.vm.t_to_g(
+                hgvs_transcript,
+                current_ac,
+                alt_aln_method=aln_method
+            )
+
+            logger.info(
+                "map_alt_intron_to_primary(): mapped %s to %s",
+                hgvs_transcript,
+                variant.hgvs_genomic
+            )
+        except vvhgvs.exceptions.HGVSError as error:
+            logger.info(
+                "map_alt_intron_to_primary(): mapping to %s failed despite "
+                "compatible exon structure: %s",
+                current_ac,
+                error
+            )
+
+        return False
+
+    logger.info(
+        "map_alt_intron_to_primary(): selected assembly %s does not provide "
+        "a usable corresponding intron for %s",
+        current_assembly,
+        hgvs_transcript
+    )
+
+    # ------------------------------------------------------------------
+    # 4. Try the other primary assembly.
+    # ------------------------------------------------------------------
+
+    other_has_intron = None
+
+    if other_ac is not None:
+        other_has_intron = alignment_has_intron(other_ac)
+
+    if other_has_intron:
+        logger.info(
+            "map_alt_intron_to_primary(): corresponding intron exists on "
+            "%s (%s); switching primary assembly",
+            other_ac,
+            other_assembly
+        )
+
+        variant.primary_assembly = other_assembly
+
+        try:
+            variant.hgvs_genomic = validator.vm.t_to_g(
+                hgvs_transcript,
+                other_ac,
+                alt_aln_method=aln_method
+            )
+
+            logger.info(
+                "map_alt_intron_to_primary(): mapped %s to %s after "
+                "switching primary assembly to %s",
+                hgvs_transcript,
+                variant.hgvs_genomic,
+                other_assembly
+            )
+        except vvhgvs.exceptions.HGVSError as error:
+            logger.info(
+                "map_alt_intron_to_primary(): mapping to %s failed despite "
+                "compatible exon structure: %s",
+                other_ac,
+                error
+            )
+
+        return False
+
+    # ------------------------------------------------------------------
+    # 5. Valid in submitted context, but no primary chromosome carries
+    #    the corresponding intron.
+    # ------------------------------------------------------------------
+
+    logger.info(
+        "map_alt_intron_to_primary(): %s is valid in submitted context %s, "
+        "but no usable primary chromosome alignment contains the corresponding "
+        "intron; stopping primary-assembly validation",
+        hgvs_transcript,
+        genomic_context_ac
+    )
+
+    # Set final object variables
+    variant.output_type_flag = "gene"
+
+    hgvs_genomic = validator.vm.t_to_g(hgvs_transcript, genomic_context_ac)
+
+    if hgvs_transcript.posedit.edit.type == "identity":
+        hgvs_genomic.posedit.edit.alt = hgvs_genomic.posedit.edit.ref
+
+    logger.info(f"{hgvs_transcript.ac} orientation with {hgvs_genomic.ac} is {orientation}")
+
+    logger.info(f"hgvs_genomic: {hgvs_genomic}")
+
+    if orientation == 1:
+        hgvs_genomic = variant.hn.normalize(hgvs_genomic)
+    else:
+        hgvs_genomic = variant.reverse_normalizer.normalize(hgvs_genomic)
+
+    logger.info(f"Normalized hgvs_genomic: {hgvs_genomic}")
+
+    if "N" in hgvs_genomic.posedit.edit.ref:
+        warning = ("UndefinedSequenceError: Submitted variant description cannot be fully validated "
+                                "because it spans "
+                                "a region of the reference sequence represented by base 'N' and not bases 'GATC'")
+        variant.warnings.append(warning)
+        logger.info(warning)
+        variant.output_type_flag = "warning"
+        raise AltPrimaryMappingError(warning)
+
+
+    hgvs_transcript = validator.vm.g_to_t(hgvs_genomic, hgvs_transcript.ac)
+    logger.info(f"Map {hgvs_genomic} to hgvs_transcript: {hgvs_transcript}")
+
+    if hgvs_transcript.posedit.edit.type == "identity":
+        if len(hgvs_transcript.posedit.edit.ref) > 1:
+            hgvs_transcript.posedit.edit.ref = ""
+            hgvs_transcript.posedit.edit.alt = ""
+        variant.coding = hgvs_transcript
+    else:
+        variant.coding = unset_hgvs_obj_ref(hgvs_transcript)
+
+    logger.info(f"Set variant.coding to {variant.coding}")
+
+    if genomic_context_ac.startswith("NG_"):
+        variant.refseqgene_context_intronic_sequence = (f"{genomic_context_ac}({hgvs_transcript.ac}):"
+                                                f"{hgvs_transcript.type}.{hgvs_transcript.posedit}")
+    else:
+        variant.genome_context_intronic_sequence = (f"{genomic_context_ac}({hgvs_transcript.ac}):"
+                                                    f"{hgvs_transcript.type}.{hgvs_transcript.posedit}")
+
+
+    try:
+        logger.info(
+            "map_alt_intron_to_primary(): HDP call "
+            "get_tx_identity_info(%s)",
+            hgvs_transcript.ac
+        )
+
+        tx_info = validator.hdp.get_tx_identity_info(
+            hgvs_transcript.ac
+        )
+
+        variant.gene_symbol = tx_info['hgnc']
+
+    except vvhgvs.exceptions.HGVSDataNotAvailableError:
+        logger.info(
+            "map_alt_intron_to_primary(): no transcript identity information "
+            "available for %s",
+            hgvs_transcript.ac
+        )
+
+    try:
+        logger.info(
+            "map_alt_intron_to_primary(): HDP call "
+            "get_pro_ac_for_tx_ac(%s)",
+            hgvs_transcript.ac
+        )
+
+        protein_data = validator.hdp.get_pro_ac_for_tx_ac(
+            hgvs_transcript.ac
+        )
+
+        if protein_data:
+            protein_ac = protein_data
+
+            variant.protein = vvhgvs.sequencevariant.SequenceVariant(
+                ac=protein_ac,
+                type='p',
+                posedit='?'
+            )
+
+            logger.info(
+                "map_alt_intron_to_primary(): assigned unknown protein "
+                "consequence %s:p.?",
+                protein_ac
+            )
+
+    except vvhgvs.exceptions.HGVSDataNotAvailableError:
+        logger.info(
+            "map_alt_intron_to_primary(): no protein accession available "
+            "for %s",
+            hgvs_transcript.ac
+        )
+
+    warning = (
+        f"AltPrimaryMappingError: No primary assembly mapping is available for "
+        f"{hgvs_transcript.ac} that represents the intronic position described "
+        f"on {genomic_context_ac}"
+    )
+
+    logger.info(
+        "map_alt_intron_to_primary(): %s",
+        warning
+    )
+
+    raise AltPrimaryMappingError(warning)
 
 
 # <LICENSE>

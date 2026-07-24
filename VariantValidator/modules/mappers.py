@@ -602,6 +602,7 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
             else:# not actually coding
                 coding =  out_hgvs_obj
             trans_acc = coding.ac
+
             # c to Genome coordinates - Map the variant to the genome
             pre_var = validator.genomic(out_hgvs_obj, variant.no_norm_evm, variant.primary_assembly,
                                         variant)
@@ -635,9 +636,9 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
                 can_we_autocorrect = False
                 if (
                         (
-                                hgvs_position_utils.start_offset_is_negative(test)
-                                and hgvs_position_utils.start_offset_is_positive(post_var)
-                                and post_var.posedit.pos.start.base == test.posedit.pos.start.base - 1
+                        hgvs_position_utils.start_offset_is_negative(test)
+                        and hgvs_position_utils.start_offset_is_positive(post_var)
+                        and post_var.posedit.pos.start.base == test.posedit.pos.start.base - 1
                         )
                         or (
                         hgvs_position_utils.start_offset_is_positive(test)
