@@ -1261,6 +1261,374 @@ def test_preparse_valid_description():
     assert pre_parsing_global_common_mistakes(variant) is False
     assert variant.warnings == []
 
+# ---------------------------------------------------------------------------
+# Additional structure_checks() branch coverage
+# ---------------------------------------------------------------------------
+
+def test_structure_checks_c_check_true_intronic_bounds_remap():
+    variant = make_variant(
+        ac="NM_000001.1",
+        hgvs_type="c",
+        start=123,
+        end=123,
+        start_offset=5,
+        end_offset=5,
+        start_datum=Datum.CDS_START,
+        end_datum=Datum.CDS_START,
+    )
+    validator = make_validator()
+
+    variant.warnings = [
+        "Variant coordinate is beyond the bounds of the reference sequence"
+    ]
+
+    genomic = MagicMock()
+
+    with patch(
+        "VariantValidator.modules.use_checking.structure_checks_c",
+        return_value=True,
+    ), patch(
+        "VariantValidator.modules.use_checking."
+        "format_converters.remap_intronic",
+    ) as remap:
+        validator.myevm_t_to_g.return_value = genomic
+
+        result = structure_checks(variant, validator)
+
+    assert result is True
+    assert variant.input_parses.posedit.pos.start.offset == 1
+    assert variant.input_parses.posedit.pos.end.offset == 1
+
+    validator.myevm_t_to_g.assert_called_once_with(
+        variant.input_parses,
+        variant.no_norm_evm,
+        variant.primary_assembly,
+        variant.hn,
+        variant,
+    )
+
+    remap.assert_called_once_with(
+        variant.input_parses,
+        variant.input_parses,
+        variant,
+        validator,
+    )
+
+
+
+def test_structure_checks_c_check_true_non_intronic_no_remap():
+    variant = make_variant(
+        ac="NM_000001.1",
+        hgvs_type="c",
+        start=123,
+        end=123,
+        start_offset=0,
+        end_offset=0,
+        start_datum=Datum.CDS_START,
+        end_datum=Datum.CDS_START,
+    )
+    validator = make_validator()
+
+    variant.warnings = [
+        "Variant coordinate is beyond the bounds of the reference sequence"
+    ]
+
+    with patch(
+        "VariantValidator.modules.use_checking.structure_checks_c",
+        return_value=True,
+    ), patch(
+        "VariantValidator.modules.use_checking."
+        "format_converters.remap_intronic",
+    ) as remap:
+        result = structure_checks(variant, validator)
+
+    assert result is True
+    remap.assert_not_called()
+
+
+def test_structure_checks_c_check_true_without_bounds_no_remap():
+    variant = make_variant(
+        ac="NM_000001.1",
+        hgvs_type="c",
+        start=123,
+        end=123,
+        start_offset=5,
+        end_offset=5,
+        start_datum=Datum.CDS_START,
+        end_datum=Datum.CDS_START,
+    )
+    validator = make_validator()
+
+    variant.warnings = ["Some other warning"]
+
+    with patch(
+        "VariantValidator.modules.use_checking.structure_checks_c",
+        return_value=True,
+    ), patch(
+        "VariantValidator.modules.use_checking."
+        "format_converters.remap_intronic",
+    ) as remap:
+        result = structure_checks(variant, validator)
+
+    assert result is True
+    remap.assert_not_called()
+
+
+# ---------------------------------------------------------------------------
+# Additional structure_checks_c() mapping coverage
+# ---------------------------------------------------------------------------
+
+def test_structure_checks_c_intronic_uses_primary_mapping_without_context():
+    variant = make_variant(
+        ac="NM_000001.1",
+        hgvs_type="c",
+        start=123,
+        end=123,
+        start_offset=1,
+        end_offset=1,
+        start_datum=Datum.CDS_START,
+        end_datum=Datum.CDS_START,
+    )
+    validator = make_validator()
+    variant.genomic_context_ac = None
+
+    genomic = MagicMock()
+    genomic.ac = "NC_000001.11"
+
+    no_replace_vm = MagicMock()
+    no_replace_vm.t_to_g.return_value = genomic
+    no_replace_vm.g_to_t.return_value = variant.input_parses
+
+    validator.noreplace_myevm_t_to_g.return_value = genomic
+    variant.evm.g_to_t.return_value = variant.input_parses
+
+    with patch(
+        "vvhgvs.variantmapper.VariantMapper",
+        return_value=no_replace_vm,
+    ):
+        result = structure_checks_c(variant, validator)
+
+    assert result is False
+    validator.noreplace_myevm_t_to_g.assert_called_once_with(
+        variant.input_parses,
+        variant,
+    )
+    no_replace_vm.t_to_g.assert_called_once_with(
+        variant.input_parses,
+        variant.input_parses.ac,
+        alt_aln_method=validator.alt_aln_method,
+    )
+    no_replace_vm.g_to_t.assert_called_once_with(
+        genomic,
+        variant.input_parses.ac,
+        alt_aln_method=validator.alt_aln_method,
+    )
+
+
+
+def test_structure_checks_c_intronic_uses_genomic_context_mapping():
+    variant = make_variant(
+        ac="NM_000001.1",
+        hgvs_type="c",
+        start=123,
+        end=123,
+        start_offset=1,
+        end_offset=1,
+        start_datum=Datum.CDS_START,
+        end_datum=Datum.CDS_START,
+    )
+    validator = make_validator()
+    variant.genomic_context_ac = "NW_000001.1"
+
+    genomic = MagicMock()
+    genomic.ac = "NW_000001.1"
+
+    no_replace_vm = MagicMock()
+    no_replace_vm.t_to_g.return_value = genomic
+    no_replace_vm.g_to_t.return_value = variant.input_parses
+
+    validator.vm.t_to_g.return_value = genomic
+    variant.evm.g_to_t.return_value = variant.input_parses
+
+    with patch(
+        "vvhgvs.variantmapper.VariantMapper",
+        return_value=no_replace_vm,
+    ):
+        result = structure_checks_c(variant, validator)
+
+    assert result is False
+    validator.vm.t_to_g.assert_called_once_with(
+        variant.input_parses,
+        variant.genomic_context_ac,
+    )
+    no_replace_vm.t_to_g.assert_called_once_with(
+        variant.input_parses,
+        variant.input_parses.ac,
+        alt_aln_method=validator.alt_aln_method,
+    )
+    no_replace_vm.g_to_t.assert_called_once_with(
+        genomic,
+        variant.input_parses.ac,
+        alt_aln_method=validator.alt_aln_method,
+    )
+
+
+
+def test_structure_checks_c_g_to_t_generic_error():
+    variant = make_variant(
+        ac="NM_000001.1",
+        hgvs_type="c",
+        start=123,
+        end=123,
+        start_offset=1,
+        end_offset=1,
+        start_datum=Datum.CDS_START,
+        end_datum=Datum.CDS_START,
+    )
+    validator = make_validator()
+
+    genomic = MagicMock()
+    genomic.ac = "NC_000001.11"
+
+    validator.noreplace_myevm_t_to_g.return_value = genomic
+
+    variant.evm.g_to_t.side_effect = (
+        vvhgvs.exceptions.HGVSError(
+            "generic transcript remapping failure"
+        )
+    )
+
+    with patch(
+        "VariantValidator.modules.use_checking."
+        "hgvs_utils.incomplete_alignment_mapping_t_to_g",
+        return_value=None,
+    ):
+        assert structure_checks_c(variant, validator) is True
+
+    assert any(
+        "generic transcript remapping failure" in warning
+        for warning in variant.warnings
+    )
+
+
+# ---------------------------------------------------------------------------
+# Additional structure_checks_n() mapping coverage
+# ---------------------------------------------------------------------------
+
+def test_structure_checks_n_intronic_uses_genomic_context():
+    variant = make_variant(
+        ac="NR_000001.1",
+        hgvs_type="n",
+        start=123,
+        end=123,
+        start_offset=1,
+        end_offset=1,
+    )
+    validator = make_validator()
+
+    variant.genomic_context_ac = "NW_000001.1"
+
+    genomic = MagicMock()
+    genomic.ac = "NW_000001.1"
+
+    validator.vm.t_to_g.return_value = genomic
+    variant.evm.g_to_t.return_value = variant.input_parses
+
+    assert structure_checks_n(variant, validator) is False
+
+    validator.vm.t_to_g.assert_called_once_with(
+        variant.input_parses,
+        variant.genomic_context_ac,
+    )
+
+
+def test_structure_checks_n_intronic_uses_primary_mapping():
+    variant = make_variant(
+        ac="NR_000001.1",
+        hgvs_type="n",
+        start=123,
+        end=123,
+        start_offset=1,
+        end_offset=1,
+    )
+    validator = make_validator()
+
+    variant.genomic_context_ac = None
+
+    genomic = MagicMock()
+    genomic.ac = "NC_000001.11"
+
+    validator.noreplace_myevm_t_to_g.return_value = genomic
+
+    assert structure_checks_n(variant, validator) is False
+
+    validator.noreplace_myevm_t_to_g.assert_called_once_with(
+        variant.input_parses,
+        variant,
+    )
+
+
+
+def test_structure_checks_n_t_to_g_failure():
+    variant = make_variant(
+        ac="NR_000001.1",
+        hgvs_type="n",
+        start=123,
+        end=123,
+        start_offset=1,
+        end_offset=1,
+    )
+    validator = make_validator()
+
+    variant.genomic_context_ac = "NW_000001.1"
+
+    validator.vm.t_to_g.side_effect = (
+        vvhgvs.exceptions.HGVSError(
+            "transcript mapping failed"
+        )
+    )
+
+    with pytest.raises(
+        vvhgvs.exceptions.HGVSError,
+        match="transcript mapping failed",
+    ):
+        structure_checks_n(variant, validator)
+
+
+
+# ---------------------------------------------------------------------------
+# n. coordinate bounds
+# ---------------------------------------------------------------------------
+
+def test_structure_checks_n_negative_offset_from_base_one():
+    variant = make_variant(
+        ac="NR_000001.1",
+        hgvs_type="n",
+        start=1,
+        end=1,
+        start_offset=-1,
+        end_offset=-1,
+    )
+    validator = make_validator()
+
+    genomic = MagicMock()
+    genomic.ac = "NC_000001.11"
+
+    validator.myevm_t_to_g.return_value = genomic
+    variant.hn.normalize.return_value = genomic
+
+    with patch(
+        "VariantValidator.modules.use_checking.fn.valstr",
+        return_value="NR_000001.1:n.1-1",
+    ):
+        result = structure_checks_n(variant, validator)
+
+    assert result is True
+
+    assert any(
+        "outside of the reference sequence" in warning
+        for warning in variant.warnings
+    )
 
 # <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors

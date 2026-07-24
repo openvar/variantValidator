@@ -246,17 +246,6 @@ class TestExpandedRepeats(unittest.TestCase):
             "The number of repeat units included between square brackets must be numeric" in \
             str(catch.exception))
 
-
-    #def test_pass_tandem_ref_nomatch_no_length(self):
-    #    # No length for genomic match, and fail caught, should only happen for broken input
-    #    # which should be caught already, or coordinates beyond the end of the seq.
-    #    # This could not trigger and was removed, we may want to add a ^ / $ to the regex
-    #    # however, and if so would then want to re-add this test.
-    #    variant_str = "NG_012232.1:g.90000000CC[20]"
-    #    my_variant = expanded_repeats.TandemRepeats.parse_repeat_variant(
-    #            variant_str,  "GRCh37", "all", vv)
-    #    my_variant.check_positions_given(vv)
-
     def test_check_exon_boundaries_no_bounds_used(self):
         variant_str = "NM_003073.5:c.1085AGA[2]"
         my_variant = expanded_repeats.TandemRepeats.parse_repeat_variant(

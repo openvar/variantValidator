@@ -1154,148 +1154,211 @@ def pos_lock_hgvs2vcf(hgvs_genomic, primary_assembly, reverse_normalizer, sf):
     vcf_dict = {'chr': chr, 'pos': pos, 'ref': ref, 'alt': alt, 'normalized_hgvs': reverse_normalized_hgvs_genomic}
     return vcf_dict
 
-def pre_push_vcf_tx_g_map_fix(norm_hgvs_transcript, un_norm_hgvs, genomic_ac,var_mapper,normaliser,seq_fetcher,mapped_hgvs):
+def pre_push_vcf_tx_g_map_fix(
+        norm_hgvs_transcript,
+        un_norm_hgvs,
+        genomic_ac,
+        var_mapper,
+        normaliser,
+        seq_fetcher,
+        mapped_hgvs
+):
     """
-    Pre-fix transcript inputs for the left/right pushing vcf functions, to make
-    sure they map correctly. Requires n type pre-normalised/reverse normalised,
-    input.
-    :pram hgvs_transcript: transcript type variant to check for mapping
-    :pram un_norm_hgvs: un-normalised version of the transcript type variant
-                        needed to check for del status (???->delins is needed
-                        for some, non del, post normalisation, descriptions)
-    :pram genomic_ac: genomic ac for mapping to be checked
-    :pram mapped_hgvs: mapped_hgvs a genomic mapping derived from
-                       hgvs_transcript, to allow shared mapping step when
-                       rev-norm == norm
-    :pram var_mapper: mapper for n->g mapping unused if pre-mapped
-    :pram normaliser: hgvs variant normaliser
-    :pram seq_fetcher: seq fetcher from hgvs (currently a SeqRepo wrapper)
-    :pram mapped_hgvs: mapped variant (if present we do not use the mapper)
+    Prepare a transcript HGVS variant for left/right VCF pushing when its
+    transcript-to-genome mapping crosses a genomic alignment gap.
+
+    Parameters
+    ----------
+    norm_hgvs_transcript
+        Normalised or reverse-normalised n. HGVS variant.
+    un_norm_hgvs
+        Unnormalised transcript HGVS variant. This is retained so that the
+        original edit type can be inspected where normalisation has changed
+        the representation.
+    genomic_ac
+        Genomic accession to which the transcript variant is mapped.
+    var_mapper
+        Variant mapper used for n-to-g and g-to-n mapping.
+    normaliser
+        HGVS normaliser.
+    seq_fetcher
+        Sequence fetcher used when reconstructing duplication alleles.
+    mapped_hgvs
+        Existing genomic mapping. If supplied, the n-to-g mapping step is
+        skipped.
+
+    Returns
+    -------
+    SequenceVariant
+        The input transcript HGVS variant, or an expanded transcript variant
+        that spans an alignment gap where required.
     """
 
-
-    # Variants in/on a genomic gap that cause issues need sorting by making them span so coordinates do not reverse
+    # Reuse an existing genomic mapping where available.
     if mapped_hgvs:
         hgvs_genomic_g = mapped_hgvs
     else:
-        hgvs_genomic_g = var_mapper.n_to_g(norm_hgvs_transcript, genomic_ac)
+        hgvs_genomic_g = var_mapper.n_to_g(
+            norm_hgvs_transcript,
+            genomic_ac
+        )
 
+    # Most mappings require no correction. The special handling below is
+    # required when an alignment gap produces reversed genomic coordinates.
     try:
         normaliser.normalize(hgvs_genomic_g)
+        return norm_hgvs_transcript
     except vvhgvs.exceptions.HGVSInvalidVariantError as e:
-        if "base start position must be <= end position" in str(e):
-            hgvs_genomic_g_identity = copy.deepcopy(hgvs_genomic_g)
-            # First, get ins and del into delins
-            if hgvs_genomic_g_identity.posedit.edit.type == "dup":
-                # Duplications have no "alt" in the object structure so convert to delins
-                stb = hgvs_genomic_g_identity.posedit.pos.end.base
-                edb = hgvs_genomic_g_identity.posedit.pos.start.base
-                hgvs_genomic_g_identity.posedit.pos.start.base = stb
-                hgvs_genomic_g_identity.posedit.pos.end.base = edb
-                hgvs_genomic_g_identity.posedit.edit.ref = seq_fetcher.fetch_seq(hgvs_genomic_g_identity.ac, stb - 1, edb)
-                hgvs_genomic_g_identity = hgvs_to_delins_hgvs(hgvs_genomic_g_identity, None, normaliser)
-            else:
-                adjust_s = hgvs_genomic_g_identity.posedit.pos.end.base
-                adjust_e = hgvs_genomic_g_identity.posedit.pos.start.base
-                hgvs_genomic_g_identity.posedit.pos.start.base = adjust_s
-                hgvs_genomic_g_identity.posedit.pos.end.base = adjust_e
+        if "base start position must be <= end position" not in str(e):
+            return norm_hgvs_transcript
 
-            hgvs_genomic_g_identity.posedit.edit.ref = ''
-            hgvs_genomic_g_identity.posedit.edit.alt = ''
-            hgvs_genomic_g_identity = normaliser.normalize(hgvs_genomic_g_identity)
+    hgvs_genomic_g_identity = copy.deepcopy(hgvs_genomic_g)
 
-            hgvs_genomic_n_gap = var_mapper.g_to_n(hgvs_genomic_g_identity, norm_hgvs_transcript.ac)
+    # Reverse the genomic interval so that it can be represented and
+    # normalised as an identity spanning the alignment gap.
+    start_base = hgvs_genomic_g_identity.posedit.pos.end.base
+    end_base = hgvs_genomic_g_identity.posedit.pos.start.base
 
-            hgvs_genomic_n_identity = copy.deepcopy(hgvs_genomic_n_gap)
-            hgvs_genomic_n_identity.posedit.edit.ref = ""
-            hgvs_genomic_n_identity.posedit.edit.alt = ""
-            hgvs_genomic_n_identity = normaliser.normalize(hgvs_genomic_n_identity)
-            """
-            At this stage we have the gap position at g. in hgvs_genomic_g_identity
-            # The impact in hgvs_genomic_n_gap
-            # And the range the variant needs to span to cover the gap in hgvs_genomic_n_identity
-            """
-            # First, get ins and del into delins this has to also check the un-normalised version to avoid
-            # problems on right push
-            if un_norm_hgvs.posedit.edit.type == "del" or norm_hgvs_transcript.posedit.edit.type == "del":
-                norm_hgvs_transcript = hgvs_to_delins_hgvs(norm_hgvs_transcript, None, normaliser)
-            elif norm_hgvs_transcript.posedit.edit.type == "ins":
-                norm_hgvs_transcript = hgvs_to_delins_hgvs(norm_hgvs_transcript, None, normaliser)
-            elif norm_hgvs_transcript.posedit.edit.type == "dup":
-                norm_hgvs_transcript = hgvs_to_delins_hgvs(norm_hgvs_transcript, None, normaliser)
+    hgvs_genomic_g_identity.posedit.pos.start.base = start_base
+    hgvs_genomic_g_identity.posedit.pos.end.base = end_base
 
-            # Now create the variant
-            if hgvs_genomic_n_identity.posedit.pos.start.base < \
-                    norm_hgvs_transcript.posedit.pos.start.base:
-                v1 = copy.deepcopy(hgvs_genomic_n_identity)
-                v1.posedit.pos.end.base = norm_hgvs_transcript.posedit.pos.start.base - 1
-                v1.posedit.edit.ref = ""
-                v1.posedit.edit.alt = ""
-                v1 = normaliser.normalize(v1)
-                if (hgvs_genomic_n_identity.posedit.pos.end.base
-                        > norm_hgvs_transcript.posedit.pos.end.base):
-                    v3 = copy.deepcopy(hgvs_genomic_n_identity)
-                    v3.posedit.pos.start.base = norm_hgvs_transcript.posedit.pos.end.base + 1
-                    v3.posedit.edit.ref = ""
-                    v3.posedit.edit.alt = ""
-                    v3 = normaliser.normalize(v3)
-                else:
-                    v3 = False
+    # Duplications have no alt sequence in the HGVS object, so populate the
+    # reference sequence before converting the edit to delins.
+    if hgvs_genomic_g_identity.posedit.edit.type == "dup":
+        hgvs_genomic_g_identity.posedit.edit.ref = seq_fetcher.fetch_seq(
+            hgvs_genomic_g_identity.ac,
+            start_base - 1,
+            end_base
+        )
+        hgvs_genomic_g_identity = hgvs_to_delins_hgvs(
+            hgvs_genomic_g_identity,
+            None,
+            normaliser
+        )
 
-                # Assemble
-                hgvs_genomic_n_assembled = copy.deepcopy(hgvs_genomic_n_identity)
-                if v3 is not False:
-                    hgvs_genomic_n_assembled.posedit.pos.end.base = v3.posedit.pos.end.base
+    hgvs_genomic_g_identity.posedit.edit.ref = ""
+    hgvs_genomic_g_identity.posedit.edit.alt = ""
+    hgvs_genomic_g_identity = normaliser.normalize(
+        hgvs_genomic_g_identity
+    )
 
-                    ass_ref = (v1.posedit.edit.ref +
-                               norm_hgvs_transcript.posedit.edit.ref +
-                               v3.posedit.edit.ref)
-                    ass_alt = (v1.posedit.edit.alt +
-                               norm_hgvs_transcript.posedit.edit.alt +
-                               v3.posedit.edit.alt)
-                else:
-                    hgvs_genomic_n_assembled.posedit.pos.end.base = \
-                        norm_hgvs_transcript.posedit.pos.end.base
-                    ass_ref = (v1.posedit.edit.ref +
-                               norm_hgvs_transcript.posedit.edit.ref)
-                    ass_alt = (v1.posedit.edit.alt +
-                               norm_hgvs_transcript.posedit.edit.alt)
-                hgvs_genomic_n_assembled.posedit.edit.ref = ass_ref
-                hgvs_genomic_n_assembled.posedit.edit.alt = ass_alt
-                norm_hgvs_transcript = copy.deepcopy(hgvs_genomic_n_assembled)
-            else:
-                v3 = copy.deepcopy(hgvs_genomic_n_identity)
-                v3.posedit.pos.end.base = norm_hgvs_transcript.posedit.pos.start.base - 1
-                v3.posedit.edit.ref = ""
-                v3.posedit.edit.alt = ""
-                if (hgvs_genomic_n_identity.posedit.pos.end.base
-                        > norm_hgvs_transcript.posedit.pos.end.base):
-                    v3 = copy.deepcopy(hgvs_genomic_n_identity)
-                    v3.posedit.pos.start.base = norm_hgvs_transcript.posedit.pos.end.base + 1
-                    v3.posedit.edit.ref = ""
-                    v3.posedit.edit.alt = ""
-                    v3 = normaliser.normalize(v3)
-                else:
-                    v3 = False
+    # Map the genomic gap back onto the transcript to determine the
+    # transcript interval that must be spanned.
+    hgvs_genomic_n_gap = var_mapper.g_to_n(
+        hgvs_genomic_g_identity,
+        norm_hgvs_transcript.ac
+    )
 
-                # Assemble
-                hgvs_genomic_n_assembled = copy.deepcopy(hgvs_genomic_n_identity)
-                if v3 is not False:
-                    hgvs_genomic_n_assembled.posedit.pos.end.base = v3.posedit.pos.end.base
-                    ass_ref = (norm_hgvs_transcript.posedit.edit.ref +
-                               v3.posedit.edit.ref)
-                    ass_alt = (norm_hgvs_transcript.posedit.edit.alt +
-                               v3.posedit.edit.alt)
-                else:
-                    hgvs_genomic_n_assembled.posedit.pos.end.base = \
-                        norm_hgvs_transcript.posedit.pos.end.base
-                    ass_ref = norm_hgvs_transcript.posedit.edit.ref
-                    ass_alt = norm_hgvs_transcript.posedit.edit.alt
-                hgvs_genomic_n_assembled.posedit.edit.ref = ass_ref
-                hgvs_genomic_n_assembled.posedit.edit.alt = ass_alt
-                norm_hgvs_transcript = copy.deepcopy(hgvs_genomic_n_assembled)
-    return norm_hgvs_transcript
+    hgvs_genomic_n_identity = copy.deepcopy(hgvs_genomic_n_gap)
+    hgvs_genomic_n_identity.posedit.edit.ref = ""
+    hgvs_genomic_n_identity.posedit.edit.alt = ""
+    hgvs_genomic_n_identity = normaliser.normalize(
+        hgvs_genomic_n_identity
+    )
 
+    # Convert edits that need explicit ref/alt alleles before assembling the
+    # transcript variant across the gap. Check the unnormalised variant as
+    # well because right normalisation can alter a deletion representation.
+    if (
+        un_norm_hgvs.posedit.edit.type == "del"
+        or norm_hgvs_transcript.posedit.edit.type in {"del", "ins", "dup"}
+    ):
+        norm_hgvs_transcript = hgvs_to_delins_hgvs(
+            norm_hgvs_transcript,
+            None,
+            normaliser
+        )
+
+    gap_start = hgvs_genomic_n_identity.posedit.pos.start.base
+    gap_end = hgvs_genomic_n_identity.posedit.pos.end.base
+    variant_start = norm_hgvs_transcript.posedit.pos.start.base
+    variant_end = norm_hgvs_transcript.posedit.pos.end.base
+
+    # Build sequence preceding the submitted variant when the transcript gap
+    # begins before the variant.
+    if gap_start < variant_start:
+        v1 = copy.deepcopy(hgvs_genomic_n_identity)
+        v1.posedit.pos.end.base = variant_start - 1
+        v1.posedit.edit.ref = ""
+        v1.posedit.edit.alt = ""
+        v1 = normaliser.normalize(v1)
+
+        # Build sequence following the variant when the gap extends beyond it.
+        if gap_end > variant_end:
+            v3 = copy.deepcopy(hgvs_genomic_n_identity)
+            v3.posedit.pos.start.base = variant_end + 1
+            v3.posedit.edit.ref = ""
+            v3.posedit.edit.alt = ""
+            v3 = normaliser.normalize(v3)
+        else:
+            v3 = None
+
+        hgvs_genomic_n_assembled = copy.deepcopy(
+            hgvs_genomic_n_identity
+        )
+
+        if v3 is not None:
+            hgvs_genomic_n_assembled.posedit.pos.end.base = (
+                v3.posedit.pos.end.base
+            )
+            ass_ref = (
+                v1.posedit.edit.ref
+                + norm_hgvs_transcript.posedit.edit.ref
+                + v3.posedit.edit.ref
+            )
+            ass_alt = (
+                v1.posedit.edit.alt
+                + norm_hgvs_transcript.posedit.edit.alt
+                + v3.posedit.edit.alt
+            )
+        else:
+            hgvs_genomic_n_assembled.posedit.pos.end.base = variant_end
+            ass_ref = (
+                v1.posedit.edit.ref
+                + norm_hgvs_transcript.posedit.edit.ref
+            )
+            ass_alt = (
+                v1.posedit.edit.alt
+                + norm_hgvs_transcript.posedit.edit.alt
+            )
+
+    else:
+        # No sequence is required before the variant. Only append sequence
+        # following it if the transcript gap extends beyond the variant.
+        if gap_end > variant_end:
+            v3 = copy.deepcopy(hgvs_genomic_n_identity)
+            v3.posedit.pos.start.base = variant_end + 1
+            v3.posedit.edit.ref = ""
+            v3.posedit.edit.alt = ""
+            v3 = normaliser.normalize(v3)
+        else:
+            v3 = None
+
+        hgvs_genomic_n_assembled = copy.deepcopy(
+            hgvs_genomic_n_identity
+        )
+
+        if v3 is not None:
+            hgvs_genomic_n_assembled.posedit.pos.end.base = (
+                v3.posedit.pos.end.base
+            )
+            ass_ref = (
+                norm_hgvs_transcript.posedit.edit.ref
+                + v3.posedit.edit.ref
+            )
+            ass_alt = (
+                norm_hgvs_transcript.posedit.edit.alt
+                + v3.posedit.edit.alt
+            )
+        else:
+            hgvs_genomic_n_assembled.posedit.pos.end.base = variant_end
+            ass_ref = norm_hgvs_transcript.posedit.edit.ref
+            ass_alt = norm_hgvs_transcript.posedit.edit.alt
+
+    hgvs_genomic_n_assembled.posedit.edit.ref = ass_ref
+    hgvs_genomic_n_assembled.posedit.edit.alt = ass_alt
+
+    return hgvs_genomic_n_assembled
 
 
 def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, sf, tx_ac, map_dat, alt_aln_method, hp, vm,

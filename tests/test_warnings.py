@@ -776,16 +776,16 @@ class TestWarnings(TestCase):
                "NM_000093.5:c.277+1_277+2delinsA" in results[
             'validation_warning_1']["validation_warnings"]
 
-    def missing_dot(self):
+    def test_missing_dot(self):
         variant = 'chr11:g,108121787G>A'
         results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
         print(results)
-        assert "Unable to identify a dot (.) in the variant description chr11:g,108121787G>A following the reference " \
+        assert "VariantSyntaxError: Unable to identify a dot (.) in the variant description chr11:g,108121787G>A following the reference " \
                "sequence type (g,c,n,r, or p). A dot is required in HGVS variant descriptions to separate the " \
                "reference type from the variant position i.e. <accession>:<type>. e.g. :g." in results[
             'validation_warning_1']["validation_warnings"]
 
-    def missing_colon(self):
+    def test_missing_colon(self):
         variant = 'chr11g.108121787G>A'
         results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
         print(results)
@@ -794,28 +794,27 @@ class TestWarnings(TestCase):
                "<accession>:<type>. e.g. :c." in results[
             'validation_warning_1']["validation_warnings"]
 
-    def p1_a(self):
+    def test_p1_a(self):
         variant = 'LRG_199p1:p.(Met1Ala)'
         results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
         print(results)
-        assert "'InitiationCodonWarning: Variant NP_003997.1:p.(Met1Ala) affects the initiation amino acid so is better " \
+        assert "InitiationCodonWarning: Variant NP_003997.1:p.(Met1Ala) affects the initiation amino acid so is better " \
                "described as NP_003997.1:p.(Met1?)" in results[
                 'validation_warning_1']["validation_warnings"]
 
-    def p1_b(self):
+    def test_p1_b(self):
         variant = 'LRG_199p1:p.Met1Ala'
         results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
         print(results)
-        assert "'InitiationCodonWarning: Variant NP_003997.1:p.Met1Ala affects the initiation amino acid so is better " \
+        assert "InitiationCodonWarning: Variant NP_003997.1:p.Met1Ala affects the initiation amino acid so is better " \
                "described as NP_003997.1:p.(Met1?)" in results[
                 'validation_warning_1']["validation_warnings"]
 
-    def uppercase_ref_type(self):
+    def test_uppercase_ref_type(self):
         variant = 'DPYD:C.1905+1G>A'
         results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
         print(results)
-        assert ("Reference type incorrectly stated in the variant description DPYD:C.1905+1G>A Valid types are "
-                "g,c,n,r, or p") in results['validation_warning_1']["validation_warnings"]
+        assert ("ReferenceTypeError: Reference type incorrectly stated in the variant description DPYD:C.1905+1G>A Valid types are g,c,n,r, or p") in results['validation_warning_1']["validation_warnings"]
 
     def test_unsupported_transcript1(self):
         variant = 'NM_032790.1:c.493_494insC'
