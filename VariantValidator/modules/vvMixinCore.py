@@ -6,7 +6,6 @@ from vvhgvs.location import Interval
 from vvhgvs.sequencevariant import SequenceVariant
 import re
 import copy
-import sys
 import logging
 import json
 import time
@@ -431,91 +430,86 @@ class Mixin(vvMixinConverters.Mixin):
                                                                               select_transcripts_dict_plus_version,
                                                                               batch_list)
 
-                    except vvhgvs.exceptions.HGVSError as e:
-                        # import traceback
-                        # traceback.print_exc()
-                        logger.info(str(e))
-                        checkref = str(e)
+                    except vvhgvs.exceptions.HGVSError as format_error:
+                        format_error_msg = str(format_error)
+                        logger.info(format_error_msg)
+
                         try:
                             # Test intronic variants for incorrect boundaries (see issue #169)
                             test_variant = copy.copy(my_variant)
                             test_variant.hgvs_formatted = my_variant.quibble
-                            if type(test_variant.hgvs_formatted) is str:
+
+                            if isinstance(test_variant.hgvs_formatted, str):
                                 test_variant.hgvs_formatted = self.hp.parse_hgvs_variant(
-                                        test_variant.hgvs_formatted)
+                                    test_variant.hgvs_formatted
+                                )
 
                             # Create easy variant mapper (over variant mapper) and splign locked evm
-                            test_variant.evm = AssemblyMapper(self.hdp,
-                                                              assembly_name=primary_assembly,
-                                                              alt_aln_method=self.alt_aln_method,
-                                                              normalize=True,
-                                                              replace_reference=True
-                                                              )
+                            test_variant.evm = AssemblyMapper(
+                                self.hdp,
+                                assembly_name=primary_assembly,
+                                alt_aln_method=self.alt_aln_method,
+                                normalize=True,
+                                replace_reference=True
+                            )
 
                             # Setup a reverse normalize instance and non-normalize evm
-                            test_variant.no_norm_evm = AssemblyMapper(self.hdp,
-                                                                      assembly_name=primary_assembly,
-                                                                      alt_aln_method=self.alt_aln_method,
-                                                                      normalize=False,
-                                                                      replace_reference=True
-                                                                      )
+                            test_variant.no_norm_evm = AssemblyMapper(
+                                self.hdp,
+                                assembly_name=primary_assembly,
+                                alt_aln_method=self.alt_aln_method,
+                                normalize=False,
+                                replace_reference=True
+                            )
 
-                            mappers.transcripts_to_gene(test_variant, self, select_transcripts_dict_plus_version)
+                            mappers.transcripts_to_gene(
+                                test_variant,
+                                self,
+                                select_transcripts_dict_plus_version
+                            )
+
                         except mappers.MappersError:
                             my_variant.output_type_flag = 'warning'
                             continue
 
-                        except vvhgvs.exceptions.HGVSParseError as e:
-
-                            # This code path appears to be obsolete.
-                            #
-                            # Malformed insertions such as "...ins10" are now detected earlier in
-                            # use_checking.py. Functional tests covering these variants produce the
-                            # expected warnings before this HGVSParseError handler is reached, and
-                            # coverage plus temporary logging indicate this branch is currently
-                            # unreachable.
-                            #
-                            # Retained here temporarily for reference until it is confirmed that no
-                            # callers can bypass use_checking.py.
-
-                            # if re.search("ins\d+$", my_variant.quibble):
-                            #     logger.info(f"pattern 'ins\d+$' isentified in {my_variant.quibble}")
-                            #     my_variant.warnings.append("The length of the variant is not formatted following the "
-                            #                                "HGVS guidelines. Please rewrite e.g. '10' to 'N[10]'"
-                            #                                "(where N is an unknown nucleotide)")
-                            #     try:
-                            #         if "_" not in my_variant.quibble.split(":")[1] and \
-                            #                 "del" not in my_variant.quibble.split(":")[1]:
-                            #             my_variant.warnings.append("An insertion must be provided with the two "
-                            #                                        "positions between which the insertion has taken "
-                            #                                        "place")
-                            #     except IndexError:
-                            #         pass
-                            #     continue
-                            # else:
-
-                            my_variant.warnings.append(str(e))
-                            logger.info(str(e))
+                        except vvhgvs.exceptions.HGVSParseError as parse_error:
+                            parse_error_msg = str(parse_error)
+                            my_variant.warnings.append(parse_error_msg)
+                            logger.info(parse_error_msg)
                             continue
 
-                        # Other issues to collect, for example, the specified position in NC_ does not agree with g.
-                        # See issue #176
-                        except Exception:
-                            if 'does not agree with reference sequence' in checkref:
-                                my_variant.warnings.append(str(e))
-                                logger.info(str(e))
+                        # Other issues to collect, for example, the specified position in NC_
+                        # does not agree with g. See issue #176.
+                        except Exception as mapper_error:
+                            if 'does not agree with reference sequence' in format_error_msg:
+                                mapper_error_msg = str(mapper_error)
+                                my_variant.warnings.append(mapper_error_msg)
+                                logger.info(mapper_error_msg)
                                 continue
 
-                        if 'base start position must be <= end position' in str(e):
-                            logger.info(f"{e}")
+                        if 'base start position must be <= end position' in format_error_msg:
+                            logger.info(format_error_msg)
                             toskip = None
+
                         else:
-                            my_variant.warnings.append(str(e))
-                            if "The entered coordinates do not agree with the intron/exon boundaries for the selected "\
-                               "transcript" not in my_variant.warnings[0]:
+                            my_variant.warnings.append(format_error_msg)
+
+                            if (
+                                    "The entered coordinates do not agree with the intron/exon "
+                                    "boundaries for the selected transcript"
+                                    not in str(my_variant.warnings[0])
+                            ):
                                 my_variant.warnings.reverse()
-                            logger.info(str(e))
+
+                            logger.info(format_error_msg)
                             continue
+
+                    except format_converters.AltPrimaryIntronError as e:
+                        logger.warning(f"AltPrimaryIntronError: {e}")
+                        continue
+                    except format_converters.AltPrimaryMappingError as e:
+                        logger.warning(f"AltPrimaryMappingError: {e}")
+                        continue
 
                     else:
                         if my_variant.warnings is not None and my_variant.hgvs_genomic is not None:
@@ -705,7 +699,7 @@ class Mixin(vvMixinConverters.Mixin):
 
                     # Additional Incorrectly input variant capture training
                     if my_variant.refsource == 'RefSeq' or my_variant.refsource == 'ENS':
-                        toskip = use_checking.refseq_common_mistakes(my_variant)
+                        toskip = use_checking.refseq_type_mismatch(my_variant, self)
                         if toskip:
                             continue
                         logger.debug("Passed 'common mistakes' catcher")
@@ -934,8 +928,15 @@ class Mixin(vvMixinConverters.Mixin):
                         genome_context_transcript_variant = ''  # transcript_variant
                         refseqgene_context_transcript_variant = ''
                 else:
-                    genome_context_transcript_variant = ''
-                    refseqgene_context_transcript_variant = ''
+                    if variant.genome_context_intronic_sequence is not None:
+                        genome_context_transcript_variant = variant.genome_context_intronic_sequence
+                    else:
+                        genome_context_transcript_variant = ''
+                    if variant.refseqgene_context_intronic_sequence is not None:
+                        refseqgene_context_transcript_variant = variant.refseqgene_context_intronic_sequence
+                    else:
+                        refseqgene_context_transcript_variant = ''
+
 
                 # Protein description
                 logger.debug("Protein description")

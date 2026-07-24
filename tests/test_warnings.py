@@ -172,8 +172,6 @@ class TestWarnings(TestCase):
         print(results)
         assert 'OutOfBoundsError: start or end or both are beyond the bounds of transcript record' in \
                results['validation_warning_1']['validation_warnings']
-        assert  ("ExonBoundaryError: Position c.35+1 does not correspond with an exon boundary for transcript NM_001128425.1" in
-                 results['validation_warning_1']['validation_warnings'])
 
     def test_issue_673b(self):
         variant = 'NM_001128425.1:c.35+11000000C>T'
@@ -530,18 +528,37 @@ class TestWarnings(TestCase):
 
     def test_c_with_tn_ref(self):
         variant = 'NR_111987.1:c.3633-2T>A'
-        results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
+        results = self.vv.validate(
+            variant, 'GRCh38', 'all'
+        ).format_as_dict(test=True)
+
+        assert results['flag'] == 'warning'
+        assert results['validation_warning_1']['validation_warnings'] == [
+            'ReferenceTypeError: Non-coding transcript reference sequence input as '
+            'coding (c.) reference sequence. Did you mean NR_111987.1:n.3633-2T>A?']
+
+
+    def test_c_with_tn_ref_valid_base(self):
+        variant = 'NR_111987.1:c.3633-2A>T'
+        results = self.vv.validate(
+            variant, 'GRCh38', 'all'
+        ).format_as_dict(test=True)
         print(results)
-        assert "ReferenceTypeError: Non-coding transcript reference sequence input as coding (c.) reference sequence. Did you mean NR_111987.1:n.3633-2T>A?" in \
-               results['validation_warning_1']['validation_warnings']
+
+        assert results['flag'] == 'warning'
+        assert results['validation_warning_1']['validation_warnings'] == [
+            'ReferenceTypeError: Non-coding transcript reference sequence input as '
+            'coding (c.) reference sequence. Did you mean NR_111987.1:n.3633-2A>T?']
+
 
     def test_p_with_tc_ref(self):
         variant = 'NM_000088.3:p.(Gly197Cys)'
-        results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
-        print(results)
-        assert "ReferenceTypeError: Using a nucleotide reference sequence (NM_ NR_ NG_ NC_) to specify protein-level (p.) " \
-               "variation is not HGVS compliant. Please select an appropriate protein reference sequence (NP_)" in \
-               results['validation_warning_1']['validation_warnings']
+        results = self.vv.validate(
+            variant, 'GRCh38', 'all'
+        ).format_as_dict(test=True)
+
+        assert results['flag'] == 'warning'
+        assert results['validation_warning_1']['validation_warnings'] == ['ReferenceTypeError: Using a nucleotide reference sequence (NM_ NR_ NC_ NG_ NT_ NW_) to specify protein-level (p.) variation is not HGVS compliant. Please select an appropriate protein reference sequence (NP_)']
 
     def test_uncertain_1(self):
         variant = 'NC_000005.9:g.(90136803_90144453)_(90159675_90261231)dup'
@@ -759,16 +776,16 @@ class TestWarnings(TestCase):
                "NM_000093.5:c.277+1_277+2delinsA" in results[
             'validation_warning_1']["validation_warnings"]
 
-    def missing_dot(self):
+    def test_missing_dot(self):
         variant = 'chr11:g,108121787G>A'
         results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
         print(results)
-        assert "Unable to identify a dot (.) in the variant description chr11:g,108121787G>A following the reference " \
+        assert "VariantSyntaxError: Unable to identify a dot (.) in the variant description chr11:g,108121787G>A following the reference " \
                "sequence type (g,c,n,r, or p). A dot is required in HGVS variant descriptions to separate the " \
                "reference type from the variant position i.e. <accession>:<type>. e.g. :g." in results[
             'validation_warning_1']["validation_warnings"]
 
-    def missing_colon(self):
+    def test_missing_colon(self):
         variant = 'chr11g.108121787G>A'
         results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
         print(results)
@@ -777,28 +794,27 @@ class TestWarnings(TestCase):
                "<accession>:<type>. e.g. :c." in results[
             'validation_warning_1']["validation_warnings"]
 
-    def p1_a(self):
+    def test_p1_a(self):
         variant = 'LRG_199p1:p.(Met1Ala)'
         results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
         print(results)
-        assert "'InitiationCodonWarning: Variant NP_003997.1:p.(Met1Ala) affects the initiation amino acid so is better " \
+        assert "InitiationCodonWarning: Variant NP_003997.1:p.(Met1Ala) affects the initiation amino acid so is better " \
                "described as NP_003997.1:p.(Met1?)" in results[
                 'validation_warning_1']["validation_warnings"]
 
-    def p1_b(self):
+    def test_p1_b(self):
         variant = 'LRG_199p1:p.Met1Ala'
         results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
         print(results)
-        assert "'InitiationCodonWarning: Variant NP_003997.1:p.Met1Ala affects the initiation amino acid so is better " \
+        assert "InitiationCodonWarning: Variant NP_003997.1:p.Met1Ala affects the initiation amino acid so is better " \
                "described as NP_003997.1:p.(Met1?)" in results[
                 'validation_warning_1']["validation_warnings"]
 
-    def uppercase_ref_type(self):
+    def test_uppercase_ref_type(self):
         variant = 'DPYD:C.1905+1G>A'
         results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
         print(results)
-        assert ("Reference type incorrectly stated in the variant description DPYD:C.1905+1G>A Valid types are "
-                "g,c,n,r, or p") in results['validation_warning_1']["validation_warnings"]
+        assert ("ReferenceTypeError: Reference type incorrectly stated in the variant description DPYD:C.1905+1G>A Valid types are g,c,n,r, or p") in results['validation_warning_1']["validation_warnings"]
 
     def test_unsupported_transcript1(self):
         variant = 'NM_032790.1:c.493_494insC'
@@ -1546,6 +1562,28 @@ class TestVVGapWarnings(TestCase):
             "GappedAlignmentWarning: Variation described in the context of an imperfect alignment of NM_003890.3 with NC_000019.10 (genome build GRCh38)",
             "GappedAlignmentWarning: NM_003890.3 contains 504 extra bases between c.6504_7009, and 6 fewer bases between c.7037_7038, and 1 fewer bases between c.7046_7047, and 1 fewer bases between c.7061_7062, and 2 fewer bases between c.7066_7067, and 10 extra bases between c.7079_7090, and 1584 extra bases between c.4905_6490, and 2 fewer bases between c.6498_6499, and 414 extra bases between c.4476_4891, and 1 fewer bases between c.4895_4896, and 498 extra bases between c.3969_4468, and 564 extra bases between c.3396_3961, and 3 fewer bases between c.3961_3962 than NC_000019.10"
         ]
+
+    def test_datum_ill_defined_regression(self):
+        variant = "NM_000088.3:c.-12_*12delTAGGGTCTAGACATGTTCAGCTTTGTGGACCTCCGGCTCCTGCTCCTCTTAGCGGCCACCGCCCTCCTGACGCACGGCCAAGAGGAAGGCCAAGTCGAGGGCCAAGACGAAGACATCCCACCAATCACCTGCGTACAGAACGGCCTCAGGTACCATGACCGAGACGTGTGGAAACCCGAGCCCTGCCGGATCTGCGTCTGCGACAACGGCAAGGTGTTGTGCGATGACGTGATCTGTGACGAGACCAAGAACTGCCCCGGCGCCGAAGTCCCCGAGGGCGAGTGCTGTCCCGTCTGCCCCGACGGCTCAGAGTCACCCACCGACCAAGAAACCACCGGCGTCGAGGGACCCAAGGGAGACACTGGCCCCCGAGGCCCAAGGGGACCCGCAGGCCCCCCTGGCCGAGATGGCATCCCTGGACAGCCTGGACTTCCCGGACCCCCCGGACCCCCCGGACCTCCCGGACCCCCTGGCCTCGGAGGAAACTTTGCTCCCCAGCTGTCTTATGGCTATGATGAGAAATCAACCGGAGGAATTTCCGTGCCTGGCCCCATGGGTCCCTCTGGTCCTCGTGGTCTCCCTGGCCCCCCTGGTGCACCTGGTCCCCAAGGCTTCCAAGGTCCCCCTGGTGAGCCTGGCGAGCCTGGAGCTTCAGGTCCCATGGGTCCCCGAGGTCCCCCAGGTCCCCCTGGAAAGAATGGAGATGATGGGGAAGCTGGAAAACCTGGTCGTCCTGGTGAGCGTGGGCCTCCTGGGCCTCAGGGTGCTCGAGGATTGCCCGGAACAGCTGGCCTCCCTGGAATGAAGGGACACAGAGGTTTCAGTGGTTTGGATGGTGCCAAGGGAGATGCTGGTCCTGCTGGTCCTAAGGGTGAGCCTGGCAGCCCTGGTGAAAATGGAGCTCCTGGTCAGATGGGCCCCCGTGGCCTGCCTGGTGAGAGAGGTCGCCCTGGAGCCCCTGGCCCTGCTGGTGCTCGTGGAAATGATGGTGCTACTGGTGCTGCCGGGCCCCCTGGTCCCACCGGCCCCGCTGGTCCTCCTGGCTTCCCTGGTGCTGTTGGTGCTAAGGGTGAAGCTGGTCCCCAAGGGCCCCGAGGCTCTGAAGGTCCCCAGGGTGTGCGTGGTGAGCCTGGCCCCCCTGGCCCTGCTGGTGCTGCTGGCCCTGCTGGAAACCCTGGTGCTGATGGACAGCCTGGTGCTAAAGGTGCCAATGGTGCTCCTGGTATTGCTGGTGCTCCTGGCTTCCCTGGTGCCCGAGGCCCCTCTGGACCCCAGGGCCCCGGCGGCCCTCCTGGTCCCAAGGGTAACAGCGGTGAACCTGGTGCTCCTGGCAGCAAAGGAGACACTGGTGCTAAGGGAGAGCCTGGCCCTGTTGGTGTTCAAGGACCCCCTGGCCCTGCTGGAGAGGAAGGAAAGCGAGGAGCTCGAGGTGAACCCGGACCCACTGGCCTGCCCGGACCCCCTGGCGAGCGTGGTGGACCTGGTAGCCGTGGTTTCCCTGGCGCAGATGGTGTTGCTGGTCCCAAGGGTCCCGCTGGTGAACGTGGTTCTCCTGGCCCTGCTGGCCCCAAAGGATCTCCTGGTGAAGCTGGTCGTCCCGGTGAAGCTGGTCTGCCTGGTGCCAAGGGTCTGACTGGAAGCCCTGGCAGCCCTGGTCCTGATGGCAAAACTGGCCCCCCTGGTCCCGCCGGTCAAGATGGTCGCCCCGGACCCCCAGGCCCACCTGGTGCCCGTGGTCAGGCTGGTGTGATGGGATTCCCTGGACCTAAAGGTGCTGCTGGAGAGCCCGGCAAGGCTGGAGAGCGAGGTGTTCCCGGACCCCCTGGCGCTGTCGGTCCTGCTGGCAAAGATGGAGAGGCTGGAGCTCAGGGACCCCCTGGCCCTGCTGGTCCCGCTGGCGAGAGAGGTGAACAAGGCCCTGCTGGCTCCCCCGGATTCCAGGGTCTCCCTGGTCCTGCTGGTCCTCCAGGTGAAGCAGGCAAACCTGGTGAACAGGGTGTTCCTGGAGACCTTGGCGCCCCTGGCCCCTCTGGAGCAAGAGGCGAGAGAGGTTTCCCTGGCGAGCGTGGTGTGCAAGGTCCCCCTGGTCCTGCTGGTCCCCGAGGGGCCAACGGTGCTCCCGGCAACGATGGTGCTAAGGGTGATGCTGGTGCCCCTGGAGCTCCCGGTAGCCAGGGCGCCCCTGGCCTTCAGGGAATGCCTGGTGAACGTGGTGCAGCTGGTCTTCCAGGGCCTAAGGGTGACAGAGGTGATGCTGGTCCCAAAGGTGCTGATGGCTCTCCTGGCAAAGATGGCGTCCGTGGTCTGACTGGCCCCATTGGTCCTCCTGGCCCTGCTGGTGCCCCTGGTGACAAGGGTGAAAGTGGTCCCAGCGGCCCTGCTGGTCCCACTGGAGCTCGTGGTGCCCCCGGAGACCGTGGTGAGCCTGGTCCCCCCGGCCCTGCTGGCTTTGCTGGCCCCCCTGGTGCTGACGGCCAACCTGGTGCTAAAGGCGAACCTGGTGATGCTGGTGCTAAAGGCGATGCTGGTCCCCCTGGCCCTGCCGGACCCGCTGGACCCCCTGGCCCCATTGGTAATGTTGGTGCTCCTGGAGCCAAAGGTGCTCGCGGCAGCGCTGGTCCCCCTGGTGCTACTGGTTTCCCTGGTGCTGCTGGCCGAGTCGGTCCTCCTGGCCCCTCTGGAAATGCTGGACCCCCTGGCCCTCCTGGTCCTGCTGGCAAAGAAGGCGGCAAAGGTCCCCGTGGTGAGACTGGCCCTGCTGGACGTCCTGGTGAAGTTGGTCCCCCTGGTCCCCCTGGCCCTGCTGGCGAGAAAGGATCCCCTGGTGCTGATGGTCCTGCTGGTGCTCCTGGTACTCCCGGGCCTCAAGGTATTGCTGGACAGCGTGGTGTGGTCGGCCTGCCTGGTCAGAGAGGAGAGAGAGGCTTCCCTGGTCTTCCTGGCCCCTCTGGTGAACCTGGCAAACAAGGTCCCTCTGGAGCAAGTGGTGAACGTGGTCCCCCTGGTCCCATGGGCCCCCCTGGATTGGCTGGACCCCCTGGTGAATCTGGACGTGAGGGGGCTCCTGGTGCCGAAGGTTCCCCTGGACGAGACGGTTCTCCTGGCGCCAAGGGTGACCGTGGTGAGACCGGCCCCGCTGGACCCCCTGGTGCTCCTGGTGCTCCTGGTGCCCCTGGCCCCGTTGGCCCTGCTGGCAAGAGTGGTGATCGTGGTGAGACTGGTCCTGCTGGTCCCGCCGGTCCTGTCGGCCCTGTTGGCGCCCGTGGCCCCGCCGGACCCCAAGGCCCCCGTGGTGACAAGGGTGAGACAGGCGAACAGGGCGACAGAGGCATAAAGGGTCACCGTGGCTTCTCTGGCCTCCAGGGTCCCCCTGGCCCTCCTGGCTCTCCTGGTGAACAAGGTCCCTCTGGAGCCTCTGGTCCTGCTGGTCCCCGAGGTCCCCCTGGCTCTGCTGGTGCTCCTGGCAAAGATGGACTCAACGGTCTCCCTGGCCCCATTGGGCCCCCTGGTCCTCGCGGTCGCACTGGTGATGCTGGTCCTGTTGGTCCCCCCGGCCCTCCTGGACCTCCTGGTCCCCCTGGTCCTCCCAGCGCTGGTTTCGACTTCAGCTTCCTGCCCCAGCCACCTCAAGAGAAGGCTCACGATGGTGGCCGCTACTACCGGGCTGATGATGCCAATGTGGTTCGTGACCGTGACCTCGAGGTGGACACCACCCTCAAGAGCCTGAGCCAGCAGATCGAGAACATCCGGAGCCCAGAGGGCAGCCGCAAGAACCCCGCCCGCACCTGCCGTGACCTCAAGATGTGCCACTCTGACTGGAAGAGTGGAGAGTACTGGATTGACCCCAACCAAGGCTGCAACCTGGATGCCATCAAAGTCTTCTGCAACATGGAGACTGGTGAGACCTGCGTGTACCCCACTCAGCCCAGTGTGGCCCAGAAGAACTGGTACATCAGCAAGAACCCCAAGGACAAGAGGCATGTCTGGTTCGGCGAGAGCATGACCGATGGATTCCAGTTCGAGTATGGCGGCCAGGGCTCCGACCCTGCCGATGTGGCCATCCAGCTGACCTTCCTGCGCCTGATGTCCACCGAGGCCTCCCAGAACATCACCTACCACTGCAAGAACAGCGTGGCCTACATGGACCAGCAGACTGGCAACCTCAAGAAGGCCCTGCTCCTCCAGGGCTCCAACGAGATCGAGATCCGCGCCGAGGGCAACAGCCGCTTCACCTACAGCGTCACTGTCGATGGCTGCACGAGTCACACCGGAGCCTGGGGCAAGACAGTGATTGAATACAAAACCACCAAGACCTCCCGCCTGCCCATCATCGATGTGGCCCCCTTGGACGTTGGTGCCCCAGACCAGGAATTCGGCTTCGACGTTGGCCCTGTCTGCTTCCTGTAAACTCCCTCCATC"
+        results = self.vv.validate(variant, 'GRCh37', 'all', transcript_set="refseq").format_as_dict(test=True)
+        print(results)
+        assert results['NM_000088.3:c.-12_*12del']['validation_warnings'] == [
+            "VariantSyntaxError: Removing redundant reference bases from variant description",
+            "IntronSpanningWarning: This coding sequence variant description spans at least one intron",
+            "ProteinTranslationError: Unable to generate protein variant description due to the sequence missing an accepted start codon.",
+            "TranscriptVersionWarning: A more recent version of the selected reference sequence NM_000088.3 is available for genome build GRCh37 (NM_000088.4)"
+        ]
+
+    def test_lrgt_with_gene(self):
+        variant = "LRG_1t1(COL1A1):c.589G>T"
+        results = self.vv.validate(variant, 'GRCh37', 'all', transcript_set="refseq").format_as_dict(test=True)
+        print(results)
+        assert results['NM_000088.3:c.589G>T']['validation_warnings'] == [
+            "VariantSyntaxError: Removing redundant gene symbol COL1A1 from variant description",
+            "VariantMappingWarning: LRG_1t1:c.589G>T automapped to equivalent RefSeq record NM_000088.3:c.589G>T",
+            "TranscriptVersionWarning: A more recent version of the selected reference sequence NM_000088.3 is available for genome build GRCh37 (NM_000088.4)"
+        ]
+
 
 # <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors

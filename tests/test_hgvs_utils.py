@@ -1,6 +1,7 @@
 import unittest
 from unittest.mock import Mock, patch
 from VariantValidator.modules.hgvs_utils import pvcf_to_hgvs, PseudoVCF2HGVSError
+from VariantValidator.modules.hgvs_utils import pre_push_vcf_tx_g_map_fix
 
 from unittest import TestCase
 
@@ -30,16 +31,29 @@ class TestHgvsUtilsFunctional(TestCase):
         ).format_as_dict(test=True)
 
     def test_hybrid_genomic_deletion(self):
-        result = self.validate("NC_000017.11:43045705AG>A")
+        result = self.validate(
+            "NC_000017.11:43045705AG>A"
+        )
 
-        # inspect output then replace with real assertions
         print(result)
+        assert result["flag"] == "warning"
+        assert result["validation_warning_1"]["validation_warnings"] == [
+                 'VariantMappingWarning: NC_000017.11:g.43045705AG>A automapped to NC_000017.11:g.43045706del',
+                 'ReferenceMismatchError: NC_000017.11:g.43045706delG: Variant reference (G) does not agree with reference sequence (A)']
+
 
     def test_hybrid_genomic_insertion(self):
-        result = self.validate("NC_000017.11:43045705A>AG")
+        result = self.validate(
+            "NC_000017.11:43045705A>AG"
+        )
 
-        # inspect output then replace with real assertions
         print(result)
+
+        assert result["flag"] == "gene_variant"
+        assert "NM_001407571.1:c.5351_5352insC" in result.keys()
+        assert result["NM_001407571.1:c.5351_5352insC"]["validation_warnings"] == [
+            'VariantMappingWarning: NC_000017.11:g.43045705A>AG automapped to NC_000017.11:g.43045705_43045706insG']
+
 
 
 class TestHgvsUtils(TestCase):
@@ -238,6 +252,570 @@ class TestHgvsUtils(TestCase):
         )
 
         self.assertIsNotNone(hgvs)
+
+    def test_pre_push_vcf_tx_g_map_fix_mapped_no_fix_required(self):
+        hp = self.vv.hp
+
+        transcript = hp.parse_hgvs_variant(
+            "NM_000546.6:n.100_101del"
+        )
+        mapped = hp.parse_hgvs_variant(
+            "NC_000017.11:g.100_101del"
+        )
+
+        var_mapper = Mock()
+        normaliser = Mock()
+        normaliser.normalize.return_value = mapped
+
+        result = pre_push_vcf_tx_g_map_fix(
+            transcript,
+            transcript,
+            "NC_000017.11",
+            var_mapper,
+            normaliser,
+            Mock(),
+            mapped,
+        )
+
+        self.assertIs(result, transcript)
+        var_mapper.n_to_g.assert_not_called()
+        normaliser.normalize.assert_called_once_with(mapped)
+
+    def test_pre_push_vcf_tx_g_map_fix_maps_when_not_premapped(self):
+        hp = self.vv.hp
+
+        transcript = hp.parse_hgvs_variant(
+            "NM_000546.6:n.100_101del"
+        )
+        mapped = hp.parse_hgvs_variant(
+            "NC_000017.11:g.100_101del"
+        )
+
+        var_mapper = Mock()
+        var_mapper.n_to_g.return_value = mapped
+
+        normaliser = Mock()
+        normaliser.normalize.return_value = mapped
+
+        result = pre_push_vcf_tx_g_map_fix(
+            transcript,
+            transcript,
+            "NC_000017.11",
+            var_mapper,
+            normaliser,
+            Mock(),
+            False,
+        )
+
+        self.assertIs(result, transcript)
+
+        var_mapper.n_to_g.assert_called_once_with(
+            transcript,
+            "NC_000017.11",
+        )
+
+    def test_pre_push_vcf_tx_g_map_fix_other_invalid_variant_error(self):
+        hp = self.vv.hp
+
+        transcript = hp.parse_hgvs_variant(
+            "NM_000546.6:n.100_101del"
+        )
+        mapped = hp.parse_hgvs_variant(
+            "NC_000017.11:g.100_101del"
+        )
+
+        normaliser = Mock()
+        normaliser.normalize.side_effect = (
+            vvhgvs.exceptions.HGVSInvalidVariantError(
+                "some other invalid variant"
+            )
+        )
+
+        result = pre_push_vcf_tx_g_map_fix(
+            transcript,
+            transcript,
+            "NC_000017.11",
+            Mock(),
+            normaliser,
+            Mock(),
+            mapped,
+        )
+
+        self.assertIs(result, transcript)
+
+    def test_pre_push_vcf_tx_g_map_fix_gap_without_flanks(self):
+        hp = self.vv.hp
+
+        transcript = hp.parse_hgvs_variant(
+            "NM_000546.6:n.100_101delAAinsTT"
+        )
+
+        genomic = hp.parse_hgvs_variant(
+            "NC_000017.11:g.201_200delAAinsTT"
+        )
+
+        genomic_identity = hp.parse_hgvs_variant(
+            "NC_000017.11:g.200_201="
+        )
+
+        transcript_gap = hp.parse_hgvs_variant(
+            "NM_000546.6:n.100_101="
+        )
+
+        normaliser = Mock()
+
+        normaliser.normalize.side_effect = [
+            vvhgvs.exceptions.HGVSInvalidVariantError(
+                "base start position must be <= end position"
+            ),
+            genomic_identity,
+            transcript_gap,
+        ]
+
+        var_mapper = Mock()
+        var_mapper.g_to_n.return_value = transcript_gap
+
+        result = pre_push_vcf_tx_g_map_fix(
+            transcript,
+            transcript,
+            "NC_000017.11",
+            var_mapper,
+            normaliser,
+            Mock(),
+            genomic,
+        )
+
+        self.assertEqual(
+            result.posedit.pos.start.base,
+            100,
+        )
+        self.assertEqual(
+            result.posedit.pos.end.base,
+            101,
+        )
+        self.assertEqual(result.posedit.edit.ref, "AA")
+        self.assertEqual(result.posedit.edit.alt, "TT")
+
+        var_mapper.g_to_n.assert_called_once()
+
+    def test_pre_push_vcf_tx_g_map_fix_left_flank(self):
+        hp = self.vv.hp
+
+        transcript = hp.parse_hgvs_variant(
+            "NM_000546.6:n.100_101delAAinsTT"
+        )
+        genomic = hp.parse_hgvs_variant(
+            "NC_000017.11:g.201_200delAAinsTT"
+        )
+        genomic_identity = hp.parse_hgvs_variant(
+            "NC_000017.11:g.200_201="
+        )
+        transcript_gap = hp.parse_hgvs_variant(
+            "NM_000546.6:n.90_101="
+        )
+        left_flank = hp.parse_hgvs_variant(
+            "NM_000546.6:n.90_99="
+        )
+
+        normaliser = Mock()
+        normaliser.normalize.side_effect = [
+            vvhgvs.exceptions.HGVSInvalidVariantError(
+                "base start position must be <= end position"
+            ),
+            genomic_identity,
+            transcript_gap,
+            left_flank,
+        ]
+
+        var_mapper = Mock()
+        var_mapper.g_to_n.return_value = transcript_gap
+
+        result = pre_push_vcf_tx_g_map_fix(
+            transcript,
+            transcript,
+            "NC_000017.11",
+            var_mapper,
+            normaliser,
+            Mock(),
+            genomic,
+        )
+
+        self.assertEqual(result.posedit.pos.start.base, 90)
+        self.assertEqual(result.posedit.pos.end.base, 101)
+        self.assertEqual(
+            result.posedit.edit.ref,
+            left_flank.posedit.edit.ref
+            + transcript.posedit.edit.ref,
+        )
+        self.assertEqual(
+            result.posedit.edit.alt,
+            left_flank.posedit.edit.alt
+            + transcript.posedit.edit.alt,
+        )
+
+    def test_pre_push_vcf_tx_g_map_fix_right_flank(self):
+        hp = self.vv.hp
+
+        transcript = hp.parse_hgvs_variant(
+            "NM_000546.6:n.100_101delAAinsTT"
+        )
+        genomic = hp.parse_hgvs_variant(
+            "NC_000017.11:g.201_200delAAinsTT"
+        )
+        genomic_identity = hp.parse_hgvs_variant(
+            "NC_000017.11:g.200_201="
+        )
+        transcript_gap = hp.parse_hgvs_variant(
+            "NM_000546.6:n.100_110="
+        )
+        right_flank = hp.parse_hgvs_variant(
+            "NM_000546.6:n.102_110="
+        )
+
+        normaliser = Mock()
+        normaliser.normalize.side_effect = [
+            vvhgvs.exceptions.HGVSInvalidVariantError(
+                "base start position must be <= end position"
+            ),
+            genomic_identity,
+            transcript_gap,
+            right_flank,
+        ]
+
+        var_mapper = Mock()
+        var_mapper.g_to_n.return_value = transcript_gap
+
+        result = pre_push_vcf_tx_g_map_fix(
+            transcript,
+            transcript,
+            "NC_000017.11",
+            var_mapper,
+            normaliser,
+            Mock(),
+            genomic,
+        )
+
+        self.assertEqual(result.posedit.pos.start.base, 100)
+        self.assertEqual(result.posedit.pos.end.base, 110)
+        self.assertEqual(
+            result.posedit.edit.ref,
+            transcript.posedit.edit.ref
+            + right_flank.posedit.edit.ref,
+        )
+        self.assertEqual(
+            result.posedit.edit.alt,
+            transcript.posedit.edit.alt
+            + right_flank.posedit.edit.alt,
+        )
+
+    def test_pre_push_vcf_tx_g_map_fix_both_flanks(self):
+        hp = self.vv.hp
+
+        transcript = hp.parse_hgvs_variant(
+            "NM_000546.6:n.100_101delAAinsTT"
+        )
+        genomic = hp.parse_hgvs_variant(
+            "NC_000017.11:g.201_200delAAinsTT"
+        )
+        genomic_identity = hp.parse_hgvs_variant(
+            "NC_000017.11:g.200_201="
+        )
+        transcript_gap = hp.parse_hgvs_variant(
+            "NM_000546.6:n.90_110="
+        )
+        left_flank = hp.parse_hgvs_variant(
+            "NM_000546.6:n.90_99="
+        )
+        right_flank = hp.parse_hgvs_variant(
+            "NM_000546.6:n.102_110="
+        )
+
+        normaliser = Mock()
+        normaliser.normalize.side_effect = [
+            vvhgvs.exceptions.HGVSInvalidVariantError(
+                "base start position must be <= end position"
+            ),
+            genomic_identity,
+            transcript_gap,
+            left_flank,
+            right_flank,
+        ]
+
+        var_mapper = Mock()
+        var_mapper.g_to_n.return_value = transcript_gap
+
+        result = pre_push_vcf_tx_g_map_fix(
+            transcript,
+            transcript,
+            "NC_000017.11",
+            var_mapper,
+            normaliser,
+            Mock(),
+            genomic,
+        )
+
+        self.assertEqual(result.posedit.pos.start.base, 90)
+        self.assertEqual(result.posedit.pos.end.base, 110)
+
+        self.assertEqual(
+            result.posedit.edit.ref,
+            left_flank.posedit.edit.ref
+            + transcript.posedit.edit.ref
+            + right_flank.posedit.edit.ref,
+        )
+        self.assertEqual(
+            result.posedit.edit.alt,
+            left_flank.posedit.edit.alt
+            + transcript.posedit.edit.alt
+            + right_flank.posedit.edit.alt,
+        )
+
+    @patch(
+        "VariantValidator.modules.hgvs_utils.hgvs_to_delins_hgvs"
+    )
+    def test_pre_push_vcf_tx_g_map_fix_genomic_duplication(
+            self,
+            mock_to_delins,
+    ):
+        hp = self.vv.hp
+
+        transcript = hp.parse_hgvs_variant(
+            "NM_000546.6:n.100_101delAAinsTT"
+        )
+
+        genomic = hp.parse_hgvs_variant(
+            "NC_000017.11:g.201_200dup"
+        )
+
+        genomic_delins = hp.parse_hgvs_variant(
+            "NC_000017.11:g.200_201delAAinsAAAA"
+        )
+
+        genomic_identity = hp.parse_hgvs_variant(
+            "NC_000017.11:g.200_201="
+        )
+
+        transcript_gap = hp.parse_hgvs_variant(
+            "NM_000546.6:n.100_101="
+        )
+
+        mock_to_delins.return_value = genomic_delins
+
+        seq_fetcher = Mock()
+        seq_fetcher.fetch_seq.return_value = "AA"
+
+        normaliser = Mock()
+        normaliser.normalize.side_effect = [
+            vvhgvs.exceptions.HGVSInvalidVariantError(
+                "base start position must be <= end position"
+            ),
+            genomic_identity,
+            transcript_gap,
+        ]
+
+        var_mapper = Mock()
+        var_mapper.g_to_n.return_value = transcript_gap
+
+        result = pre_push_vcf_tx_g_map_fix(
+            transcript,
+            transcript,
+            "NC_000017.11",
+            var_mapper,
+            normaliser,
+            seq_fetcher,
+            genomic,
+        )
+
+        seq_fetcher.fetch_seq.assert_called_once_with(
+            "NC_000017.11",
+            199,
+            201,
+        )
+
+        mock_to_delins.assert_called_once()
+
+        self.assertEqual(result.posedit.pos.start.base, 100)
+        self.assertEqual(result.posedit.pos.end.base, 101)
+
+    @patch(
+        "VariantValidator.modules.hgvs_utils.hgvs_to_delins_hgvs"
+    )
+    def test_pre_push_vcf_tx_g_map_fix_transcript_insertion(
+            self,
+            mock_to_delins,
+    ):
+        hp = self.vv.hp
+
+        transcript = hp.parse_hgvs_variant(
+            "NM_000546.6:n.100_101insTT"
+        )
+        transcript_delins = hp.parse_hgvs_variant(
+            "NM_000546.6:n.100_101delinsTT"
+        )
+        genomic = hp.parse_hgvs_variant(
+            "NC_000017.11:g.201_200delinsTT"
+        )
+        genomic_identity = hp.parse_hgvs_variant(
+            "NC_000017.11:g.200_201="
+        )
+        transcript_gap = hp.parse_hgvs_variant(
+            "NM_000546.6:n.100_101="
+        )
+
+        mock_to_delins.return_value = transcript_delins
+
+        normaliser = Mock()
+        normaliser.normalize.side_effect = [
+            vvhgvs.exceptions.HGVSInvalidVariantError(
+                "base start position must be <= end position"
+            ),
+            genomic_identity,
+            transcript_gap,
+        ]
+
+        var_mapper = Mock()
+        var_mapper.g_to_n.return_value = transcript_gap
+
+        result = pre_push_vcf_tx_g_map_fix(
+            transcript,
+            transcript,
+            "NC_000017.11",
+            var_mapper,
+            normaliser,
+            Mock(),
+            genomic,
+        )
+
+        mock_to_delins.assert_called_once_with(
+            transcript,
+            None,
+            normaliser,
+        )
+
+        self.assertEqual(result.posedit.pos.start.base, 100)
+        self.assertEqual(result.posedit.pos.end.base, 101)
+
+
+    @patch(
+        "VariantValidator.modules.hgvs_utils.hgvs_to_delins_hgvs"
+    )
+    def test_pre_push_vcf_tx_g_map_fix_transcript_duplication(
+            self,
+            mock_to_delins,
+    ):
+        hp = self.vv.hp
+
+        transcript = hp.parse_hgvs_variant(
+            "NM_000546.6:n.100dupA"
+        )
+        transcript_delins = hp.parse_hgvs_variant(
+            "NM_000546.6:n.100delAinsAA"
+        )
+        genomic = hp.parse_hgvs_variant(
+            "NC_000017.11:g.201_200delinsAA"
+        )
+        genomic_identity = hp.parse_hgvs_variant(
+            "NC_000017.11:g.200="
+        )
+        transcript_gap = hp.parse_hgvs_variant(
+            "NM_000546.6:n.100="
+        )
+
+        mock_to_delins.return_value = transcript_delins
+
+        normaliser = Mock()
+        normaliser.normalize.side_effect = [
+            vvhgvs.exceptions.HGVSInvalidVariantError(
+                "base start position must be <= end position"
+            ),
+            genomic_identity,
+            transcript_gap,
+        ]
+
+        var_mapper = Mock()
+        var_mapper.g_to_n.return_value = transcript_gap
+
+        result = pre_push_vcf_tx_g_map_fix(
+            transcript,
+            transcript,
+            "NC_000017.11",
+            var_mapper,
+            normaliser,
+            Mock(),
+            genomic,
+        )
+
+        mock_to_delins.assert_called_once_with(
+            transcript,
+            None,
+            normaliser,
+        )
+
+        self.assertEqual(result.posedit.pos.start.base, 100)
+        self.assertEqual(result.posedit.pos.end.base, 100)
+
+
+    @patch(
+        "VariantValidator.modules.hgvs_utils.hgvs_to_delins_hgvs"
+    )
+    def test_pre_push_vcf_tx_g_map_fix_unnormalised_deletion(
+            self,
+            mock_to_delins,
+    ):
+        hp = self.vv.hp
+
+        # The normalised representation is already a delins, but the
+        # original input was a deletion. This exercises the explicit
+        # unnormalised-deletion check.
+        transcript = hp.parse_hgvs_variant(
+            "NM_000546.6:n.100_101delAAinsTT"
+        )
+        unnormalised = hp.parse_hgvs_variant(
+            "NM_000546.6:n.100_101delAA"
+        )
+
+        genomic = hp.parse_hgvs_variant(
+            "NC_000017.11:g.201_200delAAinsTT"
+        )
+        genomic_identity = hp.parse_hgvs_variant(
+            "NC_000017.11:g.200_201="
+        )
+        transcript_gap = hp.parse_hgvs_variant(
+            "NM_000546.6:n.100_101="
+        )
+
+        mock_to_delins.return_value = transcript
+
+        normaliser = Mock()
+        normaliser.normalize.side_effect = [
+            vvhgvs.exceptions.HGVSInvalidVariantError(
+                "base start position must be <= end position"
+            ),
+            genomic_identity,
+            transcript_gap,
+        ]
+
+        var_mapper = Mock()
+        var_mapper.g_to_n.return_value = transcript_gap
+
+        result = pre_push_vcf_tx_g_map_fix(
+            transcript,
+            unnormalised,
+            "NC_000017.11",
+            var_mapper,
+            normaliser,
+            Mock(),
+            genomic,
+        )
+
+        mock_to_delins.assert_called_once_with(
+            transcript,
+            None,
+            normaliser,
+        )
+
+        self.assertEqual(result.posedit.pos.start.base, 100)
+        self.assertEqual(result.posedit.pos.end.base, 101)
 
 
 class TestPVCFtoHGVS(unittest.TestCase):

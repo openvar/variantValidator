@@ -126,42 +126,63 @@ class TestExpandedRepeats(unittest.TestCase):
                                     variant_str, "GRCh37", "all", vv)
         assert my_variant == False
 
-    def test_convert_tandem_fallback(self):
+    def test_convert_tandem(self):
         """
-        Test that fallback happens when input variant is a text hgvs variant not VV variant object
+        Test conversion of expanded repeat syntax from a TandemRepeats object.
         """
         variant_str = "NM_003073.5:c.1085AGA[2]"
-        my_variant_data = expanded_repeats.convert_tandem(variant_str, vv, 'GRCh37', 'all')
-        self.assertEqual(str(my_variant_data["position"]), "1085_1093")
-        self.assertEqual(str(my_variant_data["variant"]), "NM_003073.5:c.1085_1093AGA[2]")
-        self.assertEqual(my_variant_data["copy_number"],'2')
-        self.assertEqual(my_variant_data["repeat_sequence"],"AGA")
-        self.assertEqual(my_variant_data["reference"],"NM_003073.5")
-        self.assertEqual(my_variant_data["prefix"],"c")
-        self.assertEqual(my_variant_data["reference_sequence_bases"],"AGAAGAAGA")
+
+        my_variant = expanded_repeats.TandemRepeats.parse_repeat_variant(
+            variant_str, "GRCh37", "all", vv
+        )
+        my_variant_data = my_variant.reformat(vv)
+
+        self.assertEqual(str(my_variant.variant_position), "1085_1093")
+        self.assertEqual(str(my_variant_data), "NM_003073.5:c.1085_1093AGA[2]")
+        self.assertEqual(my_variant.copy_number, "2")
+        self.assertEqual(my_variant.repeat_sequence, "AGA")
+        self.assertEqual(my_variant.reference, "NM_003073.5")
+        self.assertEqual(my_variant.prefix, "c")
+        self.assertEqual(my_variant.reference_sequence_bases, "AGAAGAAGA")
 
     def test_fail_tandem_unmatched_bracket(self):
         variant_str = "NM_003073.5:c.1085AGA[2"
+
         with self.assertRaises(RepeatSyntaxError) as catch:
-            expanded_repeats.convert_tandem(variant_str, vv, 'GRCh37', 'all')
-        self.assertTrue("variant in question is missing a matched bracket pair" in \
-                str(catch.exception))
+            expanded_repeats.TandemRepeats.parse_repeat_variant(
+                variant_str, "GRCh37", "all", vv
+            )
+
+        self.assertTrue(
+            "variant in question is missing a matched bracket pair"
+            in str(catch.exception)
+        )
 
     def test_fail_tandem_no_repeat(self):
         variant_str = "NM_003073.5:c.1085[2]"
+
         with self.assertRaises(RepeatSyntaxError) as catch:
-            expanded_repeats.convert_tandem(variant_str, vv, 'GRCh37', 'all')
+            expanded_repeats.TandemRepeats.parse_repeat_variant(
+                variant_str, "GRCh37", "all", vv
+            )
+
         self.assertTrue(
-                "Ensure that the repeated sequence is included" in \
-                str(catch.exception))
+            "Ensure that the repeated sequence is included"
+            in str(catch.exception)
+        )
 
     def test_fail_tandem_bad_repeat_seq(self):
         variant_str = "NM_003073.5:c.1085CXXX[2]"
+
         with self.assertRaises(RepeatSyntaxError) as catch:
-            expanded_repeats.convert_tandem(variant_str, vv, 'GRCh37', 'all')
+            expanded_repeats.TandemRepeats.parse_repeat_variant(
+                variant_str, "GRCh37", "all", vv
+            )
+
         self.assertTrue(
-            "Please ensure the repeated sequence includes only Aa, Cc, Tt, Gg, Uu" in \
-            str(catch.exception))
+            "Please ensure the repeated sequence includes only Aa, Cc, Tt, Gg, Uu"
+            in str(catch.exception)
+        )
 
     def test_fail_tandem_bad_repeat_length(self):
         variant_str = "NM_003073.5:c.1085_1092AGA[2]"
@@ -224,17 +245,6 @@ class TestExpandedRepeats(unittest.TestCase):
         self.assertTrue(
             "The number of repeat units included between square brackets must be numeric" in \
             str(catch.exception))
-
-
-    #def test_pass_tandem_ref_nomatch_no_length(self):
-    #    # No length for genomic match, and fail caught, should only happen for broken input
-    #    # which should be caught already, or coordinates beyond the end of the seq.
-    #    # This could not trigger and was removed, we may want to add a ^ / $ to the regex
-    #    # however, and if so would then want to re-add this test.
-    #    variant_str = "NG_012232.1:g.90000000CC[20]"
-    #    my_variant = expanded_repeats.TandemRepeats.parse_repeat_variant(
-    #            variant_str,  "GRCh37", "all", vv)
-    #    my_variant.check_positions_given(vv)
 
     def test_check_exon_boundaries_no_bounds_used(self):
         variant_str = "NM_003073.5:c.1085AGA[2]"

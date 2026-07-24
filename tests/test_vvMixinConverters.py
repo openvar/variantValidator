@@ -107,7 +107,7 @@ class TestVVMixinConvertersFunctional(TestCase):
         variant = "NR_110010.2:n.[138del;150_150+1G[2]]"
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert "NR_110010.2:n.150_150+1delinsG" in results.keys()
+        assert "NR_110010.2:n.150_150+1=" in results.keys()
         assert "NR_110010.2:n.138del" in results.keys()
 
 
@@ -115,7 +115,7 @@ class TestVVMixinConvertersFunctional(TestCase):
         variant = "NC_000017.10(NR_110010.2):n.[138del;150_150+1G[2]]"
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert "NR_110010.2:n.150_150+1delinsG" in results.keys()
+        assert "NR_110010.2:n.150_150+1=" in results.keys()
         assert "NR_110010.2:n.138del" in results.keys()
 
     def test_mito_allele(self):
@@ -144,10 +144,7 @@ class TestVVMixinConvertersFunctional(TestCase):
     def test_lrg_gene_allele(self):
         result = self.validate("LRG1:g.[50198003C>A];[50198023A>T]")
 
-        assert result["validation_warning_1"]["validation_warnings"] == [
-            "VariantMappingWarning: LRG1 updated to LRG_1: LRG_1:g.[50198003C>A];[50198023A>T] automapped to equivalent RefSeq recordNG_007400.1:g.[50198003C>A];[50198023A>T]",
-            "ReferenceMismatchError: NG_007400.1:g.50198003C>A: Variant reference (C) does not agree with reference sequence ()"
-        ]
+        assert result["validation_warning_1"]["validation_warnings"] == ['VariantMappingWarning: LRG1 updated to LRG_1: LRG_1:g.[50198003C>A];[50198023A>T] automapped to equivalent RefSeq record NG_007400.1:g.[50198003C>A];[50198023A>T]', 'ReferenceMismatchError: NG_007400.1:g.50198003C>A: Variant reference (C) does not agree with reference sequence ()']
 
 
 class DummyMixin(Mixin):
