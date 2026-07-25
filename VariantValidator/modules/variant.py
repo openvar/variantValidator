@@ -1,26 +1,36 @@
 import re
+
 from . import utils as fn
 from .transcript_map_data import TranscriptMapData
 
+
 class Variant(object):
     """
-    This Variant object will contain the original input, the processed variant description and any other data that's
-    relevant to what kind of variant it is.
+    This Variant object will contain the original input, the processed variant
+    description and any other data that's relevant to what kind of variant it is.
     """
 
-    def __init__(self, original, quibble=None, warnings=None, write=True, primary_assembly=False, order=False,
-                 selected_assembly=False, reformat_output=False, expanded_repeat=None):
+    def __init__(
+            self,
+            original,
+            quibble=None,
+            warnings=None,
+            write=True,
+            primary_assembly=False,
+            order=False,
+            selected_assembly=False,
+            reformat_output=False,
+            expanded_repeat=None
+    ):
         self.original = original
-        if quibble is None:
-            self.quibble = original
-        else:
-            self.quibble = quibble
+        self.quibble = original if quibble is None else quibble
+
         self.hgvs_formatted = None
         self.hgvs_genomic = None
         self.hgvs_coding = None
-        self.post_format_conversion = None  # Used for first gapped_mapping function
+        self.post_format_conversion = None
         self.pre_RNA_conversion = None
-        self.input_parses = None  # quibble as hgvs variant object
+        self.input_parses = None
         self.transcript_type = None
         self.lovd_syntax_check = None
         self.shorthand_vcf = None
@@ -28,21 +38,21 @@ class Variant(object):
         self.lovd_corrections = None
 
         # Placeholder for alt_reference
-        self.genomic_context_ac = None  #  For compound hgvs NC_(NM_) only.
+        self.genomic_context_ac = None
 
         if warnings is None:
             self.warnings = []
+        elif isinstance(warnings, list):
+            self.warnings = warnings
         else:
-            if isinstance(warnings, list):
-                self.warnings = warnings
-            else:
-                self.warnings = [warnings]
-        self.description = ''  # hgnc_gene_info variable
+            self.warnings = [warnings]
+
+        self.description = ''
         self.annotations = ''
         self.coding = ''
         self.coding_g = ''
         self.genomic_r = ''
-        self.genomic_g = '' # should be a hgvs obj or nothing
+        self.genomic_g = ''
         self.protein = ''
         self.write = write
         self.primary_assembly = primary_assembly
@@ -61,7 +71,7 @@ class Variant(object):
         # Normalizers and mappers
         self.hn = None
         self.reverse_normalizer = None
-        self.cross_hn = None  # allows crossing of intron/exon boundaries for c. variants
+        self.cross_hn = None
         self.evm = None
         self.no_norm_evm = None
         self.min_evm = None
@@ -71,13 +81,13 @@ class Variant(object):
 
         # Required for output
         self.stable_gene_ids = None
-        self.hgvs_transcript_variant = None  # variant.coding but edited
+        self.hgvs_transcript_variant = None
         self.genome_context_intronic_sequence = None
         self.refseqgene_context_intronic_sequence = None
-        self.hgvs_refseqgene_variant = None  # genomic_r but edited
+        self.hgvs_refseqgene_variant = None
         self.hgvs_predicted_protein_consequence = None
         self.hgvs_lrg_transcript_variant = None
-        self.hgvs_lrg_variant = None  # Same as hgvs_refseqgene_variant but with LRG accession
+        self.hgvs_lrg_variant = None
         self.alt_genomic_loci = None
         self.primary_assembly_loci = None
         self.reference_sequence_records = None
@@ -85,71 +95,71 @@ class Variant(object):
         self.exonic_positions = None
         self.rna_data = None
 
-
     def is_ascii(self):
         """
-        Instead of the previous test for unicode rich text characters.
-        Now going to test that all characters are within the ascii alphabet
+        Test that all characters in quibble are ASCII.
         """
         try:
             self.quibble.encode('ascii')
             return True
-        except UnicodeEncodeError or UnicodeDecodeError:
-            # Will catch errors raised by python 2 and python 3
+        except (UnicodeEncodeError, UnicodeDecodeError):
             return False
 
     def get_non_ascii(self):
         """
-        Will return non ascii character positions within variant description
-        :return:
+        Return non-ASCII characters and their positions within the variant
+        description.
         """
         chars = []
         positions = []
 
-        for i, c in enumerate(self.quibble):
+        for i, char in enumerate(self.quibble):
             try:
-                c.encode('ascii')
-            except UnicodeEncodeError or UnicodeDecodeError:
-                chars.append(c)
-                positions.append(i+1)
+                char.encode('ascii')
+            except (UnicodeEncodeError, UnicodeDecodeError):
+                chars.append(char)
+                positions.append(i + 1)
 
         return chars, positions
 
     def remove_whitespace(self):
         """
-        Will remove all whitespace from quibble
-        :return:
+        Remove all whitespace from quibble.
         """
-        prev = self.quibble
+        previous = self.quibble
         self.quibble = ''.join(self.quibble.split())
-        if self.quibble != prev:
-            caution = 'VariantSyntaxError: Whitespace removed from variant description %s' % self.original
+
+        if self.quibble != previous:
+            caution = (
+                'VariantSyntaxError: Whitespace removed from variant '
+                f'description {self.original}'
+            )
             self.warnings.append(caution)
-        # self.original = ''.join(self.original.split()) #  Updates the original submission to have no whitespace.
 
     def remove_quotes(self):
-        if self.quibble.startswith('"') or self.quibble.startswith("'"):
+        if self.quibble.startswith(('"', "'")):
             self.quibble = self.quibble[1:]
-        if self.quibble.endswith('"') or self.quibble.endswith("'"):
+
+        if self.quibble.endswith(('"', "'")):
             self.quibble = self.quibble[:-1]
 
     def non_alphanum_start(self):
-        if not re.search('^\w', self.original):
+        """
+        Check for an invalid leading character after removing whitespace
+        and surrounding quotes.
+        """
+        if not re.search(r'^\w', self.original):
             self.remove_whitespace()
             self.remove_quotes()
-            if not re.search('^\w', self.quibble):
+
+            if not re.search(r'^\w', self.quibble):
                 return True
-            else:
-                return False
-        else:
-            return False
+
+        return False
 
     def format_quibble(self):
         """
-        Removes whitespace from the ends of the string
-        Removes anything in brackets
-        Identifies variant type (p. c. etc)
-        Accepts c, g, n, r currently. And now P also 15.07.15
+        Remove formatting errors and identify the reference source/type.
         """
         try:
             self.set_refsource()
@@ -161,32 +171,42 @@ class Variant(object):
         except fn.VariantValidatorError:
             return True
 
-        # Upper case characters in the edit type e.g. Ins dUP
-        edit_type_patterns = ['delins', 'dup', 'ins', 'del']  # 'delins' is before 'del'
+        # Upper case characters in edit types, e.g. Ins or dUP.
+        # delins must precede del.
+        edit_type_patterns = ('delins', 'dup', 'ins', 'del')
+
         for pattern in edit_type_patterns:
             matches = re.findall(pattern, self.quibble, re.IGNORECASE)
+
             for match in matches:
-                if match.lower() != match:
-                    caution = f'Edit type {match} should be in the lower case, i.e. {match.lower()}'
-                    self.warnings.append(caution)
-                    self.quibble = self.quibble.replace(match, match.lower())
+                if match != match.lower():
+                    replacement = match.lower()
+                    self.warnings.append(
+                        f'Edit type {match} should be in the lower case, '
+                        f'i.e. {replacement}'
+                    )
+                    self.quibble = self.quibble.replace(
+                        match,
+                        replacement
+                    )
 
         return False
 
     def set_reftype(self):
         """
-        Method will set the reftype based on the quibble
-        :return:
+        Set the reference type based on quibble.
         """
-        if type(self.quibble) is not str:
+        if not isinstance(self.quibble, str):
             reftype = self.quibble.type
-            if reftype in ['g','r','n','c','p','m']:
+
+            if reftype in ('g', 'r', 'n', 'c', 'p', 'm'):
                 self.reftype = f':{reftype}.'
                 return True
+
             raise fn.VariantValidatorError(
-                    "Unable to identity reference type from " +
-                    str(self.quibble))
-        pat_est = re.compile(r'\d:\d')
+                "Unable to identity reference type from "
+                f"{self.quibble}"
+            )
 
         if ':g.' in self.quibble:
             self.reftype = ':g.'
@@ -200,20 +220,23 @@ class Variant(object):
             self.reftype = ':p.'
         elif ':m.' in self.quibble:
             self.reftype = ':m.'
-        elif pat_est.search(self.quibble):
+        elif re.search(r'\d:\d', self.quibble):
             self.reftype = 'est'
         else:
-            raise fn.VariantValidatorError("Unable to identity reference type from %s" % self.quibble)
+            raise fn.VariantValidatorError(
+                "Unable to identity reference type from "
+                f"{self.quibble}"
+            )
 
     def set_refsource(self):
         """
-        Method will set the refsource based on the quibble
-        :return:
+        Set the reference source based on quibble.
         """
-        if type(self.quibble) is str:
+        if isinstance(self.quibble, str):
             ac_testval = self.quibble
         else:
             ac_testval = self.quibble.ac
+
         if ac_testval.startswith('LRG'):
             self.refsource = 'LRG'
         elif ac_testval.startswith('ENS'):
@@ -221,13 +244,14 @@ class Variant(object):
         elif ac_testval.startswith('N'):
             self.refsource = 'RefSeq'
         else:
-            raise fn.VariantValidatorError("Unable to identify reference source from %s" % str(self.quibble))
+            raise fn.VariantValidatorError(
+                "Unable to identify reference source from "
+                f"{self.quibble}"
+            )
 
     def set_quibble(self, newval):
         """
-        Method will set the quibble and reset the refsource and reftype
-        :param newval:
-        :return:
+        Set quibble and reset the reference source and reference type.
         """
         self.quibble = newval
         self.set_refsource()
@@ -235,22 +259,22 @@ class Variant(object):
 
     def output_dict(self, test=False):
         """
-        Method will return the output values as a dictionary
-        :return: dict
+        Return the output values as a dictionary.
         """
         if test is True:
             try:
                 del self.stable_gene_ids['ensembl_gene_id']
                 del self.stable_gene_ids['ccds_ids']
-            except KeyError:
+            except (KeyError, TypeError):
                 pass
+
             try:
                 del self.hgvs_predicted_protein_consequence['lrg_tlr']
                 del self.hgvs_predicted_protein_consequence['lrg_slr']
-            except KeyError:
+            except (KeyError, TypeError):
                 pass
 
-        dict_out = {
+        return {
             'selected_assembly': self.selected_assembly,
             'submitted_variant': self.original,
             'gene_symbol': self.gene_symbol,
@@ -259,60 +283,90 @@ class Variant(object):
             'transcript_description': self.description,
             'hgvs_transcript_variant': self.hgvs_transcript_variant,
             'rna_variant_descriptions': self.rna_data,
-            'genome_context_intronic_sequence': self.genome_context_intronic_sequence,
-            'refseqgene_context_intronic_sequence': self.refseqgene_context_intronic_sequence,
+            'genome_context_intronic_sequence':
+                self.genome_context_intronic_sequence,
+            'refseqgene_context_intronic_sequence':
+                self.refseqgene_context_intronic_sequence,
             'hgvs_refseqgene_variant': self.hgvs_refseqgene_variant,
-            'hgvs_predicted_protein_consequence': self.hgvs_predicted_protein_consequence,
+            'hgvs_predicted_protein_consequence':
+                self.hgvs_predicted_protein_consequence,
             'validation_warnings': self.process_warnings(),
             'lovd_messages': self.lovd_messages,
             'lovd_corrections': self.lovd_corrections,
-            'hgvs_lrg_transcript_variant': self.hgvs_lrg_transcript_variant,
+            'hgvs_lrg_transcript_variant':
+                self.hgvs_lrg_transcript_variant,
             'hgvs_lrg_variant': self.hgvs_lrg_variant,
             'alt_genomic_loci': self.alt_genomic_loci,
             'primary_assembly_loci': self.primary_assembly_loci,
             'variant_exonic_positions': self.exonic_positions,
             'reference_sequence_records': self.reference_sequence_records
         }
-        return dict_out
 
     def is_obsolete(self):
         """
-        Checks whether the keyword 'obsolete' appears within the validation warnings
-        :return:
+        Check whether 'obsolete' appears in the validation warnings.
         """
-        return any('obsolete' in warning for warning in self.warnings)
+        return any(
+            'obsolete' in warning
+            for warning in self.warnings
+        )
 
-    def process_warnings(self, string_all = False):
+    def process_warnings(self, string_all=False):
+        """
+        Remove duplicate warnings and normalise warning strings.
+        """
         refined = []
+
         for warning in self.warnings:
-            if type(warning) is dict and string_all is False:
-                pass
+            if isinstance(warning, dict) and string_all is False:
+                processed_warning = warning
             else:
-                warning = re.sub('del[GATC][GATC][GATC][GATC]+', 'del', str(warning))
-                warning = warning.strip()
-                warning = warning.replace("'", "")
-                if warning == '':
+                processed_warning = re.sub(
+                    r'del[GATC]{4,}',
+                    'del',
+                    str(warning)
+                )
+                processed_warning = processed_warning.strip()
+                processed_warning = processed_warning.replace("'", "")
+
+                if not processed_warning:
                     continue
-            if warning not in refined:
-                refined.append(warning)
+
+            if processed_warning not in refined:
+                refined.append(processed_warning)
+
         return refined
 
     def remove_typos(self):
         """
-        Method will remove an expanding list of common typos from the variant description
+        Remove an expanding list of common typos from the variant description.
         """
-        # double or multiple colons
-        if re.search(":{1,}:[cgpnr]\.", self.quibble):
-            self.warnings.append("VariantSyntaxError: Multiple colons found in variant description")
-            self.quibble = re.sub(":{1,}:", ":", self.quibble)
-        # Missing Colon
-        if re.search("[gcrnpmo]\.", self.quibble) and not re.search(":[gcrnpmo]\.", self.quibble):
-            error = 'VariantSyntaxError: Unable to identify a colon (:) in the variant description %s. A colon is required in HGVS variant ' \
-            'descriptions to separate the reference accession from the reference type i.e. <accession>:<type>. ' \
-            'e.g. :c.' % self.quibble
-            self.warnings.append(error)
-            self.quibble = re.sub(r'([gcrnpmo])\.', r':\1.', self.quibble)
+        # Double or multiple colons.
+        if re.search(r'::+[cgpnr]\.', self.quibble):
+            self.warnings.append(
+                "VariantSyntaxError: Multiple colons found in variant "
+                "description"
+            )
+            self.quibble = re.sub(r'::+', ':', self.quibble)
 
+        # Missing colon.
+        if (
+                re.search(r'[gcrnpmo]\.', self.quibble)
+                and not re.search(r':[gcrnpmo]\.', self.quibble)
+        ):
+            error = (
+                "VariantSyntaxError: Unable to identify a colon (:) in the "
+                f"variant description {self.quibble}. A colon is required in "
+                "HGVS variant descriptions to separate the reference "
+                "accession from the reference type i.e. <accession>:<type>. "
+                "e.g. :c."
+            )
+            self.warnings.append(error)
+            self.quibble = re.sub(
+                r'([gcrnpmo])\.',
+                r':\1.',
+                self.quibble
+            )
 
 
 # <LICENSE>

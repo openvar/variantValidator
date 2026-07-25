@@ -624,7 +624,10 @@ def test_noreplace_t_to_g_no_mapping_options():
         mixin.noreplace_myevm_t_to_g(hgvs_c, variant)
 
 
-@patch("VariantValidator.modules.vvMixinConverters.seq_data.supported_for_mapping")
+@patch(
+    "VariantValidator.modules.vvMixinConverters."
+    "seq_data.supported_for_mapping"
+)
 def test_noreplace_search_prefers_supported(mock_supported):
 
     mock_supported.return_value = "1"
@@ -632,9 +635,7 @@ def test_noreplace_search_prefers_supported(mock_supported):
     mixin = make_mixin()
 
     hgvs_c = MagicMock()
-
     genomic = MagicMock()
-
     variant = MagicMock()
 
     variant.evm.t_to_g.side_effect = HGVSError("boom")
@@ -645,9 +646,15 @@ def test_noreplace_search_prefers_supported(mock_supported):
 
     mixin.vm.t_to_g.return_value = genomic
 
-    variant.hn.normalize.side_effect = [Exception(), None]
+    variant.hn.normalize.side_effect = [
+        HGVSError("normalization failed"),
+        None,
+    ]
 
-    result = mixin.noreplace_myevm_t_to_g(hgvs_c, variant)
+    result = mixin.noreplace_myevm_t_to_g(
+        hgvs_c,
+        variant
+    )
 
     assert result is genomic
 
