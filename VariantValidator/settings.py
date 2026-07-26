@@ -3,6 +3,21 @@ from configparser import ConfigParser
 
 config = ConfigParser()
 
+vvDB_GET_CACHE = True
+vvDB_GET_CACHE_SIZE = 20000
+
+if "VV_DB_GET_CACHE" in os.environ:
+    vvDB_GET_CACHE = os.environ["VV_DB_GET_CACHE"].lower() in (
+        "true",
+        "1",
+        "yes",
+    )
+
+if "VV_DB_GET_CACHE_SIZE" in os.environ:
+    vvDB_GET_CACHE_SIZE = int(
+        os.environ["VV_DB_GET_CACHE_SIZE"]
+    )
+
 def get_config_dir():
     if 'VARIANTVALIDATOR_TEST_CONFIG' in os.environ:
         return os.environ['VARIANTVALIDATOR_TEST_CONFIG']

@@ -848,7 +848,6 @@ def report_hgvs2vcf(hgvs_genomic, primary_assembly, reverse_normalizer, sf):
     :return:
     """
 
-    import time
     hgvs_genomic_variant = hgvs_genomic
 
     # Reverse normalize hgvs_genomic_variant: NOTE will replace ref

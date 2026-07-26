@@ -1,236 +1,384 @@
+# -*- coding: utf-8 -*-
+
+import logging
 import os
+import re
 from configparser import ConfigParser
+
 import vvhgvs
-import vvhgvs.parser
-import vvhgvs.dataproviders.uta
-import vvhgvs.dataproviders.seqfetcher
 import vvhgvs.assemblymapper
-import vvhgvs.variantmapper
-import vvhgvs.sequencevariant
-import vvhgvs.validator
+import vvhgvs.dataproviders.seqfetcher
+import vvhgvs.dataproviders.uta
+import vvhgvs.edit
 import vvhgvs.exceptions
 import vvhgvs.location
-import vvhgvs.posedit
-import vvhgvs.edit
 import vvhgvs.normalizer
-from vvhgvs.enums import Datum
-from vvhgvs.location import AAPosition, Interval
-from vvhgvs.edit import AARefAlt, AAExt, Dup, AAFs
-from vvhgvs.posedit import PosEdit
+import vvhgvs.parser
+import vvhgvs.posedit
+import vvhgvs.sequencevariant
+import vvhgvs.validator
+import vvhgvs.variantmapper
 from Bio.Seq import Seq
+from vvhgvs.edit import AAExt, AAFs, AARefAlt, Dup
+from vvhgvs.location import AAPosition, Interval
+from vvhgvs.posedit import PosEdit
 
-import re
-import logging
-from .vvDatabase import Database
-from . import utils
 from VariantValidator import settings, version
-from VariantValidator.modules.hgvs_utils import hgvs_delins_parts_to_hgvs_obj,\
-        VVPosEdit
+from VariantValidator.modules.hgvs_utils import (
+    VVPosEdit,
+    hgvs_delins_parts_to_hgvs_obj,
+)
+
+from . import hgvs_position_utils
+from . import utils
+from .vvDatabase import Database
+
 
 logger = logging.getLogger(__name__)
 
+
 class InitialisationError(Exception):
+    """Raised when the Validator cannot be initialised."""
     pass
 
 
 class Mixin:
     """
-    This mixin is the first for the validator object, which is instantiated in order to perform validator functions.
-    The validator contains configuration information and permanent copies of database links and the like.
-    Much of the validator's inner workings are stored in special one-off function container objects:
-    validator.db : The validator's MySQL database access functions
+    Initialise the persistent VariantValidator infrastructure.
 
-    The validator configuration is loaded when the validator object is initialized.
-
-    Running variant validator should hopefully be as simple as writing a script like this:
-    import VariantValidator
-
-    val=Validator()
-    val.validate("some kind of gene situation","The genome version","the transcripts to use")
-
+    The Validator owns configuration information, database access,
+    sequence access and HGVS objects that persist across individual
+    variant validations.
     """
+
     def __init__(self):
         """
-        Renaming of variables :
-        'seqrepo_directory': HGVS_SEQREPO_DIR,           #self.seqrepoPath
-        'uta_url': UTA_DB_URL,                           #self.utaPath
-        'py_liftover_directory': PYLIFTOVER_DIR,         #self.liftoverPath
-        'variantvalidator_data_url': VALIDATOR_DB_URL,   #self.db.path
-        'entrez_id': ENTREZ_ID,                          #self.entrezID
-        'variantvalidator_version': VERSION,             #self.version
-        'variantvalidator_hgvs_version': hgvs_version,   #self.hgvsVersion
-        'uta_schema': str(hdp.data_version()),           #self.uta_schema
-        'seqrepo_db': HGVS_SEQREPO_DIR.split('/')[-1]    #self.seqrepoVersion
+        Initialise Validator configuration and persistent infrastructure.
+
+        Historical variable names
+        -------------------------
+        seqrepo_directory:
+            HGVS_SEQREPO_DIR
+        uta_url:
+            UTA_DB_URL
+        py_liftover_directory:
+            PYLIFTOVER_DIR
+        variantvalidator_data_url:
+            VALIDATOR_DB_URL
+        entrez_id:
+            ENTREZ_ID
+        variantvalidator_version:
+            VERSION
+        variantvalidator_hgvs_version:
+            hgvs_version
+        uta_schema:
+            hdp.data_version()
+        seqrepo_db:
+            HGVS_SEQREPO_DIR.split('/')[-1]
         """
 
-        # Load the configuration file.
+        # --------------------------------------------------------------
+        # Configuration
+        # --------------------------------------------------------------
+
+        config_path = settings.get_config_dir()
+
+        if not os.path.exists(config_path):
+            logger.error(
+                "Configuration file not found at %s",
+                config_path,
+            )
+            raise InitialisationError(
+                "Configuration file not found, please create a new one at "
+                f"{config_path}"
+            )
+
         config = ConfigParser()
-        config.read(settings.get_config_dir())
+        config.read(config_path)
 
-        if os.path.exists(settings.get_config_dir()):
-            logger.info(f"Configuration file loaded from {settings.get_config_dir()}")
-        else:
-            logger.error(f"Configuration file not found, creating new one")
-            raise InitialisationError("Configuration file not found, please create a new one at %s" % settings.get_config_dir())
-
-        # Handle databases
-        self.entrez_email = config["Entrez"]["email"]
-        self.entrez_api_key = None
-        if config['Entrez']['api_key'] != 'YOUR_API_KEY':
-            self.entrez_api_key = config['Entrez']['api_key']
-
-        self.seqrepoVersion = config["seqrepo"]["version"]
-        self.check_same_thread = config["seqrepo"]["require_threading"]
-        if self.check_same_thread == "True":  # This is because the question asked is oposed to the required action
-            self.check_same_thread = False
-        elif self.check_same_thread == "False":
-            self.check_same_thread = True
-        self.seqrepoPath = os.path.join(config["seqrepo"]["location"], self.seqrepoVersion)
-        self.vvdbVersion = config["mysql"]["version"]
-
-        os.environ['HGVS_SEQREPO_DIR'] = self.seqrepoPath
-
-        psql_host_or_socketfile = config['postgres']['host'].replace('/','%2F')
-
-        os.environ['UTA_DB_URL'] = "postgresql://%s:%s@%s:%s/%s/%s" % (
-            config["postgres"]["user"],
-            config["postgres"]["password"],
-            psql_host_or_socketfile,
-            config['postgres']['port'],
-            config['postgres']['database'],
-            config['postgres']['version']
+        logger.info(
+            "Configuration file loaded from %s",
+            config_path,
         )
 
-        self.utaPath = os.environ.get('UTA_DB_URL')
+        # --------------------------------------------------------------
+        # Entrez configuration
+        # --------------------------------------------------------------
+
+        self.entrez_email = config["Entrez"]["email"]
+        self.entrez_api_key = None
+
+        api_key = config["Entrez"]["api_key"]
+
+        if api_key != "YOUR_API_KEY":
+            self.entrez_api_key = api_key
+
+        # --------------------------------------------------------------
+        # SeqRepo configuration
+        # --------------------------------------------------------------
+
+        self.seqrepoVersion = config["seqrepo"]["version"]
+
+        require_threading = config["seqrepo"]["require_threading"]
+
+        # The configuration question is opposite to the action required
+        # by SeqFetcher.
+        if require_threading == "True":
+            self.check_same_thread = False
+        elif require_threading == "False":
+            self.check_same_thread = True
+        else:
+            self.check_same_thread = require_threading
+
+        self.seqrepoPath = os.path.join(
+            config["seqrepo"]["location"],
+            self.seqrepoVersion,
+        )
+
+        os.environ["HGVS_SEQREPO_DIR"] = self.seqrepoPath
+
+        # --------------------------------------------------------------
+        # UTA configuration
+        # --------------------------------------------------------------
+
+        psql_host_or_socketfile = (
+            config["postgres"]["host"].replace("/", "%2F")
+        )
+
+        os.environ["UTA_DB_URL"] = (
+            "postgresql://%s:%s@%s:%s/%s/%s"
+            % (
+                config["postgres"]["user"],
+                config["postgres"]["password"],
+                psql_host_or_socketfile,
+                config["postgres"]["port"],
+                config["postgres"]["database"],
+                config["postgres"]["version"],
+            )
+        )
+
+        self.utaPath = os.environ["UTA_DB_URL"]
+
+        # --------------------------------------------------------------
+        # VariantValidator database
+        # --------------------------------------------------------------
+
+        self.vvdbVersion = config["mysql"]["version"]
 
         self.dbConfig = {
-            'user':     config["mysql"]["user"],
-            'password': config["mysql"]["password"],
-            'host':     config["mysql"]["host"],
-            'port':     int(config["mysql"]["port"]),
-            'database': config["mysql"]["database"],
-            'raise_on_warnings': True
+            "user": config["mysql"]["user"],
+            "password": config["mysql"]["password"],
+            "host": config["mysql"]["host"],
+            "port": int(config["mysql"]["port"]),
+            "database": config["mysql"]["database"],
+            "raise_on_warnings": True,
         }
-        mysql_unix_socket = config.get('mysql','unix_socket',fallback=False)
+
+        mysql_unix_socket = config.get(
+            "mysql",
+            "unix_socket",
+            fallback=False,
+        )
+
         if mysql_unix_socket:
             self.dbConfig["unix_socket"] = mysql_unix_socket
-        # Create database access objects
-        self.db = Database(self.dbConfig)
-        db_version = self.db.get_db_version()
-        if db_version[0] != config["mysql"]["version"]:
-            raise InitialisationError("Config error: VVDb version in config file is incorrect. VDb version is "
-                                      + db_version[0])
 
-        # Set up versions
+        self.db = Database(self.dbConfig)
+
+        db_version = self.db.get_db_version()
+
+        if db_version[0] != self.vvdbVersion:
+            raise InitialisationError(
+                "Config error: VVDb version in config file is incorrect. "
+                f"VDb version is {db_version[0]}"
+            )
+
+        # --------------------------------------------------------------
+        # Version information
+        # --------------------------------------------------------------
+
         self.version = version.__version__
         self.releasedVersion = version._is_released_version
-
         self.hgvsVersion = vvhgvs.__version__
 
-        # Set up for test mode
+        # --------------------------------------------------------------
+        # Persistent Validator state
+        # --------------------------------------------------------------
+
         self.testing = False
+        self.primary_assembly = "GRCh38"
 
-        # Set up HGVS
-        # Configure hgvs package global settings
-        vvhgvs.global_config.uta.pool_max = 25
-        vvhgvs.global_config.formatting.max_ref_length = 1000000
+        self.genome_builds = [
+            "GRCh37",
+            "hg19",
+            "GRCh38",
+        ]
 
-        # Create HGVS objects
-        self.hdp = vvhgvs.dataproviders.uta.connect(pooling=True)
-        self.hp = vvhgvs.parser.Parser(expose_all_rules=True)  # Parser
-        self.vr = vvhgvs.validator.Validator(self.hdp)  # Validator
-        self.vm = vvhgvs.variantmapper.VariantMapper(self.hdp)  # Variant mapper
-        self.primary_assembly = 'GRCh38'  # Primary assembly defaults to GRCh38
-
-        # Create a lose vm instance
-        self.lose_vm = vvhgvs.variantmapper.VariantMapper(self.hdp,
-                                                          replace_reference=True,
-                                                          prevalidation_level=None
-                                                          )
-
-        self.nr_vm = vvhgvs.variantmapper.VariantMapper(self.hdp, replace_reference=False)  # No reverse variant mapper
-        self.sf = vvhgvs.dataproviders.seqfetcher.SeqFetcher(self.check_same_thread)  # Seqfetcher
-
-        # Set standard genome builds
-        self.genome_builds = ['GRCh37', 'hg19', 'GRCh38']
-        self.utaSchema = str(self.hdp.data_version())
-
-        # When we are able to access Ensembl data we will need to use these normalizer instances
-        # These are currently implemented in VF
-        self.splign_normalizer = vvhgvs.normalizer.Normalizer(
-            self.hdp,
-            cross_boundaries=False,
-            shuffle_direction=vvhgvs.global_config.normalizer.shuffle_direction,
-            alt_aln_method='splign'  # RefSeq
-            )
-
-        self.genebuild_normalizer = vvhgvs.normalizer.Normalizer(
-            self.hdp,
-            cross_boundaries=False,
-            shuffle_direction=vvhgvs.global_config.normalizer.shuffle_direction,
-            alt_aln_method='genebuild'  # Ensembl
-            )
-
-        self.genebuild_normalizer_cross = vvhgvs.normalizer.Normalizer(
-            self.hdp,
-            cross_boundaries=True,
-            shuffle_direction=vvhgvs.global_config.normalizer.shuffle_direction,
-            alt_aln_method='genebuild'  # Ensembl
-            )
-
-        self.reverse_splign_normalizer = vvhgvs.normalizer.Normalizer(self.hdp,
-                                                                      cross_boundaries=False,
-                                                                      shuffle_direction=5,
-                                                                      alt_aln_method='splign' # RefSeq
-                                                                      )
-
-        self.reverse_genebuild_normalizer = vvhgvs.normalizer.Normalizer(self.hdp,
-                                                                         cross_boundaries=False,
-                                                                         shuffle_direction=5,
-                                                                         alt_aln_method='genebuild' # Ensembl
-                                                                         )
-
-        # Created during validate method
+        # Populated during validation.
         self.selected_assembly = None
         self.select_transcripts = None
         self.alt_aln_method = None
 
-    # Create additional normalizers
-    def create_additional_normalizers_and_mappers(self):
-        self.reverse_hn = vvhgvs.normalizer.Normalizer(self.hdp,
-                                                       cross_boundaries=False,
-                                                       shuffle_direction=5,
-                                                       alt_aln_method=self.alt_aln_method
-                                                       )
+        # Populated by create_additional_normalizers_and_mappers().
+        self.reverse_hn = None
+        self.hn = None
+        self.merge_normalizer = None
+        self.reverse_merge_normalizer = None
+        self.no_norm_evm = None
 
-        self.hn = vvhgvs.normalizer.Normalizer(self.hdp,
-                                               cross_boundaries=False,
-                                               shuffle_direction=3,
-                                               alt_aln_method=self.alt_aln_method
-                                               )
+        # --------------------------------------------------------------
+        # HGVS global configuration
+        # --------------------------------------------------------------
+
+        vvhgvs.global_config.uta.pool_max = 25
+        vvhgvs.global_config.formatting.max_ref_length = 1000000
+
+        # --------------------------------------------------------------
+        # HGVS data provider
+        # --------------------------------------------------------------
+
+        self.hdp = vvhgvs.dataproviders.uta.connect(
+            pooling=True,
+        )
+
+        self.utaSchema = str(
+            self.hdp.data_version()
+        )
+
+        # --------------------------------------------------------------
+        # HGVS parser and validator
+        # --------------------------------------------------------------
+
+        self.hp = vvhgvs.parser.Parser(
+            expose_all_rules=True,
+        )
+
+        self.vr = vvhgvs.validator.Validator(
+            self.hdp,
+        )
+
+        # --------------------------------------------------------------
+        # Variant mappers
+        # --------------------------------------------------------------
+
+        self.vm = vvhgvs.variantmapper.VariantMapper(
+            self.hdp,
+        )
+
+        self.lose_vm = vvhgvs.variantmapper.VariantMapper(
+            self.hdp,
+            replace_reference=True,
+            prevalidation_level=None,
+        )
+
+        self.nr_vm = vvhgvs.variantmapper.VariantMapper(
+            self.hdp,
+            replace_reference=False,
+        )
+
+        # --------------------------------------------------------------
+        # Sequence provider
+        # --------------------------------------------------------------
+
+        self.sf = vvhgvs.dataproviders.seqfetcher.SeqFetcher(
+            self.check_same_thread,
+        )
+
+        # --------------------------------------------------------------
+        # Persistent alignment-specific normalizers
+        # --------------------------------------------------------------
+
+        shuffle_direction = (
+            vvhgvs.global_config.normalizer.shuffle_direction
+        )
+
+        self.splign_normalizer = vvhgvs.normalizer.Normalizer(
+            self.hdp,
+            cross_boundaries=False,
+            shuffle_direction=shuffle_direction,
+            alt_aln_method="splign",
+        )
+
+        self.genebuild_normalizer = vvhgvs.normalizer.Normalizer(
+            self.hdp,
+            cross_boundaries=False,
+            shuffle_direction=shuffle_direction,
+            alt_aln_method="genebuild",
+        )
+
+        self.genebuild_normalizer_cross = (
+            vvhgvs.normalizer.Normalizer(
+                self.hdp,
+                cross_boundaries=True,
+                shuffle_direction=shuffle_direction,
+                alt_aln_method="genebuild",
+            )
+        )
+
+        self.reverse_splign_normalizer = (
+            vvhgvs.normalizer.Normalizer(
+                self.hdp,
+                cross_boundaries=False,
+                shuffle_direction=5,
+                alt_aln_method="splign",
+            )
+        )
+
+        self.reverse_genebuild_normalizer = (
+            vvhgvs.normalizer.Normalizer(
+                self.hdp,
+                cross_boundaries=False,
+                shuffle_direction=5,
+                alt_aln_method="genebuild",
+            )
+        )
+
+    def create_additional_normalizers_and_mappers(self):
+        """
+        Create HGVS objects that depend on the selected alignment method
+        and primary assembly.
+        """
+        self.reverse_hn = vvhgvs.normalizer.Normalizer(
+            self.hdp,
+            cross_boundaries=False,
+            shuffle_direction=5,
+            alt_aln_method=self.alt_aln_method,
+        )
+
+        self.hn = vvhgvs.normalizer.Normalizer(
+            self.hdp,
+            cross_boundaries=False,
+            shuffle_direction=3,
+            alt_aln_method=self.alt_aln_method,
+        )
 
         self.merge_normalizer = vvhgvs.normalizer.Normalizer(
-           self.hdp,
-           cross_boundaries=False,
-           shuffle_direction=vvhgvs.global_config.normalizer.shuffle_direction,
-           alt_aln_method=self.alt_aln_method,
-           validate=False
+            self.hdp,
+            cross_boundaries=False,
+            shuffle_direction=(
+                vvhgvs.global_config.normalizer.shuffle_direction
+            ),
+            alt_aln_method=self.alt_aln_method,
+            validate=False,
         )
 
-        self.reverse_merge_normalizer = vvhgvs.normalizer.Normalizer(
-           self.hdp,
-           cross_boundaries=False,
-           shuffle_direction=5,
-           alt_aln_method=self.alt_aln_method,
-           validate=False
+        self.reverse_merge_normalizer = (
+            vvhgvs.normalizer.Normalizer(
+                self.hdp,
+                cross_boundaries=False,
+                shuffle_direction=5,
+                alt_aln_method=self.alt_aln_method,
+                validate=False,
+            )
         )
 
-        self.no_norm_evm = vvhgvs.assemblymapper.AssemblyMapper(self.hdp,
-                                                                assembly_name=self.primary_assembly,
-                                                                alt_aln_method=self.alt_aln_method,
-                                                                normalize=False,
-                                                                replace_reference=True
-                                                                )
+        self.no_norm_evm = vvhgvs.assemblymapper.AssemblyMapper(
+            self.hdp,
+            assembly_name=self.primary_assembly,
+            alt_aln_method=self.alt_aln_method,
+            normalize=False,
+            replace_reference=True,
+        )
 
     def __del__(self):
         if getattr(self, "pool", None):
@@ -238,846 +386,1425 @@ class Mixin:
 
     def my_config(self):
         """
-        Returns configuration:
-        version, hgvs version, uta schema, seqrepo db.
+        Return VariantValidator configuration/version information.
         """
         return {
-            'variantvalidator_version': self.version,
-            'variantvalidator_hgvs_version': self.hgvsVersion,
-            'vvta_version': self.utaSchema,
-            'vvseqrepo_db': self.seqrepoPath,
-            'vvdb_version': self.vvdbVersion
+            "variantvalidator_version": self.version,
+            "variantvalidator_hgvs_version": self.hgvsVersion,
+            "vvta_version": self.utaSchema,
+            "vvseqrepo_db": self.seqrepoPath,
+            "vvdb_version": self.vvdbVersion,
         }
 
     def myc_to_p(self, hgvs_transcript, evm, re_to_p, hn):
-        logger.info(f"Translating {hgvs_transcript} to with myc_to_p")
+        logger.info(
+            "Translating %s to with myc_to_p",
+            hgvs_transcript,
+        )
 
-        # Create dictionary to store the information
-        hgvs_transcript_to_hgvs_protein = {'error': '', 'hgvs_protein': '', 'ref_residues': ''}
-        # Handle non-coding transcript and non transcript descriptions
-        if hgvs_transcript.type == 'n':
-            # non-coding transcripts
-            return hgvs_transcript_to_hgvs_protein
-        elif not hgvs_transcript.type == 'c':
-            # Collect the associated protein
-            hgvs_transcript_to_hgvs_protein['error'] = 'Unable to map %s to an associated protein' % (
-                hgvs_transcript.ac)
+        hgvs_transcript_to_hgvs_protein = {
+            "error": "",
+            "hgvs_protein": "",
+            "ref_residues": "",
+        }
+
+        # Handle non-coding transcript and non-transcript descriptions.
+        if hgvs_transcript.type == "n":
             return hgvs_transcript_to_hgvs_protein
 
-        # Collect the associated protein
-        associated_protein_accession = self.hdp.get_pro_ac_for_tx_ac(hgvs_transcript.ac)
-        # This method sometimes fails
+        if hgvs_transcript.type != "c":
+            hgvs_transcript_to_hgvs_protein["error"] = (
+                f"Unable to map {hgvs_transcript.ac} "
+                "to an associated protein"
+            )
+            return hgvs_transcript_to_hgvs_protein
+
+        edit = hgvs_transcript.posedit.edit
+        pos = hgvs_transcript.posedit.pos
+        edit_type = edit.type
+
+        associated_protein_accession = (
+            self.hdp.get_pro_ac_for_tx_ac(
+                hgvs_transcript.ac
+            )
+        )
+
+        # This method sometimes fails.
         if associated_protein_accession is None:
             cod = hgvs_delins_parts_to_hgvs_obj(
-                    hgvs_transcript.ac,
-                    hgvs_transcript.type,
-                    hgvs_transcript.posedit.pos,'',''
-                    )
+                hgvs_transcript.ac,
+                hgvs_transcript.type,
+                pos,
+                "",
+                "",
+            )
             p = evm.c_to_p(cod)
             associated_protein_accession = p.ac
 
-        # detect if the nucleotides changed
-        nucleotide_not_equal = False
-        if hgvs_transcript.posedit and not hgvs_transcript.posedit.edit.type == 'identity':
-            nucleotide_not_equal = True
+        nucleotide_not_equal = edit_type != "identity"
 
-        # create fist base changing unknown effect type variant with given starting base
-        def _fb_unc(prot,base):
+        def _fb_unc(prot, base):
             return vvhgvs.sequencevariant.SequenceVariant(
-                    ac=prot,
-                    type='p',
-                    posedit = VVPosEdit(
-                        pos=Interval(start=AAPosition(
-                                base = 1,
-                                aa=base)),
-                        edit = "", # this sets the response to ?
-                        uncertain = True))
+                ac=prot,
+                type="p",
+                posedit=VVPosEdit(
+                    pos=Interval(
+                        start=AAPosition(
+                            base=1,
+                            aa=base,
+                        )
+                    ),
+                    edit="",
+                    uncertain=True,
+                ),
+            )
 
-        # same for unknown without set pos
         def _tot_unc(prot):
-            return  vvhgvs.sequencevariant.SequenceVariant(
-                    ac=prot,
-                    type='p',
-                    posedit = VVPosEdit(
-                        pos=Interval(),# empty interval start means ''
-                        edit = "", # this sets the response to ?
-                        uncertain=True))
+            return vvhgvs.sequencevariant.SequenceVariant(
+                ac=prot,
+                type="p",
+                posedit=VVPosEdit(
+                    pos=Interval(),
+                    edit="",
+                    uncertain=True,
+                ),
+            )
 
-        # recreate obj to set PosEdit to a VVPosEdit, to handle formatting
-        def _remake_unc(prot,nucleotide_not_equal=False):
+        def _remake_unc(
+                prot,
+                nucleotide_not_equal=False,
+        ):
             if prot.posedit is None:
                 return prot
-            return vvhgvs.sequencevariant.SequenceVariant(
-                    ac = prot.ac,
-                    type = 'p',
-                    posedit = VVPosEdit(
-                        pos = prot.posedit.pos,
-                        edit = prot.posedit.edit,
-                        uncertain=True,
-                        nucleotide_not_equal=nucleotide_not_equal
-                        ))
 
-        # Handle unlisted variant types with simple c_to_p mapping
-        if (hgvs_transcript.posedit.edit.type not in ['inv', 'dup', 'delins', 'sub', 'identity', 'del', 'ins']
-                and (re_to_p is False)):
-            logger.info(f"Passing {hgvs_transcript} into simple c_to_p mapping")
+            return vvhgvs.sequencevariant.SequenceVariant(
+                ac=prot.ac,
+                type="p",
+                posedit=VVPosEdit(
+                    pos=prot.posedit.pos,
+                    edit=prot.posedit.edit,
+                    uncertain=True,
+                    nucleotide_not_equal=nucleotide_not_equal,
+                ),
+            )
+
+        if (
+                edit_type not in (
+                    "inv",
+                    "dup",
+                    "delins",
+                    "sub",
+                    "identity",
+                    "del",
+                    "ins",
+                )
+                and not re_to_p
+        ):
+            logger.info(
+                "Passing %s into simple c_to_p mapping",
+                hgvs_transcript,
+            )
+
             hgvs_protein = None
 
-            # Does the edit affect the start codon?
-            if ((1 <= hgvs_transcript.posedit.pos.start.base <= 3 and hgvs_transcript.posedit.pos.start.offset == 0)
-                or (1 <= hgvs_transcript.posedit.pos.end.base <= 3 and hgvs_transcript.posedit.pos.end.offset
-                    == 0)) and (hgvs_transcript.posedit.pos.start.datum != Datum.CDS_END and
-                hgvs_transcript.posedit.pos.end.datum != Datum.CDS_END
+            if (
+                    (
+                        1 <= pos.start.base <= 3
+                        and not (
+                            hgvs_position_utils
+                            .start_position_is_intronic(
+                                hgvs_transcript
+                            )
+                        )
+                    )
+                    or (
+                        1 <= pos.end.base <= 3
+                        and not (
+                            hgvs_position_utils
+                            .end_position_is_intronic(
+                                hgvs_transcript
+                            )
+                        )
+                    )
+            ) and not (
+                    hgvs_position_utils.start_is_3_prime_utr(
+                        hgvs_transcript
+                    )
+                    or hgvs_position_utils.end_is_3_prime_utr(
+                        hgvs_transcript
+                    )
             ):
-                residue_one = self.sf.fetch_seq(associated_protein_accession, start_i=1 - 1, end_i=1)
-                hgvs_protein = _fb_unc(associated_protein_accession,residue_one)
+                residue_one = self.sf.fetch_seq(
+                    associated_protein_accession,
+                    start_i=0,
+                    end_i=1,
+                )
+
+                hgvs_protein = _fb_unc(
+                    associated_protein_accession,
+                    residue_one,
+                )
+
             else:
                 try:
-                    hgvs_protein = evm.c_to_p(hgvs_transcript)
-                    hgvs_protein = _remake_unc(hgvs_protein,
-                                               nucleotide_not_equal=nucleotide_not_equal)
+                    hgvs_protein = evm.c_to_p(
+                        hgvs_transcript
+                    )
+
+                    hgvs_protein = _remake_unc(
+                        hgvs_protein,
+                        nucleotide_not_equal=(
+                            nucleotide_not_equal
+                        ),
+                    )
+
                 except IndexError as e:
-                    error = str(e)
-                    if 'string index out of range' in error and 'dup' in str(hgvs_transcript):
-                        hgvs_ins = hn.normalize(hgvs_transcript)
-                        hgvs_transcript = hgvs_delins_parts_to_hgvs_obj(
+                    if (
+                            "string index out of range" in str(e)
+                            and edit_type == "dup"
+                    ):
+                        hgvs_ins = hn.normalize(
+                            hgvs_transcript
+                        )
+
+                        hgvs_transcript = (
+                            hgvs_delins_parts_to_hgvs_obj(
                                 hgvs_transcript.ac,
                                 hgvs_transcript.type,
-                                hgvs_transcript.posedit.pos.start.base - 1,
-                                '',
-                                hgvs_ins.posedit.edit.ref)
-                        hgvs_protein = evm.c_to_p(hgvs_transcript)
-                        hgvs_protein = _remake_unc(hgvs_protein,
-                                                   nucleotide_not_equal=nucleotide_not_equal)
+                                pos.start.base - 1,
+                                "",
+                                hgvs_ins.posedit.edit.ref,
+                            )
+                        )
 
-            if hgvs_protein and hgvs_protein.posedit is None:
-                # set ? to (?) and add empty pos rather than full None posedit for later use
-                hgvs_protein = _tot_unc(hgvs_protein.ac)
+                        hgvs_protein = evm.c_to_p(
+                            hgvs_transcript
+                        )
 
-            if hgvs_protein:
-                hgvs_transcript_to_hgvs_protein['hgvs_protein'] = hgvs_protein
-                try:
-                    # Sometimes ins create an inline Ter in the alt. Needs to be terminated after the ter
-                    if re.search("\*[A-Z]+", hgvs_transcript_to_hgvs_protein['hgvs_protein'].posedit.edit.alt):
-                        pr_alt_ter_stp = hgvs_transcript_to_hgvs_protein['hgvs_protein'].posedit.edit.alt
-                        pr_alt_ter_stp = pr_alt_ter_stp.split('*')[0] + '*'
-                        hgvs_transcript_to_hgvs_protein['hgvs_protein'].posedit.edit.alt = pr_alt_ter_stp
-                except Exception:
-                    pass
-            else:
-                # Recursive re-try with forced re-prot map set
-                hgvs_transcript_to_hgvs_protein = self.myc_to_p(hgvs_transcript, evm, re_to_p=True, hn=hn)
-            return hgvs_transcript_to_hgvs_protein
-
-        # Additional code required to process inversions
-        # Note, this code was developed for VariantValidator and is not native to the biocommons hgvs
-        # Python package
-        # Convert positions to n. position
-        logger.info(f"Passing {hgvs_transcript} into VV handled c_to_p mapping")
-        hgvs_naughty = self.vm.c_to_n(hgvs_transcript)
-
-        # Collect the deleted sequence using fetch_seq
-        del_seq = self.sf.fetch_seq(str(hgvs_naughty.ac), start_i=hgvs_naughty.posedit.pos.start.base - 1,
-                                    end_i=hgvs_naughty.posedit.pos.end.base)
-
-        # Make the inverted sequence
-        my_seq = Seq(del_seq)
-
-        if hgvs_transcript.posedit.edit.type == 'inv':
-            inv_seq = my_seq.reverse_complement()
-        elif 'del' in hgvs_transcript.posedit.edit.type:
-            inv_seq = hgvs_transcript.posedit.edit.alt
-            if inv_seq is None:
-                inv_seq = ''
-        elif 'dup' in hgvs_transcript.posedit.edit.type:
-            inv_seq = del_seq + del_seq
-        elif 'sub' in hgvs_transcript.posedit.edit.type:
-            inv_seq = hgvs_transcript.posedit.edit.alt
-        elif 'identity' in hgvs_transcript.posedit.edit.type:
-            inv_seq = hgvs_transcript.posedit.edit.ref
-        elif 'ins' in hgvs_transcript.posedit.edit.type:
-            inv_seq = f"{del_seq[0]}{hgvs_transcript.posedit.edit.alt}{del_seq[-1]}"
-
-        logger.info(f"delSeq: {del_seq} and insSeq: {inv_seq} extracted from {hgvs_transcript}")
-        shifts = ''
-
-        # Look for p. delins or del
-        not_delins = False
-        if hgvs_transcript.posedit.edit.type not in ['inv', 'delins']:
-            try:
-                shifts = evm.c_to_p(hgvs_transcript)
-                shifts = _remake_unc(shifts,nucleotide_not_equal=nucleotide_not_equal)
-                if shifts.posedit.edit.type in ["ins", "sub", "fs", "ext"]:
-                    not_delins = True
-            except Exception:
-                not_delins = False
-        else:
-            try:
-                shifts = evm.c_to_p(hgvs_transcript)
-                shifts = _remake_unc(shifts,nucleotide_not_equal=nucleotide_not_equal)
-                if shifts.posedit.edit.type in ["ins", "fs", "ext"]:
-                    not_delins = True
-            except Exception:
-                not_delins = False
-
-        if not_delins:
-            hgvs_transcript_to_hgvs_protein['hgvs_protein'] = shifts
-            return hgvs_transcript_to_hgvs_protein
-
-        # Use inv delins code?
-        # Collect the associated protein
-        associated_protein_accession = self.hdp.get_pro_ac_for_tx_ac(hgvs_transcript.ac)
-
-        logger.info("Test for intronic and UTR trapping")
-        if (
-                # Intronic variants: offset != 0  (formerly + or - in string)
-                (hgvs_transcript.posedit.pos.start.offset != 0 or
-                 hgvs_transcript.posedit.pos.end.offset != 0)
-
-                # Structural variants extending outside CDS:
-                or (
-                hgvs_transcript.posedit.edit.type in ["dup", "del", "inv", "ins", "delins"] and
-                hgvs_transcript.posedit.pos.end.datum == Datum.CDS_START and
-                hgvs_transcript.posedit.pos.end.base < 0
-            )
-                or (
-                hgvs_transcript.posedit.edit.type in ["dup", "del", "inv", "ins", "delins"] and
-                hgvs_transcript.posedit.pos.start.datum == Datum.CDS_END
-            )
-
-                # Fully 3′ UTR (both positions are CDS_END)
-                or (
-                hgvs_transcript.posedit.pos.start.datum == Datum.CDS_END and
-                hgvs_transcript.posedit.pos.end.datum == Datum.CDS_END
-            )
-
-                # Fully 5′ UTR (both negative relative to CDS_START)
-                or (
-                hgvs_transcript.posedit.pos.start.base < 0 and hgvs_transcript.posedit.pos.end.base < 0
-            )
-        ):
-
-            logger.info("Translation passed into intronic handling code")
+                        hgvs_protein = _remake_unc(
+                            hgvs_protein,
+                            nucleotide_not_equal=(
+                                nucleotide_not_equal
+                            ),
+                        )
 
             if (
-                    (1 <= hgvs_transcript.posedit.pos.start.base <= 3 and hgvs_transcript.posedit.pos.start.offset == 0)
-                    or
-                    (1 <= hgvs_transcript.posedit.pos.end.base <= 3 and hgvs_transcript.posedit.pos.end.offset == 0)
-                    and
-                    (hgvs_transcript.posedit.pos.start.datum == Datum.CDS_END and
-                     hgvs_transcript.posedit.pos.end.datum == Datum.CDS_END)
+                    hgvs_protein
+                    and hgvs_protein.posedit is None
             ):
+                hgvs_protein = _tot_unc(
+                    hgvs_protein.ac
+                )
 
-                residue_one = self.sf.fetch_seq(associated_protein_accession, start_i=1 - 1, end_i=1)
-                hgvs_protein = _fb_unc(associated_protein_accession,residue_one)
+            if hgvs_protein:
+                hgvs_transcript_to_hgvs_protein[
+                    "hgvs_protein"
+                ] = hgvs_protein
+
+                try:
+                    protein_alt = (
+                        hgvs_protein.posedit.edit.alt
+                    )
+
+                    if re.search(r"\*[A-Z]+", protein_alt):
+                        protein_alt = (
+                            protein_alt.split("*")[0] + "*"
+                        )
+
+                        hgvs_protein.posedit.edit.alt = (
+                            protein_alt
+                        )
+
+                except Exception:
+                    pass
+
             else:
-                # Make the variant
-                hgvs_protein = _tot_unc(associated_protein_accession)
-            hgvs_transcript_to_hgvs_protein['hgvs_protein'] = hgvs_protein
+                hgvs_transcript_to_hgvs_protein = (
+                    self.myc_to_p(
+                        hgvs_transcript,
+                        evm,
+                        re_to_p=True,
+                        hn=hn,
+                    )
+                )
+
             return hgvs_transcript_to_hgvs_protein
 
-        # Need to obtain the cds_start
-        logger.info(f"Variant is not intronic and is not fully UTR, translate {hgvs_transcript} "
-                    f"converted to {hgvs_naughty}")
-        inf = self.hdp.get_tx_identity_info(hgvs_transcript.ac)
+        logger.info(
+            "Passing %s into VV handled c_to_p mapping",
+            hgvs_transcript,
+        )
+
+        hgvs_naughty = self.vm.c_to_n(
+            hgvs_transcript
+        )
+        naughty_edit = hgvs_naughty.posedit.edit
+        naughty_pos = hgvs_naughty.posedit.pos
+
+        del_seq = self.sf.fetch_seq(
+            hgvs_naughty.ac,
+            start_i=naughty_pos.start.base - 1,
+            end_i=naughty_pos.end.base,
+        )
+
+        if edit_type == "inv":
+            inv_seq = str(
+                Seq(del_seq).reverse_complement()
+            )
+
+        elif edit_type in ("del", "delins"):
+            inv_seq = edit.alt or ""
+
+        elif edit_type == "dup":
+            inv_seq = del_seq + del_seq
+
+        elif edit_type == "sub":
+            inv_seq = edit.alt
+
+        elif edit_type == "identity":
+            inv_seq = edit.ref
+
+        elif edit_type == "ins":
+            inv_seq = (
+                f"{del_seq[0]}"
+                f"{edit.alt}"
+                f"{del_seq[-1]}"
+            )
+
+        logger.info(
+            "delSeq: %s and insSeq: %s extracted from %s",
+            del_seq,
+            inv_seq,
+            hgvs_transcript,
+        )
+
+        shifts = ""
+        not_delins = False
+
+        try:
+            shifts = evm.c_to_p(
+                hgvs_transcript
+            )
+
+            shifts = _remake_unc(
+                shifts,
+                nucleotide_not_equal=nucleotide_not_equal,
+            )
+
+            if edit_type in ("inv", "delins"):
+                if shifts.posedit.edit.type in (
+                        "ins",
+                        "fs",
+                        "ext",
+                ):
+                    not_delins = True
+
+            elif shifts.posedit.edit.type in (
+                    "ins",
+                    "sub",
+                    "fs",
+                    "ext",
+            ):
+                not_delins = True
+
+        except Exception:
+            not_delins = False
+
+        if not_delins:
+            hgvs_transcript_to_hgvs_protein[
+                "hgvs_protein"
+            ] = shifts
+
+            return hgvs_transcript_to_hgvs_protein
+
+        associated_protein_accession = (
+            self.hdp.get_pro_ac_for_tx_ac(
+                hgvs_transcript.ac
+            )
+        )
+
+        logger.info(
+            "Test for intronic and UTR trapping"
+        )
+
+        structural_edit = edit_type in (
+            "dup",
+            "del",
+            "inv",
+            "ins",
+            "delins",
+        )
+
+        if (
+                hgvs_position_utils.either_position_is_intronic(
+                    hgvs_transcript
+                )
+                or (
+                    structural_edit
+                    and hgvs_position_utils.end_is_5_prime_utr(
+                        hgvs_transcript
+                    )
+                )
+                or (
+                    structural_edit
+                    and hgvs_position_utils.start_is_3_prime_utr(
+                        hgvs_transcript
+                    )
+                )
+                or (
+                    hgvs_position_utils.start_is_3_prime_utr(
+                        hgvs_transcript
+                    )
+                    and hgvs_position_utils.end_is_3_prime_utr(
+                        hgvs_transcript
+                    )
+                )
+                or (
+                    hgvs_position_utils.start_is_5_prime_utr(
+                        hgvs_transcript
+                    )
+                    and hgvs_position_utils.end_is_5_prime_utr(
+                        hgvs_transcript
+                    )
+                )
+        ):
+            logger.info(
+                "Translation passed into intronic handling code"
+            )
+
+            if (
+                    (
+                        1 <= pos.start.base <= 3
+                        and not (
+                            hgvs_position_utils
+                            .start_position_is_intronic(
+                                hgvs_transcript
+                            )
+                        )
+                    )
+                    or (
+                        1 <= pos.end.base <= 3
+                        and not (
+                            hgvs_position_utils
+                            .end_position_is_intronic(
+                                hgvs_transcript
+                            )
+                        )
+                        and (
+                            hgvs_position_utils
+                            .start_is_3_prime_utr(
+                                hgvs_transcript
+                            )
+                        )
+                        and (
+                            hgvs_position_utils
+                            .end_is_3_prime_utr(
+                                hgvs_transcript
+                            )
+                        )
+                    )
+            ):
+                residue_one = self.sf.fetch_seq(
+                    associated_protein_accession,
+                    start_i=0,
+                    end_i=1,
+                )
+
+                hgvs_protein = _fb_unc(
+                    associated_protein_accession,
+                    residue_one,
+                )
+
+            else:
+                hgvs_protein = _tot_unc(
+                    associated_protein_accession
+                )
+
+            hgvs_transcript_to_hgvs_protein[
+                "hgvs_protein"
+            ] = hgvs_protein
+
+            return hgvs_transcript_to_hgvs_protein
+
+        logger.info(
+            "Variant is not intronic and is not fully UTR, "
+            "translate %s converted to %s",
+            hgvs_transcript,
+            hgvs_naughty,
+        )
+
+        inf = self.hdp.get_tx_identity_info(
+            hgvs_transcript.ac
+        )
+
         cds_start = inf[3]
         cds_end = inf[4]
 
-        # Extract the reference coding sequence from SeqRepo
         try:
-            ref_seq = self.sf.fetch_seq(str(hgvs_naughty.ac))
+            ref_seq = self.sf.fetch_seq(
+                hgvs_naughty.ac
+            )
+
         except Exception as e:
-            error = str(e)
-            hgvs_transcript_to_hgvs_protein['error'] = error
+            hgvs_transcript_to_hgvs_protein[
+                "error"
+            ] = str(e)
+
             return hgvs_transcript_to_hgvs_protein
 
-        # Create the variant coding sequence
-        var_seq = utils.n_inversion(ref_seq, del_seq, inv_seq,
-                                    hgvs_naughty.posedit.pos.start.base,
-                                    hgvs_naughty.posedit.pos.end.base)
+        var_seq = utils.n_inversion(
+            ref_seq,
+            del_seq,
+            inv_seq,
+            naughty_pos.start.base,
+            naughty_pos.end.base,
+        )
 
-        logger.info(f"Reference sequence:\n{ref_seq}\nDeletion sequence:\n{del_seq}\n"
-                    f"Inserted sequence:\n{inv_seq}\nVar sequence:\n{var_seq}")
+        logger.info(
+            "Reference sequence:\n%s\n"
+            "Deletion sequence:\n%s\n"
+            "Inserted sequence:\n%s\n"
+            "Var sequence:\n%s",
+            ref_seq,
+            del_seq,
+            inv_seq,
+            var_seq,
+        )
 
-        # Check for modified amino acids
-        prot_seq = self.sf.fetch_seq(associated_protein_accession)
+        prot_seq = self.sf.fetch_seq(
+            associated_protein_accession
+        )
+
         if "U" in prot_seq:
             modified_aa = "Sec"
-            hgvs_transcript_to_hgvs_protein['error'] = \
-                'ProteinTranslationInfo: Selenocysteine detected in the original protein sequnce'+\
-                ' it may be incorporated instead of terminating at TGA/UGA termination codons'
-            logger.info(f"Modified amino acid {modified_aa} identified, update translation dict")
+
+            hgvs_transcript_to_hgvs_protein["error"] = (
+                "ProteinTranslationInfo: Selenocysteine detected "
+                "in the original protein sequnce it may be "
+                "incorporated instead of terminating at TGA/UGA "
+                "termination codons"
+            )
+
+            logger.info(
+                "Modified amino acid %s identified, "
+                "update translation dict",
+                modified_aa,
+            )
+
         else:
             modified_aa = None
-            logger.info("No modified amino acid identified, use standard translation dict")
 
-        # Translate the reference and variant proteins
-        logger.info("Translating reference and variant CDS outcomes")
-        try:
-            prot_ref_seq = utils.translate(ref_seq, cds_start, modified_aa)
-        except IndexError:
-            # import traceback
-            # traceback.print_exc()
-            hgvs_transcript_to_hgvs_protein['error'] = \
-                'ProteinTranslationError: Cannot generate a protein without an identifiable in-' +\
-                'frame Termination codon in the reference mRNA sequence, this transcript may be ' +\
-                'subject to non-stop mediated decay'
-            hgvs_transcript_to_hgvs_protein['hgvs_protein'] = _tot_unc(associated_protein_accession)
-            return hgvs_transcript_to_hgvs_protein
-        except KeyError:
-            # import traceback
-            # traceback.print_exc()
-            hgvs_transcript_to_hgvs_protein['error'] = \
-                'ProteinTranslationError: Unable to build protein sequence due to a non-CATG ' +\
-                'base included in the reference mRNA sequence, only standard unambiguous bases '+\
-                'are accepted input for protein generation.'
-            hgvs_transcript_to_hgvs_protein['hgvs_protein'] = _tot_unc(associated_protein_accession)
-            return hgvs_transcript_to_hgvs_protein
+            logger.info(
+                "No modified amino acid identified, "
+                "use standard translation dict"
+            )
+
+        logger.info(
+            "Translating reference and variant CDS outcomes"
+        )
 
         try:
-            prot_var_seq = utils.translate(var_seq, cds_start, modified_aa)
+            prot_ref_seq = utils.translate(
+                ref_seq,
+                cds_start,
+                modified_aa,
+            )
+
         except IndexError:
-            hgvs_transcript_to_hgvs_protein['error'] = \
-                'ProteinTranslationError: Cannot generate a protein without an identifiable in-' +\
-                'frame Termination codon in the variant mRNA sequence, this transcript may be ' +\
-                'subject to non-stop decay'
-            hgvs_protein = _tot_unc(associated_protein_accession)
-            hgvs_transcript_to_hgvs_protein['hgvs_protein'] = hgvs_protein
-            return hgvs_transcript_to_hgvs_protein
-        except KeyError:
-            hgvs_transcript_to_hgvs_protein['error'] = \
-                'ProteinTranslationError: Unable to build protein sequence due to a non-CATG ' +\
-                'base included in the variant mRNA sequence, only standard unambiguous bases are'+\
-                ' accepted input for protein generation.'
-            hgvs_transcript_to_hgvs_protein['hgvs_protein'] = _tot_unc(associated_protein_accession)
+            hgvs_transcript_to_hgvs_protein["error"] = (
+                "ProteinTranslationError: Cannot generate a "
+                "protein without an identifiable in-frame "
+                "Termination codon in the reference mRNA sequence, "
+                "this transcript may be subject to non-stop "
+                "mediated decay"
+            )
+
+            hgvs_transcript_to_hgvs_protein[
+                "hgvs_protein"
+            ] = _tot_unc(
+                associated_protein_accession
+            )
+
             return hgvs_transcript_to_hgvs_protein
 
-        # Continue processing
-        no_start_err = 'ProteinTranslationError: Unable to generate protein variant description '+\
-                'due to the sequence missing an accepted start codon.'
-        # Make the variant
+        except KeyError:
+            hgvs_transcript_to_hgvs_protein["error"] = (
+                "ProteinTranslationError: Unable to build protein "
+                "sequence due to a non-CATG base included in the "
+                "reference mRNA sequence, only standard "
+                "unambiguous bases are accepted input for protein "
+                "generation."
+            )
+
+            hgvs_transcript_to_hgvs_protein[
+                "hgvs_protein"
+            ] = _tot_unc(
+                associated_protein_accession
+            )
+
+            return hgvs_transcript_to_hgvs_protein
+
+        try:
+            prot_var_seq = utils.translate(
+                var_seq,
+                cds_start,
+                modified_aa,
+            )
+
+        except IndexError:
+            hgvs_transcript_to_hgvs_protein["error"] = (
+                "ProteinTranslationError: Cannot generate a "
+                "protein without an identifiable in-frame "
+                "Termination codon in the variant mRNA sequence, "
+                "this transcript may be subject to non-stop decay"
+            )
+
+            hgvs_transcript_to_hgvs_protein[
+                "hgvs_protein"
+            ] = _tot_unc(
+                associated_protein_accession
+            )
+
+            return hgvs_transcript_to_hgvs_protein
+
+        except KeyError:
+            hgvs_transcript_to_hgvs_protein["error"] = (
+                "ProteinTranslationError: Unable to build protein "
+                "sequence due to a non-CATG base included in the "
+                "variant mRNA sequence, only standard unambiguous "
+                "bases are accepted input for protein generation."
+            )
+
+            hgvs_transcript_to_hgvs_protein[
+                "hgvs_protein"
+            ] = _tot_unc(
+                associated_protein_accession
+            )
+
+            return hgvs_transcript_to_hgvs_protein
+
+        no_start_err = (
+            "ProteinTranslationError: Unable to generate protein "
+            "variant description due to the sequence missing an "
+            "accepted start codon."
+        )
+
         posedit = PosEdit(
-            pos=Interval(),  # empty interval start means ''
-            edit="?",  # empty ref and alt means '='
-            uncertain=False)
-        hgvs_protein = vvhgvs.sequencevariant.SequenceVariant(ac=associated_protein_accession,
-                                                              type='p', posedit=posedit)
-        hgvs_transcript_to_hgvs_protein['hgvs_protein'] = hgvs_protein
-        if prot_ref_seq == 'error':
-            hgvs_transcript_to_hgvs_protein['error'] = no_start_err.replace(
-                    'the sequence','the reference sequence')
-            hgvs_transcript_to_hgvs_protein['hgvs_protein'] = _tot_unc(associated_protein_accession)
+            pos=Interval(),
+            edit="?",
+            uncertain=False,
+        )
+
+        hgvs_protein = (
+            vvhgvs.sequencevariant.SequenceVariant(
+                ac=associated_protein_accession,
+                type="p",
+                posedit=posedit,
+            )
+        )
+
+        hgvs_transcript_to_hgvs_protein[
+            "hgvs_protein"
+        ] = hgvs_protein
+
+        if prot_ref_seq == "error":
+            hgvs_transcript_to_hgvs_protein[
+                "error"
+            ] = no_start_err.replace(
+                "the sequence",
+                "the reference sequence",
+            )
+
+            hgvs_transcript_to_hgvs_protein[
+                "hgvs_protein"
+            ] = _tot_unc(
+                associated_protein_accession
+            )
+
             return hgvs_transcript_to_hgvs_protein
-        if prot_var_seq == 'error':
-            # Does the edit affect the start codon?
-            if ((1 <= hgvs_transcript.posedit.pos.start.base <= 3 and
-                 hgvs_transcript.posedit.pos.start.offset == 0) or (
-                    1 <= hgvs_transcript.posedit.pos.end.base <= 3 and
-                    hgvs_transcript.posedit.pos.end.offset == 0)) \
-                    and (hgvs_transcript.posedit.pos.start.datum != Datum.CDS_END and
-                hgvs_transcript.posedit.pos.end.datum != Datum.CDS_END
+
+        if prot_var_seq == "error":
+            if (
+                    (
+                        1 <= pos.start.base <= 3
+                        and not (
+                            hgvs_position_utils
+                            .start_position_is_intronic(
+                                hgvs_transcript
+                            )
+                        )
+                    )
+                    or (
+                        1 <= pos.end.base <= 3
+                        and not (
+                            hgvs_position_utils
+                            .end_position_is_intronic(
+                                hgvs_transcript
+                            )
+                        )
+                    )
+            ) and not (
+                    hgvs_position_utils.start_is_3_prime_utr(
+                        hgvs_transcript
+                    )
+                    or hgvs_position_utils.end_is_3_prime_utr(
+                        hgvs_transcript
+                    )
             ):
-                residue_one = self.sf.fetch_seq(associated_protein_accession, start_i=1 - 1, end_i=1)
-                #threed_residue_one = utils.one_to_three(residue_one)
-                hgvs_protein = _fb_unc(associated_protein_accession,residue_one)
-                hgvs_transcript_to_hgvs_protein['hgvs_protein'] = hgvs_protein
+                residue_one = self.sf.fetch_seq(
+                    associated_protein_accession,
+                    start_i=0,
+                    end_i=1,
+                )
+
+                hgvs_transcript_to_hgvs_protein[
+                    "hgvs_protein"
+                ] = _fb_unc(
+                    associated_protein_accession,
+                    residue_one,
+                )
+
             else:
-                hgvs_transcript_to_hgvs_protein['error'] = no_start_err
+                hgvs_transcript_to_hgvs_protein[
+                    "error"
+                ] = no_start_err
+
             return hgvs_transcript_to_hgvs_protein
 
-        if ((1 <= hgvs_transcript.posedit.pos.start.base <= 3 and
-            hgvs_transcript.posedit.pos.start.offset == 0) or (1 <=
-            hgvs_transcript.posedit.pos.end.base <= 3 and hgvs_transcript.posedit.pos.end.offset == 0))\
-                and '*' not in str(hgvs_transcript.posedit.pos):
-            residue_one = self.sf.fetch_seq(associated_protein_accession, start_i=1 - 1, end_i=1)
-            hgvs_protein = _fb_unc(associated_protein_accession,residue_one)
-            hgvs_transcript_to_hgvs_protein['hgvs_protein'] = hgvs_protein
+        if (
+                (
+                    1 <= pos.start.base <= 3
+                    and not (
+                        hgvs_position_utils
+                        .start_position_is_intronic(
+                            hgvs_transcript
+                        )
+                    )
+                )
+                or (
+                    1 <= pos.end.base <= 3
+                    and not (
+                        hgvs_position_utils
+                        .end_position_is_intronic(
+                            hgvs_transcript
+                        )
+                    )
+                )
+        ) and not (
+                hgvs_position_utils.start_is_3_prime_utr(
+                    hgvs_transcript
+                )
+                or hgvs_position_utils.end_is_3_prime_utr(
+                    hgvs_transcript
+                )
+        ):
+            residue_one = self.sf.fetch_seq(
+                associated_protein_accession,
+                start_i=0,
+                end_i=1,
+            )
+
+            hgvs_transcript_to_hgvs_protein[
+                "hgvs_protein"
+            ] = _fb_unc(
+                associated_protein_accession,
+                residue_one,
+            )
+
             return hgvs_transcript_to_hgvs_protein
 
-        # Gather the required information regarding variant interval and sequences
-        if hgvs_transcript.posedit.edit.type != 'delins' and \
-                hgvs_transcript.posedit.edit.type != 'dup' and \
-                hgvs_transcript.posedit.edit.type != 'del' and \
-                hgvs_transcript.posedit.edit.type != 'ins':
-            logger.info(f"passing {hgvs_transcript} translations to pro_inv_info function")
-            pro_inv_info = utils.pro_inv_info(prot_ref_seq, prot_var_seq)
+        if edit_type not in (
+                "delins",
+                "dup",
+                "del",
+                "ins",
+        ):
+            logger.info(
+                "passing %s translations to pro_inv_info "
+                "function",
+                hgvs_transcript,
+            )
+
+            pro_inv_info = utils.pro_inv_info(
+                prot_ref_seq,
+                prot_var_seq,
+            )
+
         else:
-            logger.info(f"passing {hgvs_transcript} translations to pro_delins_info function")
-            # Test whether the length of the deletion, plus the insertion can be divided by 3
-            # This is trying to spot the difference between amino acid deletions
-            # and early terminations
+            logger.info(
+                "passing %s translations to pro_delins_info "
+                "function",
+                hgvs_transcript,
+            )
 
-            # Get the cds length
             cds_len = cds_end - cds_start
-
-            # Calculate the variant cds length
             minus = False
             plus = False
 
-            # Handle deletions
-            if hgvs_naughty.posedit.edit.type == 'del':
-                hgvs_naughty.posedit.edit.alt = ""
-            if hgvs_naughty.posedit.edit.type == 'ins':
-                hgvs_naughty.posedit.edit.ref = del_seq
-                hgvs_naughty.posedit.edit.alt = f"{del_seq[0]}{hgvs_naughty.posedit.edit.alt}{del_seq[-1]}"
+            if naughty_edit.type == "del":
+                naughty_edit.alt = ""
 
+            if naughty_edit.type == "ins":
+                naughty_edit.ref = del_seq
+                naughty_edit.alt = (
+                    f"{del_seq[0]}"
+                    f"{naughty_edit.alt}"
+                    f"{del_seq[-1]}"
+                )
 
             try:
-                if len(hgvs_naughty.posedit.edit.ref) > len(hgvs_naughty.posedit.edit.alt):
-                    var_cds_len = cds_len - (len(hgvs_naughty.posedit.edit.ref)
-                                             - len(hgvs_naughty.posedit.edit.alt))
+                ref_len = len(naughty_edit.ref)
+                alt_len = len(naughty_edit.alt)
+
+                if ref_len > alt_len:
+                    var_cds_len = (
+                        cds_len - (ref_len - alt_len)
+                    )
                     minus = True
-                elif len(hgvs_naughty.posedit.edit.ref) < len(hgvs_naughty.posedit.edit.alt):
-                    var_cds_len = cds_len + (len(hgvs_naughty.posedit.edit.alt)
-                                             - len(hgvs_naughty.posedit.edit.ref))
+
+                elif ref_len < alt_len:
+                    var_cds_len = (
+                        cds_len + (alt_len - ref_len)
+                    )
                     plus = True
+
             except AttributeError as e:
-                if "'Dup' object has no attribute 'alt'" in str(e):
-                    var_cds_len = cds_len + (len(var_seq)
-                                             - len(ref_seq))
+                if (
+                        "'Dup' object has no attribute 'alt'"
+                        in str(e)
+                ):
+                    var_cds_len = (
+                        cds_len
+                        + (len(var_seq) - len(ref_seq))
+                    )
                     plus = True
 
-            ########################
-            #  Standard Frame Shifts
-            ########################
-
-            # Do we have an in-frame variant i.e. divisible by 3?
             in_frame = False
-            if minus is True:
+
+            if minus:
                 loss_gain = cds_len - var_cds_len
+
                 if loss_gain % 3 == 0:
-                    loss_gain = loss_gain / 3
-                    loss_gain = 0 - loss_gain
-                    in_frame = loss_gain
-            elif plus is True:
+                    in_frame = -(loss_gain / 3)
+
+            elif plus:
                 loss_gain = var_cds_len - cds_len
+
                 if loss_gain % 3 == 0:
-                    loss_gain = loss_gain / 3
-                    in_frame = loss_gain
+                    in_frame = loss_gain / 3
 
-            # Get the sequence info
-            pro_inv_info = utils.pro_delins_info(prot_ref_seq,
-                                                 prot_var_seq,
-                                                 in_frame)
+            pro_inv_info = utils.pro_delins_info(
+                prot_ref_seq,
+                prot_var_seq,
+                in_frame,
+            )
 
-        logger.info(f"RefSeq: {prot_ref_seq}")
-        logger.info(f"VarSeq: {prot_var_seq}")
-        logger.info(f"pro_inv_info: {pro_inv_info}")
+        logger.info(
+            "RefSeq: %s",
+            prot_ref_seq,
+        )
+        logger.info(
+            "VarSeq: %s",
+            prot_var_seq,
+        )
+        logger.info(
+            "pro_inv_info: %s",
+            pro_inv_info,
+        )
 
-        ######################################
-        #  Ter codon interruption frame shifts
-        ######################################
         if (
-                ("del" in str(hgvs_naughty.posedit.edit)
-                 or "inv" in str(hgvs_naughty.posedit.edit))
-            and
-                (hgvs_naughty.posedit.pos.start.base < cds_end <= hgvs_naughty.posedit.pos.end.base)
-            and pro_inv_info["prot_del_seq"][0] != "*"
+                edit_type in ("del", "delins", "inv")
+                and (
+                    naughty_pos.start.base
+                    < cds_end
+                    <= naughty_pos.end.base
+                )
+                and pro_inv_info["prot_del_seq"][0] != "*"
         ):
+            logger.info(
+                "Variant %s starts upstream of the stop codon, "
+                "and ends in or after the stop codon, could be "
+                "a frame-shift",
+                hgvs_transcript,
+            )
 
-            logger.info(f"Variant {hgvs_transcript} starts upstream of the stop codon, and ends in or "
-                        f"after the stop codon, could be a frame-shift")
-            logger.info(f"pro_inv_info: {pro_inv_info}")
-            if (("*" not in pro_inv_info["prot_ins_seq"] and "*" not in pro_inv_info["prot_del_seq"])
-                    or (pro_inv_info["prot_ins_seq"][-1] == "*" and pro_inv_info["prot_del_seq"][-1] == "*")
-                    or hgvs_transcript.posedit.edit.type == "del"):
+            if (
+                    (
+                        "*" not in pro_inv_info["prot_ins_seq"]
+                        and "*" not in pro_inv_info["prot_del_seq"]
+                    )
+                    or (
+                        pro_inv_info["prot_ins_seq"][-1] == "*"
+                        and pro_inv_info["prot_del_seq"][-1] == "*"
+                    )
+                    or edit_type == "del"
+            ):
+                ref = pro_inv_info["prot_del_seq"][0]
+                alt = pro_inv_info["prot_ins_seq"][0]
 
-                logger.info("Identified unhandled frameshift in pro_inv_info['pro_ins_seq']")
-
-                ref = pro_inv_info['prot_del_seq'][0]  # "D"
-                alt = pro_inv_info['prot_ins_seq'][0]  # "U"
-
-                length = pro_inv_info['prot_ins_seq'].find("*")
+                length = (
+                    pro_inv_info["prot_ins_seq"].find("*")
+                )
                 length = length if length >= 0 else None
-                if length is None and pro_inv_info['terminate'] == "true":
-                    length = pro_inv_info['ter_pos'] - pro_inv_info['edit_start']
-                length = length+1
-                logger.info(f"length: {length}")
+
+                if (
+                        length is None
+                        and pro_inv_info["terminate"] == "true"
+                ):
+                    length = (
+                        pro_inv_info["ter_pos"]
+                        - pro_inv_info["edit_start"]
+                    )
+
+                length += 1
 
                 posedit = PosEdit(
                     pos=Interval(
                         start=AAPosition(
-                            base=pro_inv_info['edit_start'],
-                            aa=ref # THIS is the fix
+                            base=pro_inv_info["edit_start"],
+                            aa=ref,
                         ),
                         end=AAPosition(
-                            base=pro_inv_info['edit_start'],
-                            aa=ref
-                        )
+                            base=pro_inv_info["edit_start"],
+                            aa=ref,
+                        ),
                     ),
                     edit=AAFs(
                         ref=ref,
                         alt=alt,
                         length=length,
                     ),
-                    uncertain=True
+                    uncertain=True,
                 )
-                logger.info(f"Posedit updated to {posedit}")
-                hgvs_protein = vvhgvs.sequencevariant.SequenceVariant(
-                    ac=associated_protein_accession, type='p', posedit=posedit)
 
-                hgvs_transcript_to_hgvs_protein['hgvs_protein'] = hgvs_protein
+                hgvs_protein = (
+                    vvhgvs.sequencevariant.SequenceVariant(
+                        ac=associated_protein_accession,
+                        type="p",
+                        posedit=posedit,
+                    )
+                )
+
+                hgvs_transcript_to_hgvs_protein[
+                    "hgvs_protein"
+                ] = hgvs_protein
+
                 return hgvs_transcript_to_hgvs_protein
 
+        if pro_inv_info["error"] == "true":
+            hgvs_transcript_to_hgvs_protein["error"] = (
+                "Translation error occurred, please contact admin"
+            )
 
-        # Error has occurred
-        if pro_inv_info['error'] == 'true':
-            error = 'Translation error occurred, please contact admin'
-            hgvs_transcript_to_hgvs_protein['error'] = error
             return hgvs_transcript_to_hgvs_protein
 
-        # The Nucleotide variant has not affected the protein sequence i.e. synonymous
-        if pro_inv_info['variant'] != 'true':
-
-            # Make the variant
+        if pro_inv_info["variant"] != "true":
             posedit = VVPosEdit(
-                    pos = Interval(),# empty interval start means ''
-                    edit = AARefAlt(),# empty ref and alt means '='
-                    uncertain = True,
-                    nucleotide_not_equal=nucleotide_not_equal)
-            hgvs_protein = vvhgvs.sequencevariant.SequenceVariant(ac=associated_protein_accession,
-                                                                  type='p', posedit = posedit)
-            # Where possible, identify the exact positions of the amino acids
-            if isinstance(hgvs_transcript.posedit.pos.start.base, int) and isinstance(
-                    hgvs_transcript.posedit.pos.end.base, int):
+                pos=Interval(),
+                edit=AARefAlt(),
+                uncertain=True,
+                nucleotide_not_equal=nucleotide_not_equal,
+            )
 
-                aa_start_pos = float(hgvs_transcript.posedit.pos.start.base / 3)
-                aa_end_pos = float(hgvs_transcript.posedit.pos.end.base / 3)
+            hgvs_protein = (
+                vvhgvs.sequencevariant.SequenceVariant(
+                    ac=associated_protein_accession,
+                    type="p",
+                    posedit=posedit,
+                )
+            )
 
-                # end pos may be in the next amino acid i.e. float>0
-                if not aa_end_pos.is_integer():
-                    aa_end_pos = int(aa_end_pos + 1)
-                else:
-                    aa_end_pos = int(aa_end_pos)
-                if not aa_start_pos.is_integer():
-                    aa_start_pos = int(aa_start_pos + 1)
-                else:
-                    aa_start_pos = int(aa_start_pos)
+            if (
+                    isinstance(pos.start.base, int)
+                    and isinstance(pos.end.base, int)
+            ):
+                aa_start_pos = (
+                    pos.start.base + 2
+                ) // 3
 
-                aa_seq = self.sf.fetch_seq(associated_protein_accession, start_i=aa_start_pos - 1,
-                                           end_i=aa_end_pos)
+                aa_end_pos = (
+                    pos.end.base + 2
+                ) // 3
 
-                # Handle Termination unaffected (note, * does not appear in the reference sequence)
-                if aa_seq == "":
-                    ck_aa_seq = self.sf.fetch_seq(associated_protein_accession)
-                    length = len(ck_aa_seq)
-                    if aa_start_pos == length + 1 and aa_end_pos == length + 1:
+                aa_seq = self.sf.fetch_seq(
+                    associated_protein_accession,
+                    start_i=aa_start_pos - 1,
+                    end_i=aa_end_pos,
+                )
+
+                if not aa_seq:
+                    protein_sequence = self.sf.fetch_seq(
+                        associated_protein_accession
+                    )
+
+                    if (
+                            aa_start_pos
+                            == len(protein_sequence) + 1
+                            and aa_end_pos
+                            == len(protein_sequence) + 1
+                    ):
                         aa_seq = "*"
 
                 start_aa = aa_seq[0]
                 end_aa = aa_seq[-1]
 
-                # create edit
                 posedit = VVPosEdit(
-                        pos= Interval(
-                            start = AAPosition(base = aa_start_pos, aa = start_aa),
-                            end = AAPosition(base = aa_end_pos, aa = end_aa )),
-                        edit = AARefAlt(),# empty ref and alt means '='
-                        uncertain = True,
-                        nucleotide_not_equal=nucleotide_not_equal)
-                hgvs_protein = vvhgvs.sequencevariant.SequenceVariant(
-                    ac=associated_protein_accession, type='p', posedit=posedit)
+                    pos=Interval(
+                        start=AAPosition(
+                            base=aa_start_pos,
+                            aa=start_aa,
+                        ),
+                        end=AAPosition(
+                            base=aa_end_pos,
+                            aa=end_aa,
+                        ),
+                    ),
+                    edit=AARefAlt(),
+                    uncertain=True,
+                    nucleotide_not_equal=nucleotide_not_equal,
+                )
 
-            hgvs_transcript_to_hgvs_protein['hgvs_protein'] = hgvs_protein
+                hgvs_protein = (
+                    vvhgvs.sequencevariant.SequenceVariant(
+                        ac=associated_protein_accession,
+                        type="p",
+                        posedit=posedit,
+                    )
+                )
+
+            hgvs_transcript_to_hgvs_protein[
+                "hgvs_protein"
+            ] = hgvs_protein
+
             return hgvs_transcript_to_hgvs_protein
 
-        # Adjust extended aas if necessary
-        if modified_aa == "Sec":
-            if "U" in pro_inv_info['prot_ins_seq'] and "U" not in pro_inv_info['prot_del_seq']:
-                logger.info("Sec identified in pro_inv_info['prot_ins_seq']")
+        if (
+                modified_aa == "Sec"
+                and "U" in pro_inv_info["prot_ins_seq"]
+                and "U" not in pro_inv_info["prot_del_seq"]
+        ):
+            pro_inv_info["ter_pos"] = (
+                pro_inv_info["edit_start"]
+                + len(pro_inv_info["prot_ins_seq"])
+            )
 
-                # legacy code #################################################################
-                # pro_inv_info['prot_ins_seq'] = pro_inv_info['prot_ins_seq'].replace("U", "*")
-                # pro_inv_info['ter_pos'] = pro_inv_info['edit_start'] + len(
-                #     pro_inv_info['prot_ins_seq'].split("*")[0])
-                ################################################################################
-
-                pro_inv_info['ter_pos'] = pro_inv_info['edit_start'] + len(
-                    pro_inv_info['prot_ins_seq'])
-
-        # Set posedit
         posedit = False
 
-        # Early termination i.e. stop gained
-        logger.info(f"Identify early termination")
-        if pro_inv_info['terminate'] == 'true' and \
-                (hgvs_transcript.posedit.edit.type == 'delins' or
-                 hgvs_transcript.posedit.edit.type == 'dup' or
-                 hgvs_transcript.posedit.edit.type == 'inv' or
-                 hgvs_transcript.posedit.edit.type == 'ins'):
-
-            # Identify missed frameshifts
-            edit = hgvs_naughty.posedit.edit
-            pos = hgvs_naughty.posedit.pos
+        if (
+                pro_inv_info["terminate"] == "true"
+                and edit_type in (
+                    "delins",
+                    "dup",
+                    "inv",
+                    "ins",
+                )
+        ):
             frameshift = False
-            logger.info(f"Early termination identified from edit type {edit.type}")
 
-            if edit.type == "dup":
-                length = pos.end.base - pos.start.base + 1
+            if naughty_edit.type == "dup":
+                length = (
+                    naughty_pos.end.base
+                    - naughty_pos.start.base
+                    + 1
+                )
                 frameshift = length % 3 != 0
 
-            elif edit.type == "del":
-                ref = edit.ref or ""
-                frameshift = len(ref) % 3 != 0
+            elif naughty_edit.type == "del":
+                frameshift = (
+                    len(naughty_edit.ref or "") % 3 != 0
+                )
 
-            elif edit.type == "ins":
-                alt = edit.alt or ""
-                frameshift = len(alt) % 3 != 0
+            elif naughty_edit.type == "ins":
+                frameshift = (
+                    len(naughty_edit.alt or "") % 3 != 0
+                )
 
-            elif edit.type == "delins":
-                ref = edit.ref or ""
-                alt = edit.alt or ""
-                frameshift = (len(alt) - len(ref)) % 3 != 0
-
-            elif edit.type == "inv":
-                frameshift = False
+            elif naughty_edit.type == "delins":
+                frameshift = (
+                    len(naughty_edit.alt or "")
+                    - len(naughty_edit.ref or "")
+                ) % 3 != 0
 
             if frameshift:
-                logger.info("Identified unhandled frameshift in pro_inv_info['pro_ins_seq']")
+                ref = pro_inv_info["prot_del_seq"][0]
+                alt = pro_inv_info["prot_ins_seq"][0]
 
-                ref = pro_inv_info['prot_del_seq'][0]  # "D"
-                alt = pro_inv_info['prot_ins_seq'][0]  # "U"
-
-                length = pro_inv_info['prot_ins_seq'].find("*")
+                length = (
+                    pro_inv_info["prot_ins_seq"].find("*")
+                )
                 length = length if length >= 0 else None
 
                 posedit = PosEdit(
                     pos=Interval(
                         start=AAPosition(
-                            base=pro_inv_info['edit_start'],
-                            aa=ref  # THIS is the fix
+                            base=pro_inv_info["edit_start"],
+                            aa=ref,
                         ),
                         end=AAPosition(
-                            base=pro_inv_info['edit_start'],
-                            aa=ref
-                        )
+                            base=pro_inv_info["edit_start"],
+                            aa=ref,
+                        ),
                     ),
                     edit=AAFs(
                         ref=ref,
                         alt=alt,
                         length=length,
                     ),
-                    uncertain=True
+                    uncertain=True,
                 )
-                logger.info(f"Posedit updated to {posedit}")
-                hgvs_protein = vvhgvs.sequencevariant.SequenceVariant(
-                    ac=associated_protein_accession, type='p', posedit=posedit)
 
-                hgvs_transcript_to_hgvs_protein['hgvs_protein'] = hgvs_protein
+                hgvs_protein = (
+                    vvhgvs.sequencevariant.SequenceVariant(
+                        ac=associated_protein_accession,
+                        type="p",
+                        posedit=posedit,
+                    )
+                )
+
+                hgvs_transcript_to_hgvs_protein[
+                    "hgvs_protein"
+                ] = hgvs_protein
+
                 return hgvs_transcript_to_hgvs_protein
 
-            # This deals with early terminating delins in-frame prventing the format
-            # NP_733765.1:p.(Gln259_Ser1042delinsProAla*) in issue #214 also #282
-            elif len(pro_inv_info['prot_del_seq']) + \
-                    int(pro_inv_info['edit_start'] - 1) == int(pro_inv_info['ter_pos']):
-                logger.info(f"Identified unhandled frameshift")
-                end = 'Ter' + str(pro_inv_info['ter_pos'])
-                pro_inv_info['prot_ins_seq'].replace('*', end)
-                pro_inv_info['prot_ins_seq'] = pro_inv_info['prot_ins_seq']
-                pro_inv_info['prot_del_seq'] = pro_inv_info['prot_del_seq'][0]
-                pro_inv_info['edit_end'] = pro_inv_info['edit_start']
-
-            elif hgvs_transcript.posedit.edit.type == 'dup' and pro_inv_info["prot_del_seq"] \
-                    == "" and (int(pro_inv_info["edit_end"]) < int(pro_inv_info["edit_start"])):
-
-                # Handles in-frame dups only
-                logger.info(f"Identified unhandled frameshift from dup")
-                dup_len = (int(hgvs_transcript.posedit.pos.end.base) - int(
-                    hgvs_transcript.posedit.pos.start.base) + 1) / 3
-                pro_inv_info['prot_del_seq'] = pro_inv_info['prot_ins_seq']
-                pro_inv_info['edit_start'] = pro_inv_info['edit_end'] - \
-                                             len(pro_inv_info['prot_del_seq']) + 1
-                start_aa = self.sf.fetch_seq(associated_protein_accession,
-                                             int(pro_inv_info['edit_start']-1),
-                                             int(pro_inv_info['edit_start']) + (dup_len -1))
-                pro_inv_info['prot_del_seq'] = start_aa
-                pro_inv_info['prot_ins_seq'] = start_aa + \
-                                               pro_inv_info['prot_ins_seq']
-            else:
-                logger.info("No unhandled frameshift in pro_inv_info['pro_ins_seq']")
-
-        # Complete variant description
-        # Write the HGVS position and edit
-        # start by handling delins->ins transitions from the cds to prot mapping
-        if not pro_inv_info['prot_del_seq']:
-            # must be != exclusive coordinates
-            assert pro_inv_info['edit_start'] != pro_inv_info['edit_end']
-            from_aa = prot_ref_seq[pro_inv_info['edit_start']]
-            to_aa = prot_ref_seq[pro_inv_info['edit_end']]
-        else:
-            from_aa = pro_inv_info['prot_del_seq'][0]
-            to_aa = pro_inv_info['prot_del_seq'][-1]
-
-        # Handle a range of amino acids
-        if pro_inv_info['edit_start'] != pro_inv_info['edit_end']:
-
-            # Handle duplications
-            if pro_inv_info["prot_ins_seq"] == (pro_inv_info["prot_del_seq"]
-                                                  + pro_inv_info["prot_del_seq"]):
-
-                posedit = VVPosEdit(
-                        pos = Interval(
-                            start = AAPosition(base = pro_inv_info['edit_start'], aa = from_aa),
-                            end = AAPosition(base = pro_inv_info['edit_end'], aa = to_aa)),
-                        edit = Dup(ref = pro_inv_info['prot_del_seq']),
-                        uncertain = True,
-                        nucleotide_not_equal=nucleotide_not_equal)
-
-            elif len(pro_inv_info['prot_ins_seq']) > 0:
-                if '*' in pro_inv_info['prot_del_seq'] and pro_inv_info['prot_ins_seq'][-1] != '*':
-                    posedit = VVPosEdit(
-                            pos = Interval(
-                                start = AAPosition(base = pro_inv_info['edit_start'], aa = from_aa),
-                                end = AAPosition(base = pro_inv_info['edit_end'], aa = to_aa )),
-                            edit = AARefAlt(ref = '', alt = pro_inv_info['prot_ins_seq'] + '?'),
-                            uncertain = True,
-                            nucleotide_not_equal=nucleotide_not_equal)
-
-                elif len(pro_inv_info["prot_ins_seq"]) > len(pro_inv_info["prot_del_seq"]) \
-                        and pro_inv_info["prot_ins_seq"] != (pro_inv_info["prot_del_seq"]
-                                                             + pro_inv_info["prot_del_seq"]) and \
-                        pro_inv_info["prot_del_seq"] == "" and (pro_inv_info["edit_start"]
-                        > pro_inv_info["edit_end"]):
-
-                    from_aa = self.sf.fetch_seq(associated_protein_accession,
-                                              int(pro_inv_info['edit_end']-len(pro_inv_info['prot_ins_seq'])),
-                                              int(pro_inv_info['edit_end']-len(pro_inv_info['prot_ins_seq']))+1)
-
-                    to_aa = self.sf.fetch_seq(associated_protein_accession,
-                                              int(pro_inv_info['edit_start']-2),
-                                              int(pro_inv_info['edit_start']-1))
-
-                    posedit = VVPosEdit(
-                            pos = Interval(
-                                start = AAPosition(
-                                    base = pro_inv_info['edit_end']-len(pro_inv_info['prot_ins_seq'])+1,
-                                    aa = from_aa),
-                                end = AAPosition(
-                                    base = pro_inv_info['edit_start']-1,
-                                    aa = to_aa )),
-                            edit = Dup(ref = pro_inv_info["prot_del_seq"]),
-                            uncertain = True,
-                            nucleotide_not_equal=nucleotide_not_equal)
-                else:
-
-                    posedit = VVPosEdit(
-                            pos = Interval(
-                                start = AAPosition(base = pro_inv_info['edit_start'], aa = from_aa),
-                                end = AAPosition(base = pro_inv_info['edit_end'], aa = to_aa )),
-                            edit = AARefAlt(ref = '', alt =  pro_inv_info['prot_ins_seq']),
-                            uncertain = True,
-                            nucleotide_not_equal=nucleotide_not_equal)
-
-            else:
-                if '*' in pro_inv_info['prot_del_seq'] and pro_inv_info['prot_ins_seq'][-1] != '*':
-                    posedit = VVPosEdit(
-                            pos = Interval(
-                                start = AAPosition(base = pro_inv_info['edit_start'], aa = from_aa),
-                                end = AAPosition(base = pro_inv_info['edit_end'], aa = to_aa )),
-                            edit = AARefAlt(alt =  '?'),
-                            uncertain = True,
-                            nucleotide_not_equal=nucleotide_not_equal)
-                else:
-                    posedit = VVPosEdit(
-                            pos = Interval(
-                                start = AAPosition(base = pro_inv_info['edit_start'], aa = from_aa),
-                                end = AAPosition(base = pro_inv_info['edit_end'], aa = to_aa )),
-                            edit = AARefAlt( alt =  None,ref = pro_inv_info['prot_del_seq']),
-                            uncertain = True,
-                            nucleotide_not_equal=nucleotide_not_equal)
-
-        else:
-            # Handle duplications
-            if pro_inv_info["prot_ins_seq"] == (pro_inv_info["prot_del_seq"]
-                                                  + pro_inv_info["prot_del_seq"]):
-                posedit = VVPosEdit(
-                            pos = Interval(
-                                start = AAPosition(
-                                    base = pro_inv_info['edit_start'],
-                                    aa = from_aa)),
-                            edit = Dup(ref = from_aa),
-                            uncertain = True,
-                            nucleotide_not_equal=nucleotide_not_equal)
-
-            # Handle insertions
-            elif len(pro_inv_info["prot_ins_seq"]) > len(pro_inv_info["prot_del_seq"]) \
-                and pro_inv_info["prot_ins_seq"] != (pro_inv_info["prot_del_seq"]
-                                                  + pro_inv_info["prot_del_seq"]) and \
-                    (pro_inv_info["prot_ins_seq"][0] == pro_inv_info["prot_del_seq"][0]):
-
-                to_aa = self.sf.fetch_seq(associated_protein_accession,
-                                             int(pro_inv_info['edit_start']),
-                                             int(pro_inv_info['edit_start'] + 1))
-                posedit = VVPosEdit(
-                            pos = Interval(#widen to either side of between base ins loc
-                                start = AAPosition(base = pro_inv_info['edit_start'], aa = from_aa),
-                                end = AAPosition(base = pro_inv_info['edit_end']+1, aa = to_aa )),
-                            edit = AARefAlt( #ref = pro_inv_info["prot_ins_seq"][0],
-                                            alt =  pro_inv_info["prot_ins_seq"][1:]),#[3:]),
-                            uncertain = True,
-                            nucleotide_not_equal=nucleotide_not_equal)
-
-            # Handle extended proteins i.e. stop_lost
-            elif pro_inv_info["prot_del_seq"] == '*' and (
-                    len(pro_inv_info["prot_ins_seq"]) > len(pro_inv_info["prot_del_seq"])):
-                # Nucleotide variant range aligns to the Termination codon
-                if pro_inv_info['prot_ins_seq'][-1] == '*':
-                    posedit = VVPosEdit(
-                        pos = Interval(
-                            start = AAPosition(
-                                base = pro_inv_info['edit_start'],
-                                aa = from_aa)),
-                        edit = AAExt(
-                            alt = pro_inv_info['prot_ins_seq'][0],
-                            length = int(len(pro_inv_info['prot_ins_seq']) - 1),
-                            aaterm = '*'),
-                        uncertain = True,
-                        nucleotide_not_equal=nucleotide_not_equal)
-
-                # Nucleotide variant range spans the Termination codon
-                else:
-                    posedit = VVPosEdit(
-                        pos = Interval(
-                            start = AAPosition(
-                                base = pro_inv_info['edit_start'],
-                                aa = from_aa)),
-                        edit = AAExt(
-                            alt = pro_inv_info['prot_ins_seq'][-1],
-                            length = '?'),
-                        uncertain = True)
-
-            # Nucleotide variation has not affected the length of the protein thus
-            # substitution or del
-            else:
-                if len(pro_inv_info['prot_ins_seq']) == 1:
-                    posedit = VVPosEdit(
-                        pos = Interval(start = AAPosition(base = pro_inv_info['edit_start'], aa = from_aa)),
-                        edit = AARefAlt(alt = pro_inv_info['prot_ins_seq'],ref = from_aa),
-                        uncertain = True,
-                        nucleotide_not_equal=nucleotide_not_equal)
-                elif len(pro_inv_info['prot_ins_seq']) == 0:
-                    posedit = VVPosEdit(
-                        pos = Interval(start = AAPosition(base = pro_inv_info['edit_start'], aa = from_aa)),
-                        edit = AARefAlt(ref = pro_inv_info['prot_del_seq']),
-                        uncertain = True,
-                        nucleotide_not_equal=nucleotide_not_equal)
-                else:
-                    posedit = VVPosEdit(
-                        pos = Interval(start = AAPosition(base = pro_inv_info['edit_start'], aa = from_aa)),
-                        edit = AARefAlt(alt = pro_inv_info['prot_ins_seq'],ref=from_aa),
-                        uncertain = True,
-                        nucleotide_not_equal=nucleotide_not_equal)
-
-        # Complete the variant
-        hgvs_protein = vvhgvs.sequencevariant.SequenceVariant(
-                ac = associated_protein_accession,
-                type = 'p',
-                posedit = posedit
+            if (
+                    len(pro_inv_info["prot_del_seq"])
+                    + pro_inv_info["edit_start"] - 1
+                    == pro_inv_info["ter_pos"]
+            ):
+                pro_inv_info["prot_del_seq"] = (
+                    pro_inv_info["prot_del_seq"][0]
                 )
-        hgvs_transcript_to_hgvs_protein['hgvs_protein'] = hgvs_protein
+                pro_inv_info["edit_end"] = (
+                    pro_inv_info["edit_start"]
+                )
 
-        # Return
+            elif (
+                    edit_type == "dup"
+                    and not pro_inv_info["prot_del_seq"]
+                    and (
+                        pro_inv_info["edit_end"]
+                        < pro_inv_info["edit_start"]
+                    )
+            ):
+                dup_len = (
+                    pos.end.base
+                    - pos.start.base
+                    + 1
+                ) / 3
+
+                pro_inv_info["prot_del_seq"] = (
+                    pro_inv_info["prot_ins_seq"]
+                )
+
+                pro_inv_info["edit_start"] = (
+                    pro_inv_info["edit_end"]
+                    - len(pro_inv_info["prot_del_seq"])
+                    + 1
+                )
+
+                start_aa = self.sf.fetch_seq(
+                    associated_protein_accession,
+                    int(pro_inv_info["edit_start"] - 1),
+                    int(
+                        pro_inv_info["edit_start"]
+                        + dup_len - 1
+                    ),
+                )
+
+                pro_inv_info["prot_del_seq"] = start_aa
+                pro_inv_info["prot_ins_seq"] = (
+                    start_aa
+                    + pro_inv_info["prot_ins_seq"]
+                )
+
+        prot_del_seq = pro_inv_info["prot_del_seq"]
+        prot_ins_seq = pro_inv_info["prot_ins_seq"]
+        edit_start = pro_inv_info["edit_start"]
+        edit_end = pro_inv_info["edit_end"]
+
+        if not prot_del_seq:
+            assert edit_start != edit_end
+            from_aa = prot_ref_seq[edit_start]
+            to_aa = prot_ref_seq[edit_end]
+
+        else:
+            from_aa = prot_del_seq[0]
+            to_aa = prot_del_seq[-1]
+
+        if edit_start != edit_end:
+            if prot_ins_seq == prot_del_seq + prot_del_seq:
+                posedit = VVPosEdit(
+                    pos=Interval(
+                        start=AAPosition(
+                            base=edit_start,
+                            aa=from_aa,
+                        ),
+                        end=AAPosition(
+                            base=edit_end,
+                            aa=to_aa,
+                        ),
+                    ),
+                    edit=Dup(
+                        ref=prot_del_seq,
+                    ),
+                    uncertain=True,
+                    nucleotide_not_equal=nucleotide_not_equal,
+                )
+
+            elif (
+                    len(prot_ins_seq) > len(prot_del_seq)
+                    and prot_ins_seq
+                    != prot_del_seq + prot_del_seq
+                    and not prot_del_seq
+                    and edit_start > edit_end
+            ):
+                from_aa = self.sf.fetch_seq(
+                    associated_protein_accession,
+                    edit_end - len(prot_ins_seq),
+                    edit_end - len(prot_ins_seq) + 1,
+                )
+
+                to_aa = self.sf.fetch_seq(
+                    associated_protein_accession,
+                    edit_start - 2,
+                    edit_start - 1,
+                )
+
+                posedit = VVPosEdit(
+                    pos=Interval(
+                        start=AAPosition(
+                            base=(
+                                edit_end
+                                - len(prot_ins_seq)
+                                + 1
+                            ),
+                            aa=from_aa,
+                        ),
+                        end=AAPosition(
+                            base=edit_start - 1,
+                            aa=to_aa,
+                        ),
+                    ),
+                    edit=Dup(
+                        ref=prot_del_seq,
+                    ),
+                    uncertain=True,
+                    nucleotide_not_equal=nucleotide_not_equal,
+                )
+
+            elif prot_ins_seq:
+                if (
+                        "*" in prot_del_seq
+                        and not prot_ins_seq.endswith("*")
+                ):
+                    posedit = VVPosEdit(
+                        pos=Interval(
+                            start=AAPosition(
+                                base=edit_start,
+                                aa=from_aa,
+                            ),
+                            end=AAPosition(
+                                base=edit_end,
+                                aa=to_aa,
+                            ),
+                        ),
+                        edit=AARefAlt(
+                            ref="",
+                            alt=prot_ins_seq + "?",
+                        ),
+                        uncertain=True,
+                        nucleotide_not_equal=nucleotide_not_equal,
+                    )
+
+                else:
+                    posedit = VVPosEdit(
+                        pos=Interval(
+                            start=AAPosition(
+                                base=edit_start,
+                                aa=from_aa,
+                            ),
+                            end=AAPosition(
+                                base=edit_end,
+                                aa=to_aa,
+                            ),
+                        ),
+                        edit=AARefAlt(
+                            ref="",
+                            alt=prot_ins_seq,
+                        ),
+                        uncertain=True,
+                        nucleotide_not_equal=nucleotide_not_equal,
+                    )
+
+            else:
+                posedit = VVPosEdit(
+                    pos=Interval(
+                        start=AAPosition(
+                            base=edit_start,
+                            aa=from_aa,
+                        ),
+                        end=AAPosition(
+                            base=edit_end,
+                            aa=to_aa,
+                        ),
+                    ),
+                    edit=AARefAlt(
+                        ref=prot_del_seq,
+                        alt=None,
+                    ),
+                    uncertain=True,
+                    nucleotide_not_equal=nucleotide_not_equal,
+                )
+
+        else:
+            if prot_ins_seq == prot_del_seq + prot_del_seq:
+                posedit = VVPosEdit(
+                    pos=Interval(
+                        start=AAPosition(
+                            base=edit_start,
+                            aa=from_aa,
+                        )
+                    ),
+                    edit=Dup(
+                        ref=from_aa,
+                    ),
+                    uncertain=True,
+                    nucleotide_not_equal=nucleotide_not_equal,
+                )
+
+            elif (
+                    len(prot_ins_seq) > len(prot_del_seq)
+                    and prot_ins_seq
+                    != prot_del_seq + prot_del_seq
+                    and prot_ins_seq.startswith(prot_del_seq[0])
+            ):
+                to_aa = self.sf.fetch_seq(
+                    associated_protein_accession,
+                    edit_start,
+                    edit_start + 1,
+                )
+
+                posedit = VVPosEdit(
+                    pos=Interval(
+                        start=AAPosition(
+                            base=edit_start,
+                            aa=from_aa,
+                        ),
+                        end=AAPosition(
+                            base=edit_end + 1,
+                            aa=to_aa,
+                        ),
+                    ),
+                    edit=AARefAlt(
+                        alt=prot_ins_seq[1:],
+                    ),
+                    uncertain=True,
+                    nucleotide_not_equal=nucleotide_not_equal,
+                )
+
+            elif (
+                    prot_del_seq == "*"
+                    and len(prot_ins_seq) > len(prot_del_seq)
+            ):
+                if prot_ins_seq.endswith("*"):
+                    posedit = VVPosEdit(
+                        pos=Interval(
+                            start=AAPosition(
+                                base=edit_start,
+                                aa=from_aa,
+                            )
+                        ),
+                        edit=AAExt(
+                            alt=prot_ins_seq[0],
+                            length=len(prot_ins_seq) - 1,
+                            aaterm="*",
+                        ),
+                        uncertain=True,
+                        nucleotide_not_equal=nucleotide_not_equal,
+                    )
+
+                else:
+                    posedit = VVPosEdit(
+                        pos=Interval(
+                            start=AAPosition(
+                                base=edit_start,
+                                aa=from_aa,
+                            )
+                        ),
+                        edit=AAExt(
+                            alt=prot_ins_seq[-1],
+                            length="?",
+                        ),
+                        uncertain=True,
+                    )
+
+            elif len(prot_ins_seq) == 1:
+                posedit = VVPosEdit(
+                    pos=Interval(
+                        start=AAPosition(
+                            base=edit_start,
+                            aa=from_aa,
+                        )
+                    ),
+                    edit=AARefAlt(
+                        alt=prot_ins_seq,
+                        ref=from_aa,
+                    ),
+                    uncertain=True,
+                    nucleotide_not_equal=nucleotide_not_equal,
+                )
+
+            elif not prot_ins_seq:
+                posedit = VVPosEdit(
+                    pos=Interval(
+                        start=AAPosition(
+                            base=edit_start,
+                            aa=from_aa,
+                        )
+                    ),
+                    edit=AARefAlt(
+                        ref=prot_del_seq,
+                    ),
+                    uncertain=True,
+                    nucleotide_not_equal=nucleotide_not_equal,
+                )
+
+            else:
+                posedit = VVPosEdit(
+                    pos=Interval(
+                        start=AAPosition(
+                            base=edit_start,
+                            aa=from_aa,
+                        )
+                    ),
+                    edit=AARefAlt(
+                        alt=prot_ins_seq,
+                        ref=from_aa,
+                    ),
+                    uncertain=True,
+                    nucleotide_not_equal=nucleotide_not_equal,
+                )
+
+        hgvs_protein = (
+            vvhgvs.sequencevariant.SequenceVariant(
+                ac=associated_protein_accession,
+                type="p",
+                posedit=posedit,
+            )
+        )
+
+        hgvs_transcript_to_hgvs_protein[
+            "hgvs_protein"
+        ] = hgvs_protein
+
         return hgvs_transcript_to_hgvs_protein
+
+    def revcomp(self, bases):
+        """
+        Return the reverse complement of a nucleotide sequence.
+        """
+        return utils.simple_dna_revcomp(bases)
 
 
 # <LICENSE>
