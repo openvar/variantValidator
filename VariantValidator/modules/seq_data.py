@@ -1,6 +1,5 @@
-
 """
-vvChromasomes.py
+seq_data.py
 
 Contains the necessary functions for matching RefSeq accessions with chromosome numbers
 or alt loci names based on genome builds

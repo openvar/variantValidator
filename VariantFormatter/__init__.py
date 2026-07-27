@@ -1,33 +1,9 @@
-[mysql]
-host = vv-vdb
-port = 3306
-database = validator
-user = vvadmin
-password = var1ant
-version = vvdb_2026_7
+import importlib.metadata
+import re
 
-[seqrepo]
-version = VV_SR_2026_07/master
-location = /usr/local/share/seqdata
-require_threading = True
 
-[postgres]
-host = vv-vvta
-port = 5432
-database = vvta
-version = vvta_2026_07
-user = uta_admin
-password = uta_admin
-
-[logging]
-# Levels control verbosity and can be set to "CRITICAL" "ERROR" "WARNING" "INFO" or "DEBUG".
-log = True
-console = WARNING
-file = ERROR
-
-[Entrez]
-email = OPTIONAL
-api_key = OPTIONAL
+__version__ = importlib.metadata.version("VariantValidator")
+_is_released_version = re.fullmatch(r"\d+\.\d+\.\d+", __version__) is not None
 
 
 # <LICENSE>

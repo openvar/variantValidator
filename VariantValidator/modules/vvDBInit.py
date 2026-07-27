@@ -1,11 +1,14 @@
+import logging
 import random
 import time
-import logging
+
 
 logger = logging.getLogger(__name__)
 
+
 try:
     import mariadb
+
     MariaDBConnectionPool = mariadb.ConnectionPool
     MariaDBProgrammingError = mariadb.ProgrammingError
 except ModuleNotFoundError:
@@ -15,6 +18,7 @@ except ModuleNotFoundError:
     class MariaDBProgrammingError(Exception):
         """Fallback exception when mariadb is unavailable."""
         pass
+
 
 try:
     from mysql.connector.pooling import MySQLConnectionPool
@@ -70,7 +74,6 @@ class Mixin:
                     pool_name=f"pool{random.random()}",
                     **pool_kwargs,
                 )
-
             except MariaDBProgrammingError:
                 # Retry with a different pool name.
                 self.pool = MariaDBConnectionPool(
@@ -84,8 +87,6 @@ class Mixin:
             "Neither mysql.connector nor mariadb is installed."
         )
 
-    import time
-
     def get_conn(self):
         """
         Get a live connection from the pool with retry + backoff.
@@ -95,8 +96,7 @@ class Mixin:
         - MySQL timeouts
         - transient network issues
         """
-        delays = [0, 0.5, 2, 5]
-
+        delays = (0, 0.5, 2, 5)
         last_exception = None
 
         for delay in delays:
@@ -106,11 +106,14 @@ class Mixin:
             try:
                 conn = self.pool.get_connection()
 
-                # Critical: ensure connection is alive
+                # Ensure the connection is alive.
                 try:
-                    conn.ping(reconnect=True, attempts=1, delay=0)
+                    conn.ping(
+                        reconnect=True,
+                        attempts=1,
+                        delay=0,
+                    )
                 except Exception:
-                    # Drop and retry
                     conn.close()
                     raise
 
@@ -119,11 +122,12 @@ class Mixin:
             except Exception as e:
                 last_exception = e
 
-                # Rebuild pool on failure
+                # Rebuild pool on failure.
                 self.init_db()
 
                 logger.exception(
-                    "Database connection failed health check; retrying with fresh connection"
+                    "Database connection failed health check; "
+                    "retrying with fresh connection"
                 )
 
         raise last_exception
@@ -142,7 +146,9 @@ class Mixin:
             self.init_db()
             conn = self.get_conn()
             cursor = conn.cursor(buffered=True)
+
         return cursor
+
 
 # <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors

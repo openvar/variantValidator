@@ -34,9 +34,12 @@ class TestGene2Transcripts(unittest.TestCase):
 
     def test_nonsense_NR(self):
         output = self.vv.gene2transcripts('nonNR_sense')
-        print(output)
+
         self.assertEqual(list(output), ['error', 'requested_symbol'])
-        self.assertEqual(output['error'], 'No transcript definition for (tx_ac=NONNR_SENSE)')
+        self.assertEqual(
+            output['error'],
+            'Unable to recognise gene symbol NONNR_SENSE'
+        )
 
     def test_nonsense_NM_dot(self):
         output = self.vv.gene2transcripts('NM_nonsens.e')

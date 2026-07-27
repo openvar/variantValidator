@@ -1,13 +1,17 @@
 import logging
 import json
+
 from VariantValidator.modules import lovd_api
+
 
 logger = logging.getLogger(__name__)
 
 
 class ValOutput(object):
-    """This object will hold the all final, validated outputs (Variant objects) and provide methods to return this
-    into a number of formats, with or without meta data"""
+    """
+    Hold final validated Variant objects and provide methods to return
+    them in a number of output formats, with or without metadata.
+    """
 
     def __init__(self, outputlist, validator):
         self.output_list = outputlist
@@ -15,150 +19,249 @@ class ValOutput(object):
 
     def format_as_dict(self, with_meta=True, test=False):
         validation_output = {'flag': 'warning'}
+
         validation_error_counter = 0
         validation_obsolete_counter = 0
         validation_warning_counter = 0
         validation_intergenic_counter = 0
 
-        if len(self.output_list) == 0:
+        if not self.output_list:
             logger.info("No variants available to output")
             validation_output['flag'] = 'empty_result'
 
         for variant in self.output_list:
-            # For gene outputs, i.e. those that hit transcripts
-            if variant.output_type_flag == 'gene':
+            output_type = variant.output_type_flag
+
+            if output_type == 'gene':
                 validation_output['flag'] = 'gene_variant'
+
                 if variant.warnings == ['Validation error']:
-                    validation_error_counter = validation_error_counter + 1
-                    identification_key = 'validation_error_%s' % validation_error_counter
+                    validation_error_counter += 1
+                    identification_key = (
+                        f'validation_error_{validation_error_counter}'
+                    )
+
+                elif (
+                        variant.is_obsolete()
+                        and variant.hgvs_transcript_variant == ''
+                ):
+                    validation_obsolete_counter += 1
+                    identification_key = (
+                        f'obsolete_record_{validation_obsolete_counter}'
+                    )
+
                 else:
-                    if variant.is_obsolete() and variant.hgvs_transcript_variant == '':
-                        validation_obsolete_counter += 1
-                        identification_key = 'obsolete_record_%s' % validation_obsolete_counter
-                    else:
-                        identification_key = str(variant.hgvs_transcript_variant)
+                    identification_key = str(
+                        variant.hgvs_transcript_variant
+                    )
 
-                validation_output[identification_key] = variant.output_dict(test=test)
+                validation_output[identification_key] = (
+                    variant.output_dict(test=test)
+                )
 
-            # For warning only outputs
-            # Should only ever be 1 output as an error or a warning of the following types
-            # Gene symbol as reference sequence
-            # Gene as transcript reference sequence
-
-            # Note, currently there are no NM_ mito transcripts. This is expected to change. For now mito will
-            # be handled here
-            if variant.output_type_flag == 'warning':
+            elif output_type == 'warning':
                 if variant.warnings == ['Validation error']:
-                    validation_error_counter = validation_error_counter + 1
-                    identification_key = 'validation_error_%s' % validation_error_counter
+                    validation_error_counter += 1
+                    identification_key = (
+                        f'validation_error_{validation_error_counter}'
+                    )
+
                 elif variant.is_obsolete():
                     validation_obsolete_counter += 1
-                    identification_key = 'obsolete_record_%s' % validation_obsolete_counter
-                else:
-                    validation_warning_counter = validation_warning_counter + 1
+                    identification_key = (
+                        f'obsolete_record_{validation_obsolete_counter}'
+                    )
 
-                    # Get additional warnings from lovd syntax check
+                else:
+                    validation_warning_counter += 1
+
                     self.lovd_syntax_check(variant)
-                    identification_key = 'validation_warning_%s' % validation_warning_counter
 
-                validation_output[identification_key] = variant.output_dict(test=test)
+                    identification_key = (
+                        f'validation_warning_{validation_warning_counter}'
+                    )
 
-            elif variant.output_type_flag == 'mitochondrial':
+                validation_output[identification_key] = (
+                    variant.output_dict(test=test)
+                )
+
+            elif output_type == 'mitochondrial':
                 validation_output['flag'] = 'mitochondrial'
+
                 if variant.warnings == ['Validation error']:
-                    validation_error_counter = validation_error_counter + 1
-                    identification_key = 'validation_error_%s' % validation_error_counter
+                    validation_error_counter += 1
+                    identification_key = (
+                        f'validation_error_{validation_error_counter}'
+                    )
+
                 elif variant.is_obsolete():
                     validation_obsolete_counter += 1
-                    identification_key = 'obsolete_record_%s' % validation_obsolete_counter
+                    identification_key = (
+                        f'obsolete_record_{validation_obsolete_counter}'
+                    )
+
                 else:
-                    validation_warning_counter = validation_warning_counter + 1
-                    identification_key = 'mitochondrial_variant_%s' % validation_warning_counter
-                validation_output[identification_key] = variant.output_dict(test=test)
+                    validation_warning_counter += 1
+                    identification_key = (
+                        f'mitochondrial_variant_{validation_warning_counter}'
+                    )
 
-            # Intergenic variants
-            if variant.output_type_flag == 'intergenic':
+                validation_output[identification_key] = (
+                    variant.output_dict(test=test)
+                )
+
+            elif output_type == 'intergenic':
                 validation_output['flag'] = 'intergenic'
-                validation_intergenic_counter = validation_intergenic_counter + 1
-                identification_key = 'intergenic_variant_%s' % validation_intergenic_counter
+                validation_intergenic_counter += 1
 
-                # Finalise the output dictionary
-                validation_output[identification_key] = variant.output_dict(test=test)
+                identification_key = (
+                    f'intergenic_variant_{validation_intergenic_counter}'
+                )
+
+                validation_output[identification_key] = (
+                    variant.output_dict(test=test)
+                )
 
         if with_meta:
-            validation_output["metadata"] = self.add_meta()
+            validation_output['metadata'] = self.add_meta()
 
-        # return batch_out
         return validation_output
 
     def format_as_json(self, with_meta=True):
-        dictionary_output = self.format_as_dict(with_meta)
-        return json.dumps(dictionary_output)
+        return json.dumps(
+            self.format_as_dict(with_meta)
+        )
 
     def format_as_table(self, with_meta=True):
         """
-        The table format will output all results.
-        :param with_meta:
-        :return:
+        Return all validation results in table format.
         """
         outputstrings = []
+
         if with_meta:
-            outputstrings.append('# Metadata: ' + ', '.join(['%s: %s' % (k, v) for k, v in self.add_meta().items()]))
+            outputstrings.append(
+                '# Metadata: '
+                + ', '.join(
+                    f'{key}: {value}'
+                    for key, value in self.add_meta().items()
+                )
+            )
 
-        outputstrings.append(['Input', 'Warnings', 'Select transcript', 'HGVS_transcript', 'HGVS_intronic_chr_context',
-                              'HGVS_intronic_rsg_context', 'HGVS_RefSeqGene', 'HGVS_LRG',
-                              'HGVS_LRG_transcript', 'HGVS_Predicted_Protein', 'HGVS_Genomic_GRCh37', 'GRCh37_CHR',
-                              'GRCh37_POS', 'GRCh37_ID', 'GRCh37_REF', 'GRCh37_ALT', 'HGVS_Genomic_GRCh38',
-                              'GRCh38_CHR', 'GRCh38_POS', 'GRCh38_ID', 'GRCh38_REF', 'GRCh38_ALT',
-                              'Gene_Symbol', 'HGNC_Gene_ID', 'Transcript_description', 'Alt_genomic_loci'])
+        outputstrings.append([
+            'Input',
+            'Warnings',
+            'Select transcript',
+            'HGVS_transcript',
+            'HGVS_intronic_chr_context',
+            'HGVS_intronic_rsg_context',
+            'HGVS_RefSeqGene',
+            'HGVS_LRG',
+            'HGVS_LRG_transcript',
+            'HGVS_Predicted_Protein',
+            'HGVS_Genomic_GRCh37',
+            'GRCh37_CHR',
+            'GRCh37_POS',
+            'GRCh37_ID',
+            'GRCh37_REF',
+            'GRCh37_ALT',
+            'HGVS_Genomic_GRCh38',
+            'GRCh38_CHR',
+            'GRCh38_POS',
+            'GRCh38_ID',
+            'GRCh38_REF',
+            'GRCh38_ALT',
+            'Gene_Symbol',
+            'HGNC_Gene_ID',
+            'Transcript_description',
+            'Alt_genomic_loci',
+        ])
+
+        empty_vcf = {
+            'chr': '',
+            'pos': '',
+            'id': '',
+            'ref': '',
+            'alt': '',
+        }
+
         for variant in self.output_list:
-
-            # Get additional warnings from lovd syntax check
-            if variant.output_type_flag == 'warning':
-                self.lovd_syntax_check(variant)
-            if variant.warnings == ['Validation error']:
+            if (
+                    variant.output_type_flag == 'warning'
+                    or variant.warnings == ['Validation error']
+            ):
                 self.lovd_syntax_check(variant)
 
             prot = ''
+
             if variant.hgvs_predicted_protein_consequence is not None:
-                prot = variant.hgvs_predicted_protein_consequence['tlr']
+                prot = (
+                    variant
+                    .hgvs_predicted_protein_consequence['tlr']
+                )
+
             if variant.rna_data is not None:
-                prot = variant.rna_data["translation"]
+                prot = variant.rna_data['translation']
+
+            primary_loci = variant.primary_assembly_loci or {}
+
+            grch37_data = primary_loci.get('grch37')
+            grch38_data = primary_loci.get('grch38')
+
             grch37 = ''
-            grch37_vcf = {'chr': '', 'pos': '', 'ref': '', 'alt': '', 'id': ''}
-            if variant.primary_assembly_loci and 'grch37' in variant.primary_assembly_loci:
-                grch37 = variant.primary_assembly_loci['grch37']['hgvs_genomic_description']
-                grch37_vcf = variant.primary_assembly_loci['grch37']['vcf']
-                grch37_vcf['id'] = '.'
+            grch37_vcf = empty_vcf
+
+            if grch37_data:
+                grch37 = (
+                    grch37_data['hgvs_genomic_description']
+                )
+                grch37_vcf = grch37_data['vcf']
+
             grch38 = ''
-            grch38_vcf = {'chr': '', 'pos': '', 'ref': '', 'alt': '', 'id': ''}
-            if variant.primary_assembly_loci and 'grch38' in variant.primary_assembly_loci:
-                grch38 = variant.primary_assembly_loci['grch38']['hgvs_genomic_description']
-                grch38_vcf = variant.primary_assembly_loci['grch38']['vcf']
-                grch38_vcf['id'] = '.'
+            grch38_vcf = empty_vcf
+
+            if grch38_data:
+                grch38 = (
+                    grch38_data['hgvs_genomic_description']
+                )
+                grch38_vcf = grch38_data['vcf']
+
             alt_genomic = []
+
             if variant.alt_genomic_loci:
                 for alt in variant.alt_genomic_loci:
-                    for k, v in alt.items():
-                        if k == 'grch37' or k == 'grch38':
-                            alt_genomic.append(v['hgvs_genomic_description'])
+                    for assembly in ('grch37', 'grch38'):
+                        if assembly in alt:
+                            alt_genomic.append(
+                                alt[assembly][
+                                    'hgvs_genomic_description'
+                                ]
+                            )
+
             gene_id = ''
+
             if variant.stable_gene_ids:
-                if 'hgnc_id' in variant.stable_gene_ids:
-                    gene_id = variant.stable_gene_ids['hgnc_id']
+                gene_id = variant.stable_gene_ids.get(
+                    'hgnc_id',
+                    ''
+                )
 
             select_tx = None
-            try:
-                select_tx = variant.annotations['db_xref']['select']
-            except TypeError:
-                pass
-            except KeyError:
-                pass
+
+            if variant.annotations:
+                select_tx = (
+                    variant.annotations
+                    .get('db_xref', {})
+                    .get('select')
+                )
 
             if variant.rna_data is None:
                 outputstrings.append([
                     variant.original,
-                    '|'.join(variant.process_warnings(string_all=True)),
+                    '|'.join(
+                        variant.process_warnings(
+                            string_all=True
+                        )
+                    ),
                     select_tx,
                     variant.hgvs_transcript_variant,
                     variant.genome_context_intronic_sequence,
@@ -168,122 +271,200 @@ class ValOutput(object):
                     variant.hgvs_lrg_transcript_variant,
                     prot,
                     grch37,
-                    grch37_vcf['chr'],
-                    grch37_vcf['pos'],
-                    grch37_vcf['id'],
-                    grch37_vcf['ref'],
-                    grch37_vcf['alt'],
+                    grch37_vcf.get('chr', ''),
+                    grch37_vcf.get('pos', ''),
+                    grch37_vcf.get('id', ''),
+                    grch37_vcf.get('ref', ''),
+                    grch37_vcf.get('alt', ''),
                     grch38,
-                    grch38_vcf['chr'],
-                    grch38_vcf['pos'],
-                    grch38_vcf['id'],
-                    grch38_vcf['ref'],
-                    grch38_vcf['alt'],
+                    grch38_vcf.get('chr', ''),
+                    grch38_vcf.get('pos', ''),
+                    grch38_vcf.get('id', ''),
+                    grch38_vcf.get('ref', ''),
+                    grch38_vcf.get('alt', ''),
                     variant.gene_symbol,
                     gene_id,
                     variant.description,
-                    '|'.join(alt_genomic)
+                    '|'.join(alt_genomic),
                 ])
 
             else:
+                rna_data = variant.rna_data
+
                 outputstrings.append([
                     variant.original,
-                    '|'.join(variant.rna_data["usage_warnings"]),
+                    '|'.join(rna_data['usage_warnings']),
                     select_tx,
-                    variant.rna_data["rna_variant"],
-                    "",
-                    "",
-                    "",
-                    "",
-                    "",
+                    rna_data['rna_variant'],
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
                     prot,
-                    "",
-                    "",
-                    "",
-                    "",
-                    "",
-                    "",
-                    "",
-                    "",
-                    "",
-                    "",
-                    "",
-                    "",
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
                     variant.gene_symbol,
                     gene_id,
                     variant.description,
-                    ""
+                    '',
                 ])
 
         return outputstrings
 
     def add_meta(self):
         """
-        Returns dictionary of metadata
-        :return:
+        Return VariantValidator metadata.
         """
-        metadata = {}
-        metadata['variantvalidator_version'] = self.validator.version
-        metadata['variantvalidator_hgvs_version'] = self.validator.hgvsVersion
-        metadata['vvta_version'] = self.validator.utaSchema
-        metadata['vvseqrepo_db'] = self.validator.seqrepoVersion
-        metadata['vvdb_version'] = self.validator.vvdbVersion
-        return metadata
+        return {
+            'variantvalidator_version':
+                self.validator.version,
+            'variantvalidator_hgvs_version':
+                self.validator.hgvsVersion,
+            'vvta_version':
+                self.validator.utaSchema,
+            'vvseqrepo_db':
+                self.validator.seqrepoVersion,
+            'vvdb_version':
+                self.validator.vvdbVersion,
+        }
 
     def lovd_syntax_check(self, variant):
-        # Get additional warnings
+        """
+        Add LOVD syntax-check results to the variant warnings.
+        """
         if variant.lovd_syntax_check is None:
-            variant.lovd_syntax_check = lovd_api.lovd_syntax_check(
-                variant.original.strip(), do_lovd_check=self.validator.lovd_syntax_check)
-        else:
-            pass
-        if "lovd_api_error" not in variant.lovd_syntax_check.keys():
-            lovd_messages = {}
-            lovd_corrections = {}
+            variant.lovd_syntax_check = (
+                lovd_api.lovd_syntax_check(
+                    variant.original.strip(),
+                    do_lovd_check=(
+                        self.validator.lovd_syntax_check
+                    ),
+                )
+            )
 
+        lovd_result = variant.lovd_syntax_check
+
+        if 'lovd_api_error' in lovd_result:
+            return
+
+        lovd_messages = {}
+        lovd_corrections = {}
+
+        try:
+            data = lovd_result['data'][0]
+        except (KeyError, IndexError, TypeError):
+            data = {}
+
+        corrected_values = data.get('corrected_values')
+
+        if corrected_values:
             try:
-                for key, val in variant.lovd_syntax_check['data'][0]['corrected_values'].items():
-                    lovd_syntax_suggestions = (f"LovdSyntaxcheckSuggestions: [suggestion = {key}, "
-                                               f"probability = {round(val, 2)}]")
-                    if val == 1:
-                        if key == variant.original:
-                            variant.warnings.append(f"LovdSyntaxcheckValid: {variant.original} is syntactically "
-                                                    f"correct")
-                        else:
-                            variant.warnings.append(f"LovdSyntaxcheckInvalid: {variant.original} is not syntactically "
-                                                    f"correct, see LovdSyntaxcheckSuggestions for details")
-                            variant.warnings.append(lovd_syntax_suggestions)
+                correction_items = corrected_values.items()
+            except AttributeError:
+                correction_items = ()
+
+            invalid_warning_added = any(
+                'LovdSyntaxcheckInvalid:' in warning
+                for warning in variant.warnings
+            )
+
+            for key, val in correction_items:
+                suggestion = (
+                    f"LovdSyntaxcheckSuggestions: "
+                    f"[suggestion = {key}, "
+                    f"probability = {round(val, 2)}]"
+                )
+
+                if val == 1:
+                    if key == variant.original:
+                        variant.warnings.append(
+                            f"LovdSyntaxcheckValid: "
+                            f"{variant.original} is "
+                            f"syntactically correct"
+                        )
+
                     else:
-                        if ("is not syntactically correct, see LovdSyntaxcheckSuggestions "
-                            "for details") not in str(variant.warnings):
-                            variant.warnings.append(f"LovdSyntaxcheckInvalid: {variant.original} is not syntactically "
-                                                f"correct, see LovdSyntaxcheckSuggestions for details")
-                        variant.warnings.append(lovd_syntax_suggestions)
+                        if not invalid_warning_added:
+                            variant.warnings.append(
+                                f"LovdSyntaxcheckInvalid: "
+                                f"{variant.original} is not "
+                                f"syntactically correct, see "
+                                f"LovdSyntaxcheckSuggestions "
+                                f"for details"
+                            )
+                            invalid_warning_added = True
 
-                    lovd_corrections[key] = val
-            except AttributeError:
-                pass
+                        variant.warnings.append(suggestion)
 
+                else:
+                    if not invalid_warning_added:
+                        variant.warnings.append(
+                            f"LovdSyntaxcheckInvalid: "
+                            f"{variant.original} is not "
+                            f"syntactically correct, see "
+                            f"LovdSyntaxcheckSuggestions "
+                            f"for details"
+                        )
+                        invalid_warning_added = True
+
+                    variant.warnings.append(suggestion)
+
+                lovd_corrections[key] = val
+
+        warnings = data.get('warnings')
+
+        if warnings:
             try:
-                for key, val in variant.lovd_syntax_check["data"][0]["warnings"].items():
-                    variant.warnings.append(f"LovdSyntaxcheckWarning: {val}")
-                    lovd_messages[key] = val
+                warning_items = warnings.items()
             except AttributeError:
-                pass
+                warning_items = ()
 
+            for key, val in warning_items:
+                variant.warnings.append(
+                    f"LovdSyntaxcheckWarning: {val}"
+                )
+                lovd_messages[key] = val
+
+        errors = data.get('errors')
+
+        if errors:
             try:
-                for key, val in variant.lovd_syntax_check["data"][0]["errors"].items():
-                    variant.warnings.append(f"LovdSyntaxcheckError: {val}")
-                    lovd_messages[key] = val
+                error_items = errors.items()
             except AttributeError:
-                pass
+                error_items = ()
 
-            variant.warnings.append(f"LovdSyntaxcheckSource: {variant.lovd_syntax_check['url']}")
-            lovd_messages["ISOURCE"] = variant.lovd_syntax_check['url']
-            variant.warnings.append(f"LovdSyntaxcheckLibraryVersion: {variant.lovd_syntax_check['version']}")
-            lovd_messages["LIBRARYVERSION"] = variant.lovd_syntax_check['version']
-            variant.lovd_messages = lovd_messages
-            variant.lovd_corrections = lovd_corrections
+            for key, val in error_items:
+                variant.warnings.append(
+                    f"LovdSyntaxcheckError: {val}"
+                )
+                lovd_messages[key] = val
+
+        source = lovd_result['url']
+        version = lovd_result['version']
+
+        variant.warnings.append(
+            f"LovdSyntaxcheckSource: {source}"
+        )
+        lovd_messages['ISOURCE'] = source
+
+        variant.warnings.append(
+            f"LovdSyntaxcheckLibraryVersion: {version}"
+        )
+        lovd_messages['LIBRARYVERSION'] = version
+
+        variant.lovd_messages = lovd_messages
+        variant.lovd_corrections = lovd_corrections
 
 
 # <LICENSE>

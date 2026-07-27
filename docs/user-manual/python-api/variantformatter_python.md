@@ -1,20 +1,20 @@
 # VariantFormatter Python API
 
-The VariantFormatter Python API provides direct access to the VariantFormatter formatting engine from within Python. It is suitable for integrating variant formatting into bioinformatics pipelines, analysis workflows, web applications and custom software.
+The VariantFormatter Python API provides direct access to the VariantFormatter formatting engine from within Python. It is suitable for integrating genomic variant formatting into bioinformatics pipelines, analysis workflows, web applications and custom software.
 
-The Python API offers access to the same formatting functionality as the VariantFormatter command-line interface while providing a programmatic interface for automated processing and downstream analysis.
+VariantFormatter accepts genomic variant descriptions as input and generates corresponding genomic, transcript and protein representations where appropriate.
 
 For users who prefer not to write Python code:
 
 - The [VariantValidator website](https://variantvalidator.org) provides a user-friendly interface for formatting and validating variant descriptions.
-- The [VariantValidator REST API](https://rest.variantvalidator.org) allows programmatic access to the formatting services without requiring local installation.
+- The [VariantValidator REST API](https://rest.variantvalidator.org) allows programmatic access to VariantValidator services without requiring local installation.
 - The [VariantFormatter Command Line Interface](../cli/variantformatter_cli.md) provides a command-line interface for formatting variants locally.
 
 ---
 
 ## Basic Usage
 
-Begin by importing the VariantFormatter package and creating a `SimpleVariantFormatter` object.
+Begin by importing VariantFormatter and creating a `SimpleVariantFormatter` object.
 
 ```python
 import json
@@ -25,24 +25,19 @@ formatter = SimpleVariantFormatter()
 
 The `SimpleVariantFormatter` object manages access to the VariantFormatter formatting engine and can be reused to format multiple variants within the same Python session.
 
-Once a `SimpleVariantFormatter` object has been created, variants can be formatted using the `format()` method.
+Variants are formatted using the `format()` method.
 
 ```python
-import json
-from VariantFormatter.simpleVariantFormatter import SimpleVariantFormatter
-
-formatter = SimpleVariantFormatter()
-
 results = formatter.format(
     variant="NC_000017.11:g.50198002C>A",
-    genome_build="GRCh38",
-    select_transcripts="mane_select"
+    genome="GRCh38",
+    select_transcripts="mane_select",
 )
 
 print(json.dumps(results, indent=4, sort_keys=True))
 ```
 
-This formats the supplied variant and returns the results as a Python dictionary that can be processed directly or converted to JSON.
+The returned Python dictionary can be processed directly or converted to JSON.
 
 ---
 
@@ -52,12 +47,13 @@ Variant formatting is performed using the `format()` method.
 
 ```python
 format(
-    variant=None,
-    genome_build=None,
-    transcript_model=None,
-    select_transcripts=None,
+    variant,
+    genome,
+    transcript_model="refseq",
+    select_transcripts="mane_select",
     checkOnly=False,
-    liftover=False
+    liftover_level=True,
+    legacy_genomic_structure=True,
 )
 ```
 
@@ -65,106 +61,86 @@ format(
 
 ## Required Arguments
 
-The following arguments are required when calling the `format()` method.
-
 | Argument | Description |
 |----------|-------------|
-| `variant` | A single variant, multiple variants as a JSON array, or a filename containing variants to format. |
-| `genome_build` | The reference genome assembly (e.g. `GRCh37` or `GRCh38`). |
+| `variant` | A genomic variant description or multiple genomic variants supplied in a supported batch format. |
+| `genome` | Reference genome assembly: `GRCh37`, `GRCh38`, `hg19` or `hg38`. |
 
 ---
 
 ## Optional Arguments
 
-The following optional arguments control formatting behaviour.
-
 | Argument | Default | Description |
 |----------|---------|-------------|
-| `transcript_model` | `None` | Select the transcript database (`refseq`, `ensembl` or `all`). |
-| `select_transcripts` | `None` | Restrict the returned transcript representations. |
-| `checkOnly` | `False` | Validate genomic HGVS syntax only without transcript or protein mapping. |
-| `liftover` | `False` | Generate equivalent genomic representations on compatible genome assemblies. |
-
-Usage of liftover_level
-
-| Parameter | Type            | Required | Description |
-|----------|-----------------|----------|-------------|
-| liftover_level | string or bool  | No | Controls genomic liftover. `True` performs full liftover, `primary` excludes alternative scaffolds, and `False` disables liftover. Defaults to `True`. |
+| `transcript_model` | `refseq` | Transcript database to use: `refseq`, `ensembl` or `all`. |
+| `select_transcripts` | `mane_select` | Controls which transcript representations are returned. |
+| `checkOnly` | `False` | Validate and format the genomic variant without transcript or protein mapping. |
+| `liftover_level` | `True` | Controls generation of genomic representations on another genome assembly. |
+| `legacy_genomic_structure` | `True` | Preserve the historical VariantFormatter genomic loci structure. Set to `False` to return the VariantValidator genomic loci structure. |
 
 ---
 
 ## Default Behaviour
 
-Unless otherwise specified, the VariantFormatter Python API uses the following defaults.
+Unless otherwise specified, VariantFormatter uses the following behaviour:
 
 | Setting | Default |
 |---------|---------|
-| Genome assembly | User supplied (required) |
-| Transcript selection | All compatible transcripts |
-| Transcript database | `refseq` |
+| Genome assembly | User supplied |
+| Transcript selection | MANE Select |
+| Transcript database | RefSeq |
 | Genomic syntax checking only | Disabled |
-| Liftover | Disabled |
+| Liftover | Enabled |
+| Genomic loci structure | Legacy VariantFormatter structure |
 | Output format | Python dictionary |
 
-The `format()` method returns a Python dictionary containing the formatted variant representations.
-
-For example,
+For example:
 
 ```python
 results = formatter.format(
     variant="NC_000017.11:g.50198002C>A",
-    genome_build="GRCh38"
+    genome="GRCh38",
 )
 ```
 
-The returned dictionary can be processed directly or converted to formatted JSON.
-
-```python
-print(json.dumps(results, indent=4, sort_keys=True))
-```
-
-A detailed description of the output format is provided in the
-[Output Formats](../reference/output_formats.md) guide.
+A detailed description of the returned data is provided in the [Output Formats](../reference/output_formats.md) guide.
 
 ---
 
 ## Supported Input Formats
 
-VariantFormatter accepts the same input formats as the command-line interface.
+VariantFormatter accepts **genomic variants as input**.
 
-Supported variant descriptions include:
+Supported input formats include:
 
-- Genomic HGVS (g. notation)
-- Coding HGVS (c. notation)
-- Non-coding HGVS (n. notation)
-- RNA HGVS (r. notation)
-- Protein HGVS (p. notation)
-- Pseudo-VCF/Chromosome coordinate notation (e.g. `17-50198002-C-A` or `17:50198002:C:A`)
-- VCF notation (i.e. full VCF lines with chromosome, position, reference and alternate alleles)
+- Genomic HGVS (`g.` notation) using supported genomic reference sequences, including `NC_`, `NT_` and `NW_` accessions.
+- Pseudo-VCF chromosome-coordinate notation, for example:
+  - `17-50198002-C-A`
+  - `17:50198002:C:A`
 
-The `variant` argument accepts:
+Transcript (`c.` and `n.`), RNA (`r.`) and protein (`p.`) HGVS descriptions are not accepted as VariantFormatter input.
 
-- A single variant description.
-- Multiple variant descriptions supplied as a JSON array.
-- A text file containing one variant description per line.
+VariantFormatter operates from a genomic variant and maps that variant to relevant transcript and protein representations.
 
-See the [Supported Input Formats](../reference/supported_inputs.md) guide for a complete description of supported input formats and examples.
+See the [Supported Input Formats](../reference/supported_inputs.md) guide for further details.
 
 ---
 
 ## Transcript Selection
 
-VariantFormatter supports multiple transcript selection strategies.
+VariantFormatter maps genomic variants to overlapping transcripts.
 
-These include:
+The `select_transcripts` argument controls which transcripts are returned.
 
-- MANE Select transcripts
-- MANE Select and Plus Clinical transcripts
-- All transcripts overlapping a genomic variant at their latest version
-- All transcripts overlapping a genomic variant at all versions
-- User-specified transcript lists
+Supported transcript selection strategies include:
 
-See the [Transcript Selection](../reference/transcript_selection.md) guide for details.
+- `mane_select` — MANE Select transcripts.
+- `mane` — MANE Select and MANE Plus Clinical transcripts.
+- `all` — all relevant transcripts at their latest version.
+- `raw` — all relevant transcript versions.
+- Explicit user-selected transcript identifiers.
+
+See the [Transcript Selection](../reference/transcript_selection.md) guide for further details.
 
 ---
 
@@ -180,7 +156,7 @@ formatter = SimpleVariantFormatter()
 
 results = formatter.format(
     variant="NC_000017.11:g.50198002C>A",
-    genome_build="GRCh38"
+    genome="GRCh38",
 )
 
 print(json.dumps(results, indent=4, sort_keys=True))
@@ -188,324 +164,302 @@ print(json.dumps(results, indent=4, sort_keys=True))
 
 ---
 
-### Format a genomic variant using the Ensembl transcript database
+### Format a genomic variant using Ensembl transcripts
 
 ```python
-import json
-from VariantFormatter.simpleVariantFormatter import SimpleVariantFormatter
-
-formatter = SimpleVariantFormatter()
-
 results = formatter.format(
     variant="NC_000017.11:g.50198002C>A",
-    genome_build="GRCh38",
-    transcript_model="ensembl"
+    genome="GRCh38",
+    transcript_model="ensembl",
 )
-
-print(json.dumps(results, indent=4, sort_keys=True))
 ```
 
 ---
 
-### Format a genomic variant using all transcript databases
+### Format a genomic variant using RefSeq and Ensembl transcripts
 
 ```python
-import json
-from VariantFormatter.simpleVariantFormatter import SimpleVariantFormatter
-
-formatter = SimpleVariantFormatter()
-
 results = formatter.format(
     variant="NC_000017.11:g.50198002C>A",
-    genome_build="GRCh38",
-    transcript_model="all"
+    genome="GRCh38",
+    transcript_model="all",
 )
-
-print(json.dumps(results, indent=4, sort_keys=True))
-```
-
----
-
-### Format a transcript variant
-
-```python
-import json
-from VariantFormatter.simpleVariantFormatter import SimpleVariantFormatter
-
-formatter = SimpleVariantFormatter()
-
-results = formatter.format(
-    variant="NM_000088.4:c.589G>T",
-    genome_build="GRCh38"
-)
-
-print(json.dumps(results, indent=4, sort_keys=True))
-```
-
----
-
-### Format an Ensembl transcript variant
-
-```python
-import json
-from VariantFormatter.simpleVariantFormatter import SimpleVariantFormatter
-
-formatter = SimpleVariantFormatter()
-
-results = formatter.format(
-    variant="ENST00000225964.10:c.589G>T",
-    genome_build="GRCh38",
-    transcript_model="ensembl"
-)
-
-print(json.dumps(results, indent=4, sort_keys=True))
-```
-
----
-
-### Format multiple variants
-
-VariantFormatter accepts multiple variants using a JSON array.
-
-```python
-import json
-from VariantFormatter.simpleVariantFormatter import SimpleVariantFormatter
-
-formatter = SimpleVariantFormatter()
-
-results = formatter.format(
-    variant='["NC_000017.11:g.50198002C>A","NM_000088.4:c.589G>T"]',
-    genome_build="GRCh38"
-)
-
-print(json.dumps(results, indent=4, sort_keys=True))
-```
-
-Each variant is formatted independently, and the results are returned in the order in which the variants were supplied.
-
-**Note:** RefSeq and Ensembl variant descriptions must **not** be mixed within the same formatting request. Submit RefSeq and Ensembl variants in separate formatting requests.
-
----
-
-### Using `select_transcripts`
-
-> **Note:** The `select_transcripts` argument only affects genomic variants. It is ignored when formatting transcript variants because the transcript is already explicitly defined by the input variant.
-
-```python
-import json
-from VariantFormatter.simpleVariantFormatter import SimpleVariantFormatter
-
-formatter = SimpleVariantFormatter()
-
-results = formatter.format(
-    variant="NM_000088.3:c.589G>T",
-    genome_build="GRCh38",
-    select_transcripts="mane_select"
-)
-
-print(json.dumps(results, indent=4, sort_keys=True))
-```
-
-The transcript specified by the input variant is preserved and is **not** replaced by the MANE Select transcript (`NM_000088.4`).
-
-RefSeq and Ensembl transcript identifiers must **not** be mixed when using `select_transcripts`.
-
----
-
-### Restrict the output to MANE Select transcripts
-
-```python
-import json
-from VariantFormatter.simpleVariantFormatter import SimpleVariantFormatter
-
-formatter = SimpleVariantFormatter()
-
-results = formatter.format(
-    variant="NC_000017.11:g.50198002C>A",
-    genome_build="GRCh38",
-    select_transcripts="mane_select"
-)
-
-print(json.dumps(results, indent=4, sort_keys=True))
-```
-
----
-
-### Restrict the output to a single specified transcript
-
-```python
-import json
-from VariantFormatter.simpleVariantFormatter import SimpleVariantFormatter
-
-formatter = SimpleVariantFormatter()
-
-results = formatter.format(
-    variant="NC_000017.11:g.50198002C>A",
-    genome_build="GRCh38",
-    select_transcripts='["NM_000088.4"]'
-)
-
-print(json.dumps(results, indent=4, sort_keys=True))
-```
-
----
-
-### Restrict the output to multiple specified transcripts
-
-```python
-import json
-from VariantFormatter.simpleVariantFormatter import SimpleVariantFormatter
-
-formatter = SimpleVariantFormatter()
-
-results = formatter.format(
-    variant="NC_000017.11:g.50198002C>A",
-    genome_build="GRCh38",
-    select_transcripts='["NM_000088.3","NM_000088.4"]'
-)
-
-print(json.dumps(results, indent=4, sort_keys=True))
-```
-
----
-
-### Restrict the output to multiple user-selected transcripts
-
-The `select_transcripts` argument accepts a JSON array of transcript identifiers.
-
-```python
-import json
-from VariantFormatter.simpleVariantFormatter import SimpleVariantFormatter
-
-formatter = SimpleVariantFormatter()
-
-results = formatter.format(
-    variant="NC_000017.11:g.50198002C>A",
-    genome_build="GRCh38",
-    select_transcripts='["NM_000088.3","NM_000088.4"]'
-)
-
-print(json.dumps(results, indent=4, sort_keys=True))
-```
-
----
-
-### Validate genomic HGVS syntax only
-
-The `checkOnly` argument validates genomic HGVS syntax without generating transcript or protein representations.
-
-```python
-import json
-from VariantFormatter.simpleVariantFormatter import SimpleVariantFormatter
-
-formatter = SimpleVariantFormatter()
-
-results = formatter.format(
-    variant="NC_000017.11:g.50198002C>A",
-    genome_build="GRCh38",
-    checkOnly=True
-)
-
-print(json.dumps(results, indent=4, sort_keys=True))
-```
-
----
-
-### Generate lifted-over genomic representations
-
-The `liftover` argument includes equivalent genomic representations on compatible genome assemblies.
-
-```python
-import json
-from VariantFormatter.simpleVariantFormatter import SimpleVariantFormatter
-
-formatter = SimpleVariantFormatter()
-
-results = formatter.format(
-    variant="NC_000017.11:g.50198002C>A",
-    genome_build="GRCh38",
-    liftover=True
-)
-
-print(json.dumps(results, indent=4, sort_keys=True))
 ```
 
 ---
 
 ### Format pseudo-VCF notation
 
-VariantFormatter accepts pseudo-VCF chromosome coordinate notation.
+Hyphen-delimited pseudo-VCF input:
 
 ```python
-import json
-from VariantFormatter.simpleVariantFormatter import SimpleVariantFormatter
-
-formatter = SimpleVariantFormatter()
-
 results = formatter.format(
     variant="17-50198002-C-A",
-    genome_build="GRCh38"
+    genome="GRCh38",
 )
-
-print(json.dumps(results, indent=4, sort_keys=True))
 ```
 
-or
+Colon-delimited pseudo-VCF input:
 
 ```python
-import json
-from VariantFormatter.simpleVariantFormatter import SimpleVariantFormatter
-
-formatter = SimpleVariantFormatter()
-
 results = formatter.format(
     variant="17:50198002:C:A",
-    genome_build="GRCh38"
+    genome="GRCh38",
 )
-
-print(json.dumps(results, indent=4, sort_keys=True))
 ```
 
 ---
 
-### Format variants from an input file
+## Format Multiple Variants
 
-VariantFormatter can format multiple variants from a text file.
-
-Each line of the input file should contain a single supported variant description.
+Multiple variants can be supplied as a JSON array.
 
 ```python
-import json
-from VariantFormatter.simpleVariantFormatter import SimpleVariantFormatter
-
-formatter = SimpleVariantFormatter()
-
 results = formatter.format(
-    variant="variants.txt",
-    genome_build="GRCh38"
+    variant=(
+        '["NC_000017.11:g.50198002C>A",'
+        '"NC_000016.10:g.15738651_15738652inv"]'
+    ),
+    genome="GRCh38",
 )
+```
 
-print(json.dumps(results, indent=4, sort_keys=True))
+Each genomic variant is processed independently and returned in the result dictionary.
+
+---
+
+## Selecting Transcripts
+
+### Restrict output to MANE Select transcripts
+
+```python
+results = formatter.format(
+    variant="NC_000017.11:g.50198002C>A",
+    genome="GRCh38",
+    select_transcripts="mane_select",
+)
 ```
 
 ---
 
-### Write the formatted results to a JSON file
+### Return MANE Select and MANE Plus Clinical transcripts
+
+```python
+results = formatter.format(
+    variant="NC_000017.11:g.50198002C>A",
+    genome="GRCh38",
+    select_transcripts="mane",
+)
+```
+
+---
+
+### Return all latest transcript versions
+
+```python
+results = formatter.format(
+    variant="NC_000017.11:g.50198002C>A",
+    genome="GRCh38",
+    select_transcripts="all",
+)
+```
+
+---
+
+### Return all transcript versions
+
+```python
+results = formatter.format(
+    variant="NC_000017.11:g.50198002C>A",
+    genome="GRCh38",
+    select_transcripts="raw",
+)
+```
+
+---
+
+### Restrict output to a single specified transcript
+
+```python
+results = formatter.format(
+    variant="NC_000017.11:g.50198002C>A",
+    genome="GRCh38",
+    select_transcripts='["NM_000088.4"]',
+)
+```
+
+---
+
+### Restrict output to multiple specified transcripts
+
+```python
+results = formatter.format(
+    variant="NC_000017.11:g.50198002C>A",
+    genome="GRCh38",
+    select_transcripts='["NM_000088.3","NM_000088.4"]',
+)
+```
+
+RefSeq and Ensembl transcript identifiers must not be mixed in the same explicit transcript list.
+
+---
+
+## Validate Genomic HGVS Only
+
+The `checkOnly` argument validates and formats the genomic variant without generating transcript or protein mappings.
+
+```python
+results = formatter.format(
+    variant="NC_000017.11:g.50198002C>A",
+    genome="GRCh38",
+    checkOnly=True,
+)
+```
+
+---
+
+## Liftover
+
+VariantFormatter can generate equivalent genomic representations on another genome assembly.
+
+The `liftover_level` argument controls this behaviour.
+
+| Value | Description |
+|-------|-------------|
+| `True` | Perform full liftover. |
+| `"primary"` | Perform liftover while excluding alternative scaffolds. |
+| `False` | Disable liftover. |
+
+For example:
+
+```python
+results = formatter.format(
+    variant="NC_000017.11:g.50198002C>A",
+    genome="GRCh38",
+    liftover_level=True,
+)
+```
+
+To disable liftover:
+
+```python
+results = formatter.format(
+    variant="NC_000017.11:g.50198002C>A",
+    genome="GRCh38",
+    liftover_level=False,
+)
+```
+
+---
+
+## Genomic Loci Output Structure
+
+VariantFormatter historically uses a genomic loci structure in which each genome build contains an additional accession-keyed level.
+
+This structure remains the default for backwards compatibility:
+
+```python
+results = formatter.format(
+    variant="NC_000016.10:g.15738651_15738652inv",
+    genome="GRCh38",
+    legacy_genomic_structure=True,
+)
+```
+
+For example, `primary_assembly_loci` has the form:
+
+```python
+{
+    "grch38": {
+        "NC_000016.10": {
+            "hgvs_genomic_description":
+                "NC_000016.10:g.15738651_15738652inv",
+            "vcf": {
+                "chr": "16",
+                "pos": "15738651",
+                "ref": "GT",
+                "alt": "AC",
+            },
+        }
+    }
+}
+```
+
+### VariantValidator genomic structure
+
+Set `legacy_genomic_structure=False` to return genomic loci using the VariantValidator structure:
+
+```python
+results = formatter.format(
+    variant="NC_000016.10:g.15738651_15738652inv",
+    genome="GRCh38",
+    legacy_genomic_structure=False,
+)
+```
+
+The additional accession-keyed level is removed:
+
+```python
+{
+    "grch38": {
+        "hgvs_genomic_description":
+            "NC_000016.10:g.15738651_15738652inv",
+        "vcf": {
+            "chr": "16",
+            "pos": "15738651",
+            "ref": "GT",
+            "alt": "AC",
+        },
+    }
+}
+```
+
+This option affects the structure used to return genomic loci; it does not change the underlying variant mapping.
+
+---
+
+## Write Results to a JSON File
+
+The returned dictionary can be written directly to JSON.
 
 ```python
 import json
-from VariantFormatter.simpleVariantFormatter import SimpleVariantFormatter
-
-formatter = SimpleVariantFormatter()
 
 results = formatter.format(
     variant="NC_000017.11:g.50198002C>A",
-    genome_build="GRCh38"
+    genome="GRCh38",
 )
 
 with open("results.json", "w") as fh:
-    json.dump(results, fh, indent=4, sort_keys=True)
+    json.dump(
+        results,
+        fh,
+        indent=4,
+        sort_keys=True,
+    )
 ```
+
+---
+
+## Reusing the Formatter
+
+A `SimpleVariantFormatter` instance can be reused for multiple formatting requests.
+
+```python
+formatter = SimpleVariantFormatter()
+
+result_1 = formatter.format(
+    variant="NC_000017.11:g.50198002C>A",
+    genome="GRCh38",
+)
+
+result_2 = formatter.format(
+    variant="NC_000016.10:g.15738651_15738652inv",
+    genome="GRCh38",
+)
+```
+
+Reusing the formatter avoids unnecessarily recreating the VariantFormatter environment for each request.
 
 ---
 
@@ -513,17 +467,20 @@ with open("results.json", "w") as fh:
 
 Common problems include:
 
-- Invalid HGVS syntax.
-- Unsupported reference sequences.
-- Missing genome build.
-- Invalid transcript selection.
-- Unable to connect to the VariantValidator databases.
-- Missing or incorrect configuration file.
+- invalid genomic HGVS syntax;
+- unsupported input types;
+- unsupported reference sequences;
+- a reference sequence that does not correspond to the selected genome build;
+- invalid pseudo-VCF input;
+- invalid transcript selection;
+- invalid transcript model selection;
+- coordinates outside the reference sequence;
+- inability to connect to the VariantValidator databases;
+- a missing or incorrect VariantValidator configuration file.
 
-Most errors include an explanatory message describing the cause of the problem.
+VariantFormatter returns explanatory warnings or errors where possible.
 
-For a complete description of Python exceptions, error messages and troubleshooting guidance, see the
-[Errors and Error Codes](../reference/errors_and_error_codes.md) guide.
+For further information, see the [Errors and Error Codes](../reference/errors_and_error_codes.md) guide.
 
 ---
 
@@ -535,5 +492,3 @@ For a complete description of Python exceptions, error messages and troubleshoot
 - [Output Formats](../reference/output_formats.md)
 - [Transcript Selection](../reference/transcript_selection.md)
 - [Errors and Error Codes](../reference/errors_and_error_codes.md)
-
-

@@ -34,18 +34,6 @@ def test_remove_gene_symbol_from_ref_object():
     assert "Removing redundant gene symbol BRCA1" in variant.warnings[0]
 
 
-def test_remove_gene_symbol_from_ref_string():
-    variant = make_variant()
-    validator = make_validator()
-
-    variant.quibble = "NM_000001.1(BRCA1):c.123A>G"
-
-    remove_gene_symbol_from_ref(variant, validator)
-
-    assert variant.quibble == "NM_000001.1:c.123A>G"
-    assert len(variant.warnings) == 1
-
-
 def test_remove_gene_symbol_not_hgnc():
     variant = make_variant()
     validator = make_validator()

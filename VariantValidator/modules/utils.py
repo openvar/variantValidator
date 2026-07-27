@@ -319,30 +319,26 @@ def ensembl_tark(id, endpoint, options=False):
 
 def valstr(hgvs_variant):
     """
-    Required for final validation and stringifying parsed hgvs variants prior to printing/passing to html.
-    Function to ensure the required number of reference bases are displayed in descriptions
+    format nucleotide descriptions to not display reference base and return a string
     """
-    cp_hgvs_variant = copy.deepcopy(hgvs_variant)
-    if cp_hgvs_variant.posedit.edit.type == 'identity':
-        if len(cp_hgvs_variant.posedit.edit.ref) > 0:
-            cp_hgvs_variant = remove_reference(cp_hgvs_variant)
-        cp_hgvs_variant = str(cp_hgvs_variant)
-    else:
-        cp_hgvs_variant = remove_reference(cp_hgvs_variant)
-        cp_hgvs_variant = str(cp_hgvs_variant)
-    return cp_hgvs_variant
+    try:
+        hgvs_variant.ac
+    except AttributeError:
+        raise AttributeError(f"valstr() called on {hgvs_variant} as a string. Must be a hgvs object")
+    return str(remove_reference(hgvs_variant))
 
 
 def single_letter_protein(hgvs_protein):
     """
     format protein description into single letter aa code
     """
+
     return hgvs_protein.format({'p_3_letter': False})
 
 
 def remove_reference(hgvs_nucleotide):
     """
-    format nucleotide descriptions to not display reference base
+    format nucleotide descriptions to not display reference base, and return a string
     """
     hgvs_nucleotide_refless = hgvs_nucleotide.format({'max_ref_length': 0})
     return hgvs_nucleotide_refless
@@ -362,7 +358,7 @@ def remove_reference_string(variant_string):
     if inv_match:
         variant_string = variant_string.replace(inv_match[0], 'inv')
     # delins
-    delins_match = re.search('del[GATC]+ins[GATC+]$', variant_string)
+    delins_match = re.search(r'del[GATC]+ins[GATC]+$', variant_string)
     if delins_match:
         delins_match_b = delins_match[0].split('ins')[1]
         delins_match_b = 'delins' + delins_match_b
@@ -372,85 +368,34 @@ def remove_reference_string(variant_string):
 
 def user_input(query):
     """
-    user_input
-    collect the input from the form and convert to a hgvs readable string
-        Removes brackets and contained information -if given
-        Identifies variant type (p. c. etc)
-        Returns a dictionary containing a formated input string which is optimal for hgvs
-        parsing and the variant type
-        Accepts c, g, n, r currently. And now P also 15.07.15
+    Collect the input from the form and convert to an HGVS-readable string.
+
+    Removes brackets and contained information where applicable, identifies
+    the variant type, and returns the formatted variant and type.
     """
     raw_variant = query.strip()
 
-    # Set regular expressions for if statements
-    pat_g = re.compile(r":g\.")  # Pattern looks for :g.
-    pat_gene = re.compile(r'\(.+?\)')  # Pattern looks for (....)
-    pat_c = re.compile(r":c\.")  # Pattern looks for :c.
-    pat_r = re.compile(r":r\.")  # Pattern looks for :r.
-    pat_n = re.compile(r":n\.")  # Pattern looks for :n.
-    pat_p = re.compile(r":p\.")  # Pattern looks for :p.
-    pat_m = re.compile(r":m\.")  # Pattern looks for :m.
-    pat_est = re.compile(r"\d:\d")  # Pattern looks for number:number
+    # Identify HGVS variant type
+    variant_type = None
+    for hgvs_type in (':g.', ':r.', ':n.', ':c.', ':p.', ':m.'):
+        if hgvs_type in raw_variant:
+            variant_type = hgvs_type
+            break
 
-    # If statements
-    if pat_g.search(raw_variant):  # If the :g. pattern is present in the raw_variant, g_in is linked to the raw_variant
-        if pat_gene.search(raw_variant):  # If pat gene is present in the raw_variant
-            variant = pat_gene.sub('', raw_variant)  # variant is set to the raw_variant string with the pattern (...) substituted out
-            formated = {'variant': variant, 'type': ':g.'}
-            return formated
-        else:
-            variant = raw_variant  # Otherwise it is set to raw_variant
-            formated = {'variant': variant, 'type': ':g.'}
-            return formated
-
-    elif pat_r.search(raw_variant):
-        if pat_gene.search(raw_variant):
-            variant = pat_gene.sub('', raw_variant)
-            formated = {'variant': variant, 'type': ':r.'}
-            return formated
-        else:
-            variant = raw_variant
-            formated = {'variant': variant, 'type': ':r.'}
-            return formated
-
-    elif pat_n.search(raw_variant):
-        if pat_gene.search(raw_variant):
-            variant = pat_gene.sub('', raw_variant)
-            formated = {'variant': variant, 'type': ':n.'}
-            return formated
-        else:
-            variant = raw_variant
-            formated = {'variant': variant, 'type': ':n.'}
-            return formated
-
-    elif pat_c.search(raw_variant):
-        if pat_gene.search(raw_variant):
-            variant = pat_gene.sub('', raw_variant)
-            formated = {'variant': variant, 'type': ':c.'}
-            return formated
-        else:
-            variant = raw_variant
-            formated = {'variant': variant, 'type': ':c.'}
-            return formated
-
-    elif pat_p.search(raw_variant):
+    if variant_type is not None:
         variant = raw_variant
-        formated = {'variant': variant, 'type': ':p.'}
-        return formated
 
-    elif pat_m.search(raw_variant):
-        variant = raw_variant
-        formated = {'variant': variant, 'type': ':m.'}
-        return formated
+        # Remove redundant gene symbol from nucleotide descriptions
+        if variant_type in (':g.', ':r.', ':n.', ':c.') and '(' in raw_variant:
+            variant = re.sub(r'\(.+?\)', '', raw_variant)
 
-    elif pat_est.search(raw_variant):
-        variant = raw_variant
-        formated = {'variant': variant, 'type': 'est'}
-        return formated
+        return {'variant': variant, 'type': variant_type}
 
-    else:
-        formatted = 'invalid'
-        return formatted
+    # EST-style input: number:number
+    if re.search(r'\d:\d', raw_variant):
+        return {'variant': raw_variant, 'type': 'est'}
+
+    return 'invalid'
 
 
 def pro_inv_info(prot_ref_seq, prot_var_seq):
@@ -471,7 +416,6 @@ def pro_inv_info(prot_ref_seq, prot_var_seq):
 
     # Is there actually any variation?
     if prot_ref_seq == prot_var_seq:
-        info['variant'] = 'false'
         info['variant'] = 'identity'
         return info
     else:
@@ -522,6 +466,7 @@ def pro_inv_info(prot_ref_seq, prot_var_seq):
                     # reverse the lists
                     ref = ref[::-1]
                     var = var[::-1]
+
                     # Reverse loop through ref list to find the first missmatch position
                     for aa in ref:
                         if var[aa_counter] == r'\*':
@@ -530,6 +475,7 @@ def pro_inv_info(prot_ref_seq, prot_var_seq):
                             aa_counter = aa_counter + 1
                         else:
                             break
+
                     # Remove those elements form the list
                     del ref[0:aa_counter]
                     del var[0:aa_counter]
@@ -570,7 +516,6 @@ def pro_delins_info(prot_ref_seq, prot_var_seq, in_frame=False):
 
     # Is there actually any variation?
     if prot_ref_seq == prot_var_seq:
-        info['variant'] = 'false'
         info['variant'] = 'identity'
         return info
     else:
@@ -732,7 +677,7 @@ def three_to_one(seq):
         'Lys': 'K', 'Leu': 'L', 'Met': 'M', 'Asn': 'N',
         'Pro': 'P', 'Gln': 'Q', 'Arg': 'R', 'Ser': 'S',
         'Thr': 'T', 'Val': 'V', 'Trp': 'W', 'Tyr': 'Y',
-        'Ter': '*'}
+        'Ter': '*', 'Sec': 'U'}
 
     threed = [seq[i:i + 3] for i in range(0, len(seq), 3)]
     out = []
@@ -760,27 +705,13 @@ def n_inversion(ref_seq, del_seq, inv_seq, interval_start, interval_end):
         return sequence
 
 
-def hgvs_dup2indel(hgvs_seq):
-    """Will convert hgvs variant object dup into a string with del and ins"""
-    string = "%s:%s.%s_%sdel%sins%s%s" % (
-        hgvs_seq.ac,
-        hgvs_seq.type,
-        hgvs_seq.posedit.pos.start.base,
-        hgvs_seq.posedit.pos.end.base,
-        hgvs_seq.posedit.edit.ref,
-        hgvs_seq.posedit.edit.ref,
-        hgvs_seq.posedit.edit.ref
-        )
-    return string
-
-
 def get_exon_boundary_list(variant, validator):
     """
     Function to get the exon boundaries of a transcript
     """
     # Get the transcript
     transcript = variant.quibble.split(':')[0]
-    if transcript.startswith('NM_' or 'NR_' or 'ENST'):
+    if transcript.startswith(('NM_', 'NR_', 'ENST')):
         # Get alignment options and identify the relevant primary assembly chrom
         mapping_options = variant.map_dat.mapping_options(transcript,hdp=validator.hdp)
         chromosome_reference = None
@@ -898,6 +829,9 @@ WARNING_CODE_MAP = {
     "Reference type incorrectly stated":
         ("ReferenceTypeError", None),
 
+    "is not compatible with variant type":
+        ("ReferenceTypeError", None),
+
     "invalid reference sequence identifier":
         ("ReferenceSequenceError", None),
 
@@ -973,9 +907,6 @@ WARNING_CODE_MAP = {
 
     "Mapping unavailable for RefSeqGene":
         ("TranscriptMappingError", None),
-
-    # "Transcript ":
-    #     ("TranscriptDataError", None),
 
     "Required information for ":
         ("TranscriptDataError", None),

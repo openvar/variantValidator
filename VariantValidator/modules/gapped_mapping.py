@@ -1,365 +1,714 @@
 import copy
 import re
-import logging
 import vvhgvs.exceptions
-from . import hgvs_utils
+from . import hgvs_utils, hgvs_position_utils
 from VariantValidator.modules.hgvs_utils import hgvs_delins_parts_to_hgvs_obj, hgvs_dup_to_delins
 from VariantValidator.modules.variant import TranscriptMapData
 from VariantValidator.modules.utils import simple_dna_revcomp
 
-# Add missing import - Was never imported
-# from VariantValidator.modules.hgvs_utils import hgvs_obj_from_existing_edit
 
-logger = logging.getLogger(__name__)
-
-# New function for handling insertion type gapped mappings, relies on, and should only trigger with
+# New functions for handling insertion type gapped mappings, relies on, and should only trigger with
 # hgvs mapping improvements, needs to be used before the main GapMapper object
 # no_norm_evm, and map_dat could be sourced from a variant object but will sill
-def immediate_round_trip_gap_ins_handling(
-        orig_hgvs_coding,# transcript mapping
-        orig_hgvs_genomic,# genomic mapping
-        variant_or_validator,# variant or validator, could be either to allow VF liftover usage
-        map_dat=False,): # mapping data for current transcript, will prefer variant data if present
+def _expand_gap_insertion(
+        insertion,
+        gap_ref,
+        start_offset,
+        end_offset,
+        reverse=False,
+):
     """
-    Although G->T is not yet fully fixed T->G in hgvs will correctly handle ins coordinates.
-    Unfortunately correctly expanding the alt when the ref span of origin changes requires a
-    round trip, and so is not handled in hgvs, and may never be, unlike the planned T->G fixes
-    so we try to fix it here.
-    TTTIIICIITTT
-    GGG      GGG
-    where:
-    T is normal genomic transcript map,
-    I is valid transcript sequnce that counts as an insertion WRT the genome, and
-    C is the actual HGVS change
-    current out will be insC not insIIICII (and the exact ins may differ depending
-    on the mapping pair)
-    This function REQUIRES fresh un-normalised mappings as input, normalisation can
-    push G and T variatns away from each other, or worse, the logic complexity
-    required to handle that would be much higher.
+    Add unchanged alignment-gap sequence to an insertion.
 
-    Due to the current code state handling for g->t type input will require creating
-    a 2 base = and mapping (as will non ins change handling if we add it to this
-    function, fully exonic variants are already handled by their nature, but edge
-    spanning variants are not even attempted for now).
+    start_offset and end_offset describe how much sequence from gap_ref must
+    be restored on either side of the insertion. For reverse-strand mappings,
+    gap_ref is reverse complemented and the offsets are exchanged so that
+    they remain relative to the insertion sequence being constructed.
+    """
+    insertion = insertion or ""
+
+    if reverse:
+        gap_ref = simple_dna_revcomp(gap_ref)
+        start_offset, end_offset = end_offset, start_offset
+
+    if start_offset:
+        insertion = gap_ref[:start_offset] + insertion
+
+    if end_offset:
+        insertion += gap_ref[-end_offset:]
+
+    return insertion
+
+def immediate_round_trip_gap_ins_handling(
+        orig_hgvs_coding,
+        orig_hgvs_genomic,
+        variant_or_validator,
+        map_dat=False,
+):
+    """
+    Correct insertion sequence lost when mapping across a transcript/genome
+    alignment gap.
+
+    This function operates on fresh, unnormalised mappings. Normalisation can
+    move transcript and genomic variants relative to one another and can also
+    change the represented edit, so this correction must happen immediately
+    after mapping.
+
+    A typical problematic alignment is:
+
+        TTTIIICIITTT
+        GGG      GGG
+
+    where T is normally aligned transcript sequence, I is transcript sequence
+    inserted relative to the genome, and C is the actual sequence change.
+
+    Mapping may represent the change as ``insC`` while omitting unchanged
+    transcript sequence associated with the alignment gap. Where the mapping
+    state can be established safely by a round trip, this function restores
+    those omitted bases.
+
+    Some branches deliberately retain support for genomic-to-transcript
+    mapping states that current HGVS mapping does not reliably produce. These
+    are retained as future-facing defensive behaviour rather than treated as
+    dead code.
+
+    Returns the original objects unchanged when no safe correction can be
+    established.
     """
     no_norm_evm = variant_or_validator.no_norm_evm
-    # map data should either be provided pre-filled or have a hgvs data provider attached
-    map_dat = getattr(variant_or_validator, 'map_dat', map_dat)
-    if not map_dat: # can only happen in validator case so we have a hdp
-        map_dat = TranscriptMapData(hdp=variant_or_validator.hdp)
-    # test for exon edge and escape
-    if getattr(orig_hgvs_coding.posedit.pos.start,'offset',False) or \
-            getattr(orig_hgvs_coding.posedit.pos.start,'offset',False):
-        return orig_hgvs_coding, orig_hgvs_genomic
-    # test for normalised varints and avoid running on them since we rely on the original mappings
-    # here (e.g insTTTCCC->delCCCinsTTTCCC work, but if normalised to insTTT this function fails
-    # hence the "immediate" bit in the name)
-    # start by handling dup and ins
-    hgvs_gen_alt = ''
-    if orig_hgvs_genomic.posedit.edit.type == 'dup':
-        hgvs_gen_alt = orig_hgvs_genomic.posedit.edit.ref + orig_hgvs_genomic.posedit.edit.ref
-        if map_dat.map_strand(orig_hgvs_coding.ac,orig_hgvs_genomic.ac) < 0:
-            hgvs_gen_alt = simple_dna_revcomp(hgvs_gen_alt)
-    elif orig_hgvs_coding.posedit.edit.type  == 'inv':
-        if not map_dat.map_strand(orig_hgvs_coding.ac,orig_hgvs_genomic.ac) < 0:
-            hgvs_gen_alt = simple_dna_revcomp(orig_hgvs_genomic.posedit.edit.ref)
-        else:
-            hgvs_gen_alt = orig_hgvs_genomic.posedit.edit.ref
-    else:
-        #all standard del ins type alt present
-        hgvs_gen_alt = orig_hgvs_genomic.posedit.edit.alt
-    hgvs_tx_alt = ''
-    if orig_hgvs_coding.posedit.edit.type == 'dup':
-        hgvs_tx_alt = orig_hgvs_coding.posedit.edit.ref + orig_hgvs_coding.posedit.edit.ref
-    elif orig_hgvs_coding.posedit.edit.type  == 'inv':
-        hgvs_tx_alt = simple_dna_revcomp(orig_hgvs_coding.posedit.edit.ref)
-    else:
-        #all standard del ins type alt present
-        hgvs_tx_alt = orig_hgvs_coding.posedit.edit.alt
-    if hgvs_tx_alt != hgvs_gen_alt:
+
+    map_dat = getattr(
+        variant_or_validator,
+        "map_dat",
+        map_dat,
+    )
+    if not map_dat:
+        map_dat = TranscriptMapData(
+            hdp=variant_or_validator.hdp
+        )
+
+    if hgvs_position_utils.either_position_is_intronic(
+            orig_hgvs_coding
+    ):
         return orig_hgvs_coding, orig_hgvs_genomic
 
-    if orig_hgvs_genomic.posedit.edit.type == 'ins' and orig_hgvs_coding.posedit.edit.type != 'ins':
-        # size change bases may need to be added to genomic ins
-        eq_hgvs_genomic = copy.copy(orig_hgvs_genomic)
-        eq_hgvs_genomic.posedit.edit.ref = ''
-        eq_hgvs_genomic.posedit.edit.alt = ''
-        remap_hgvs_coding = no_norm_evm.g_to_n(
-                eq_hgvs_genomic,
-                orig_hgvs_coding.ac)
-        if len(orig_hgvs_coding.posedit.edit.ref) +2 < len(remap_hgvs_coding.posedit.edit.ref):
-            # if we got additional non changed ins left out on mapping
-            n_orig_hgvs_coding = orig_hgvs_coding
-            if orig_hgvs_coding.type == 'c':
-                n_orig_hgvs_coding = no_norm_evm.c_to_n(orig_hgvs_coding)
-            start_offset = n_orig_hgvs_coding.posedit.pos.start.base - remap_hgvs_coding.posedit.pos.start.base -1
-            end_offset = remap_hgvs_coding.posedit.pos.end.base - n_orig_hgvs_coding.posedit.pos.end.base -1
-            new_ins = orig_hgvs_coding.posedit.edit.alt
-            if not new_ins:
-                new_ins = ''
-            ins_ref = remap_hgvs_coding.posedit.edit.ref[1:-1]
-            if map_dat.map_strand(orig_hgvs_coding.ac,orig_hgvs_genomic.ac) < 0:
-                ins_ref =  simple_dna_revcomp(ins_ref)
-                spare_offset = start_offset
-                start_offset = end_offset
-                end_offset = spare_offset
-            if start_offset:
-                new_ins = ins_ref[:start_offset] + new_ins
-            if end_offset:
-                new_ins = new_ins +  ins_ref[-end_offset:]
-            new_hgvs_genomic = copy.copy(orig_hgvs_genomic)
-            new_hgvs_genomic.posedit.edit.alt = new_ins
-            return orig_hgvs_coding, new_hgvs_genomic
+    coding_edit = orig_hgvs_coding.posedit.edit
+    genomic_edit = orig_hgvs_genomic.posedit.edit
+
+    coding_edit_type = coding_edit.type
+    genomic_edit_type = genomic_edit.type
+
+    tx_ac = orig_hgvs_coding.ac
+    genomic_ac = orig_hgvs_genomic.ac
+
+    strand = map_dat.map_strand(
+        tx_ac,
+        genomic_ac,
+    )
+    reverse = strand < 0
+
+    # Establish the effective alternate sequence on each reference.
+    if genomic_edit_type == "dup":
+        genomic_alt = genomic_edit.ref * 2
+        if reverse:
+            genomic_alt = simple_dna_revcomp(genomic_alt)
+
+    elif coding_edit_type == "inv":
+        if reverse:
+            genomic_alt = genomic_edit.ref
+        else:
+            genomic_alt = simple_dna_revcomp(
+                genomic_edit.ref
+            )
+
+    else:
+        genomic_alt = genomic_edit.alt
+
+    if coding_edit_type == "dup":
+        coding_alt = coding_edit.ref * 2
+
+    elif coding_edit_type == "inv":
+        coding_alt = simple_dna_revcomp(
+            coding_edit.ref
+        )
+
+    else:
+        coding_alt = coding_edit.alt
+
+    if coding_alt != genomic_alt:
         return orig_hgvs_coding, orig_hgvs_genomic
-    elif orig_hgvs_genomic.posedit.edit.type == 'ins' and orig_hgvs_coding.posedit.edit.type == 'ins':
-        # possible size change, bases may need to be added to either
-        # Future proofed, but this should, for now, only happen for T ins mapped to G ins (G ins should
-        # currently fail on T map, handling will likely break the simple coordinate match we rely on for
-        # our logic her so this will be left to older handling code, for now)
+
+    # Genomic insertion, transcript edit is not an insertion.
+    if (
+            genomic_edit_type == "ins"
+            and coding_edit_type != "ins"
+    ):
         eq_hgvs_genomic = copy.copy(orig_hgvs_genomic)
-        eq_hgvs_genomic.posedit.edit.ref = ''
-        eq_hgvs_genomic.posedit.edit.alt = ''
-        n_orig_hgvs_coding = orig_hgvs_coding
+        eq_hgvs_genomic.posedit.edit.ref = ""
+        eq_hgvs_genomic.posedit.edit.alt = ""
+
         remap_hgvs_coding = no_norm_evm.g_to_n(
-                eq_hgvs_genomic,
-                orig_hgvs_coding.ac)
-        stored_ac = False
-        n_orig_hgvs_coding = orig_hgvs_coding
-        if orig_hgvs_coding.type == 'c':
-            n_orig_hgvs_coding = no_norm_evm.c_to_n(orig_hgvs_coding)
-        if n_orig_hgvs_coding.rel_ac != orig_hgvs_genomic.ac:
-            stored_ac = orig_hgvs_coding.rel_ac
-            n_orig_hgvs_coding.rel_ac = orig_hgvs_genomic.ac
-        remap_hgvs_genomic = no_norm_evm.n_to_g(n_orig_hgvs_coding)
-        if stored_ac:
-            orig_hgvs_coding.rel_ac = stored_ac
-        if remap_hgvs_genomic.posedit.edit.type != 'ins':
-            # should only hapen when pre-map input was genomic, and mapped inside a tx gap
-            start_offset = orig_hgvs_genomic.posedit.pos.start.base - remap_hgvs_genomic.posedit.pos.start.base
-            end_offset = remap_hgvs_genomic.posedit.pos.end.base - orig_hgvs_genomic.posedit.pos.end.base
-            new_ins = orig_hgvs_genomic.posedit.edit.alt
-            if not new_ins:
-                new_ins = ''
-            ins_ref = remap_hgvs_genomic.posedit.edit.ref
-            if map_dat.map_strand(orig_hgvs_coding.ac,orig_hgvs_genomic.ac) < 0:
-                ins_ref =  simple_dna_revcomp(ins_ref)
-                spare_offset = start_offset
-                start_offset = end_offset
-                end_offset = spare_offset
-            if start_offset:
-                new_ins = ins_ref[:start_offset] + new_ins
-            if end_offset:
-                new_ins = new_ins +  ins_ref[-end_offset:]
-            new_hgvs_coding = copy.copy(orig_hgvs_coding)
-            new_hgvs_coding.posedit.edit.alt = new_ins
-            return new_hgvs_coding, orig_hgvs_genomic
-        elif len(remap_hgvs_coding.posedit.edit.ref) > 2:
-            # if we got additional non changed ins left out on mapping
-            n_orig_hgvs_coding = orig_hgvs_coding
-            if orig_hgvs_coding.type == 'c':
-                n_orig_hgvs_coding = no_norm_evm.c_to_n(orig_hgvs_coding)
-            start_offset = n_orig_hgvs_coding.posedit.pos.start.base - remap_hgvs_coding.posedit.pos.start.base -1
-            end_offset = remap_hgvs_coding.posedit.pos.end.base - n_orig_hgvs_coding.posedit.pos.end.base -1
-            new_ins = orig_hgvs_coding.posedit.edit.alt
-            if not new_ins:
-                new_ins = ''
-            ins_ref = remap_hgvs_coding.posedit.edit.ref[1:-1]
-            if map_dat.map_strand(orig_hgvs_coding.ac,orig_hgvs_genomic.ac) < 0:
-                ins_ref =  simple_dna_revcomp(ins_ref)
-                spare_offset = start_offset
-                start_offset = end_offset
-                end_offset = spare_offset
-            if start_offset:
-                new_ins = ins_ref[:start_offset] + new_ins
-            if end_offset:
-                new_ins = new_ins +  ins_ref[-end_offset:]
-            new_hgvs_genomic = copy.copy(orig_hgvs_genomic)
-            new_hgvs_genomic.posedit.edit.alt = new_ins
-            return orig_hgvs_coding, new_hgvs_genomic
-        return orig_hgvs_coding,orig_hgvs_genomic
-    elif orig_hgvs_coding.posedit.edit.type == 'ins': # implicitly genomic != ins
-        if orig_hgvs_coding.type == 'c':
-            n_orig_hgvs_coding = no_norm_evm.c_to_n(orig_hgvs_coding)
+            eq_hgvs_genomic,
+            tx_ac,
+        )
+
+        remap_ref = remap_hgvs_coding.posedit.edit.ref
+
+        if len(coding_edit.ref) + 2 >= len(remap_ref):
+            return orig_hgvs_coding, orig_hgvs_genomic
+
+        if orig_hgvs_coding.type == "c":
+            n_orig_hgvs_coding = no_norm_evm.c_to_n(
+                orig_hgvs_coding
+            )
         else:
             n_orig_hgvs_coding = orig_hgvs_coding
+
+        start_offset = (
+            n_orig_hgvs_coding.posedit.pos.start.base
+            - remap_hgvs_coding.posedit.pos.start.base
+            - 1
+        )
+        end_offset = (
+            remap_hgvs_coding.posedit.pos.end.base
+            - n_orig_hgvs_coding.posedit.pos.end.base
+            - 1
+        )
+
+        new_ins = _expand_gap_insertion(
+            coding_edit.alt,
+            remap_ref[1:-1],
+            start_offset,
+            end_offset,
+            reverse=reverse,
+        )
+
+        new_hgvs_genomic = copy.copy(orig_hgvs_genomic)
+        new_hgvs_genomic.posedit.edit.alt = new_ins
+
+        return orig_hgvs_coding, new_hgvs_genomic
+
+    # Both mappings are insertions.
+    if (
+            genomic_edit_type == "ins"
+            and coding_edit_type == "ins"
+    ):
+        eq_hgvs_genomic = copy.copy(orig_hgvs_genomic)
+        eq_hgvs_genomic.posedit.edit.ref = ""
+        eq_hgvs_genomic.posedit.edit.alt = ""
+
+        remap_hgvs_coding = no_norm_evm.g_to_n(
+            eq_hgvs_genomic,
+            tx_ac,
+        )
+
+        if orig_hgvs_coding.type == "c":
+            n_orig_hgvs_coding = no_norm_evm.c_to_n(
+                orig_hgvs_coding
+            )
+        else:
+            n_orig_hgvs_coding = orig_hgvs_coding
+
         stored_ac = False
-        if orig_hgvs_coding.rel_ac != orig_hgvs_genomic.ac:
-            stored_ac = orig_hgvs_coding.rel_ac
-            n_orig_hgvs_coding.rel_ac = orig_hgvs_genomic.ac
-        remap_hgvs_genomic = no_norm_evm.n_to_g(n_orig_hgvs_coding)
+
+        if n_orig_hgvs_coding.rel_ac != genomic_ac:
+            stored_ac = n_orig_hgvs_coding.rel_ac
+            n_orig_hgvs_coding.rel_ac = genomic_ac
+
+        remap_hgvs_genomic = no_norm_evm.n_to_g(
+            n_orig_hgvs_coding
+        )
+
         if stored_ac:
-            orig_hgvs_coding.rel_ac = stored_ac
-        if remap_hgvs_genomic.posedit.edit.ref and len(orig_hgvs_genomic.posedit.edit.ref) \
-                < len(remap_hgvs_genomic.posedit.edit.ref):
-            # should only hapen when pre-map input was genomic, and mapped inside a tx gap
-            # Future proofing, current g->t won't do this right
-            start_offset = orig_hgvs_genomic.posedit.pos.start.base - remap_hgvs_genomic.posedit.pos.start.base
-            end_offset = remap_hgvs_genomic.posedit.pos.end.base - orig_hgvs_genomic.posedit.pos.end.base
-            new_ins = orig_hgvs_genomic.posedit.edit.alt
-            if not new_ins:
-                new_ins = ''
-            ins_ref = remap_hgvs_genomic.posedit.edit.ref
-            if map_dat.map_strand(orig_hgvs_coding.ac,orig_hgvs_genomic.ac) < 0:
-                ins_ref =  simple_dna_revcomp(ins_ref)
-                spare_offset = start_offset
-                start_offset = end_offset
-                end_offset = spare_offset
-            if start_offset:
-                new_ins = ins_ref[:start_offset] + new_ins
-            if end_offset:
-                new_ins = new_ins +  ins_ref[-end_offset:]
-            new_hgvs_coding = copy.copy(orig_hgvs_coding)
+            n_orig_hgvs_coding.rel_ac = stored_ac
+
+        remap_genomic_edit = remap_hgvs_genomic.posedit.edit
+
+        # Retained future-facing G->T handling.
+        if remap_genomic_edit.type != "ins":
+            start_offset = (
+                orig_hgvs_genomic.posedit.pos.start.base
+                - remap_hgvs_genomic.posedit.pos.start.base
+            )
+            end_offset = (
+                remap_hgvs_genomic.posedit.pos.end.base
+                - orig_hgvs_genomic.posedit.pos.end.base
+            )
+
+            new_ins = _expand_gap_insertion(
+                genomic_edit.alt,
+                remap_genomic_edit.ref,
+                start_offset,
+                end_offset,
+                reverse=reverse,
+            )
+
+            new_hgvs_coding = copy.copy(
+                orig_hgvs_coding
+            )
             new_hgvs_coding.posedit.edit.alt = new_ins
+
             return new_hgvs_coding, orig_hgvs_genomic
-        return orig_hgvs_coding,orig_hgvs_genomic
+
+        remap_ref = remap_hgvs_coding.posedit.edit.ref
+
+        if len(remap_ref) > 2:
+            start_offset = (
+                n_orig_hgvs_coding.posedit.pos.start.base
+                - remap_hgvs_coding.posedit.pos.start.base
+                - 1
+            )
+            end_offset = (
+                remap_hgvs_coding.posedit.pos.end.base
+                - n_orig_hgvs_coding.posedit.pos.end.base
+                - 1
+            )
+
+            new_ins = _expand_gap_insertion(
+                coding_edit.alt,
+                remap_ref[1:-1],
+                start_offset,
+                end_offset,
+                reverse=reverse,
+            )
+
+            new_hgvs_genomic = copy.copy(
+                orig_hgvs_genomic
+            )
+            new_hgvs_genomic.posedit.edit.alt = new_ins
+
+            return orig_hgvs_coding, new_hgvs_genomic
+
+        return orig_hgvs_coding, orig_hgvs_genomic
+
+    # Transcript insertion, genomic mapping is not an insertion.
+    # Retained as future-facing G->T handling.
+    if coding_edit_type == "ins":
+        if orig_hgvs_coding.type == "c":
+            n_orig_hgvs_coding = no_norm_evm.c_to_n(
+                orig_hgvs_coding
+            )
+        else:
+            n_orig_hgvs_coding = orig_hgvs_coding
+
+        stored_ac = False
+
+        if n_orig_hgvs_coding.rel_ac != genomic_ac:
+            stored_ac = n_orig_hgvs_coding.rel_ac
+            n_orig_hgvs_coding.rel_ac = genomic_ac
+
+        remap_hgvs_genomic = no_norm_evm.n_to_g(
+            n_orig_hgvs_coding
+        )
+
+        if stored_ac:
+            n_orig_hgvs_coding.rel_ac = stored_ac
+
+        remap_ref = remap_hgvs_genomic.posedit.edit.ref
+
+        if (
+                not remap_ref
+                or len(genomic_edit.ref) >= len(remap_ref)
+        ):
+            return orig_hgvs_coding, orig_hgvs_genomic
+
+        start_offset = (
+            orig_hgvs_genomic.posedit.pos.start.base
+            - remap_hgvs_genomic.posedit.pos.start.base
+        )
+        end_offset = (
+            remap_hgvs_genomic.posedit.pos.end.base
+            - orig_hgvs_genomic.posedit.pos.end.base
+        )
+
+        new_ins = _expand_gap_insertion(
+            genomic_edit.alt,
+            remap_ref,
+            start_offset,
+            end_offset,
+            reverse=reverse,
+        )
+
+        new_hgvs_coding = copy.copy(orig_hgvs_coding)
+        new_hgvs_coding.posedit.edit.alt = new_ins
+
+        return new_hgvs_coding, orig_hgvs_genomic
+
+    return orig_hgvs_coding, orig_hgvs_genomic
 
 
-class GapMapper(object):
+def _position_offset(position):
+    """Return an HGVS position offset, treating absent/None as zero."""
+    return getattr(position, "offset", 0) or 0
+
+
+def _start_offset(hgvs_variant):
+    return _position_offset(hgvs_variant.posedit.pos.start)
+
+
+def _end_offset(hgvs_variant):
+    return _position_offset(hgvs_variant.posedit.pos.end)
+
+
+def _has_any_offset(hgvs_variant):
+    """True when either HGVS interval boundary carries an intronic offset."""
+    return hgvs_position_utils.either_position_is_intronic(hgvs_variant)
+
+
+def _has_both_offsets(hgvs_variant):
+    """True when both HGVS interval boundaries carry intronic offsets."""
+    return (
+        hgvs_position_utils.start_position_is_intronic(hgvs_variant)
+        and hgvs_position_utils.end_position_is_intronic(hgvs_variant)
+    )
+
+
+def _same_posedit(left, right):
+    """Compare HGVS PosEdit objects without stringifying them."""
+    return left.posedit == right.posedit
+
+
+def _same_edit(left, right):
+    """Compare HGVS edit objects without stringifying them."""
+    return left.posedit.edit == right.posedit.edit
+
+
+class GapMapper:
 
     def __init__(self, variant, validator):
         """
-        Sets initial values
+        Initialise the gap mapper.
+
         :param variant: variant.Variant()
         :param validator: Validator()
         """
         self.variant = variant
         self.validator = validator
-        self.gapped_transcripts = ''
-        self.auto_info = ''
+        self.gapped_transcripts = ""
+        self.auto_info = ""
         self.orientation = None
         self.hgvs_genomic_possibilities = []
         self.disparity_deletion_in = []
         self.hgvs_genomic_5pr = None
         self.tx_hgvs_not_delins = None
 
-    def make_gap_warnings(self, tx_ac, gen_ac, primary_assembly, message=None):
-
-        # Look at Cigar strings and calculate the gap size and location
+    def _ensure_map_data_provider(self):
+        """Attach the Validator data provider to TranscriptMapData when needed."""
         if not self.variant.map_dat.hdp:
             self.variant.map_dat.hdp = self.validator.hdp
-        tx_exons = self.variant.map_dat.mapped_exons(
-                tx_ac, gen_ac, alt_aln_method=self.validator.alt_aln_method)
 
-        # Locate all the gaps
+    def _transcript_is_selected(
+            self,
+            hgvs_transcript,
+            select_transcripts_dict,
+    ):
+        """Return whether a mapped transcript passes the configured selector."""
+        selection = self.validator.select_transcripts
+        tx_ac = hgvs_transcript.ac
+
+        if (
+                selection not in ("all", "raw")
+                and "select" not in selection
+                and "mane" not in selection
+                and "refseqgene" not in selection
+        ):
+            return tx_ac.split(".")[0] in select_transcripts_dict
+
+        if selection == "select":
+            annotation = self.validator.db.get_transcript_annotation(tx_ac)
+            return any(
+                value in annotation
+                for value in (
+                    '"select": "MANE"',
+                    '"select": "RefSeq"',
+                    '"select": "Ensembl"',
+                )
+            )
+
+        annotation_key = {
+            "mane": ('"mane_select": true', '"mane_plus_clinical": true'),
+            "mane_select": ('"mane_select": true',),
+            "refseq_select": ('"refseq_select": true',),
+            "ensembl_select": ('"ensembl_select": true',),
+        }.get(selection)
+
+        if annotation_key is None:
+            return True
+
+        annotation = self.validator.db.get_transcript_annotation(tx_ac)
+        return any(value in annotation for value in annotation_key)
+
+    def _update_gap_warning(
+            self,
+            tx_ac,
+            gen_ac,
+            current_warning="",
+            message=None,
+    ):
+        """Build a gap warning and merge useful automatic gap information."""
+        gap_warnings = self.make_gap_warnings(
+            tx_ac,
+            gen_ac,
+            self.variant.primary_assembly,
+            message=message,
+        )
+
+        warning = gap_warnings["gapped_alignment_warning"]
+        auto_info = gap_warnings["auto_info"]
+
+        if auto_info and ("fewer" in auto_info or "extra" in auto_info):
+            self.auto_info += auto_info
+
+        return warning if warning is not None else current_warning
+
+    def _adjust_transcript_gap_offsets(
+            self,
+            rn_tx_hgvs_not_delins,
+            saved_hgvs_coding,
+            hgvs_not_delins,
+    ):
+        """
+        Remove transcript intronic offsets before gap-length comparison.
+
+        Offset direction is read directly from the HGVS position objects;
+        this replaces repeated string/regex inspection while preserving the
+        existing movement rules.
+        """
+        start_offset = _start_offset(rn_tx_hgvs_not_delins)
+        end_offset = _end_offset(rn_tx_hgvs_not_delins)
+
+        if start_offset and end_offset:
+            return (
+                self.remove_offsetting_to_span_gap(rn_tx_hgvs_not_delins),
+                hgvs_not_delins,
+            )
+
+        if end_offset > 0:
+            return self.move_tx_end_base_to_next_nonoffset(
+                rn_tx_hgvs_not_delins,
+                saved_hgvs_coding,
+                back=False,
+            )
+
+        if start_offset > 0:
+            return self.move_tx_start_base_to_previous_nonoffset(
+                rn_tx_hgvs_not_delins,
+                saved_hgvs_coding,
+            )
+
+        if end_offset < 0:
+            return self.move_tx_end_base_to_next_nonoffset(
+                rn_tx_hgvs_not_delins,
+                saved_hgvs_coding,
+            )
+
+        if start_offset < 0:
+            return self.move_tx_start_base_to_previous_nonoffset(
+                rn_tx_hgvs_not_delins,
+                saved_hgvs_coding,
+                with_base_subtract=True,
+            )
+
+        return rn_tx_hgvs_not_delins, hgvs_not_delins
+
+    def make_gap_warnings(
+            self,
+            tx_ac,
+            gen_ac,
+            primary_assembly,
+            message=None,
+    ):
+        """
+        Generate warnings describing gaps in a transcript/genome alignment.
+
+        CIGAR strings for the transcript/genome exon alignments are inspected
+        for insertions and deletions. Gaps are reported using coding
+        coordinates for NM_ transcripts and non-coding coordinates for NR_
+        transcripts.
+
+        This function is only called with NM_ or NR_ transcript accessions.
+
+        If message is supplied, it replaces the automatically generated gap
+        description while retaining the standard warning structure.
+        """
+        map_dat = self.variant.map_dat
+
+        # TranscriptMapData normally already has the Validator data provider,
+        # but retain support for construction paths where it has not yet been
+        # assigned.
+        if not map_dat.hdp:
+            map_dat.hdp = self.validator.hdp
+
+        tx_exons = map_dat.mapped_exons(
+            tx_ac,
+            gen_ac,
+            alt_aln_method=self.validator.alt_aln_method,
+        )
+
+        # Retain only exon alignments containing an insertion or deletion.
+        # The reduced structure preserves the fields used by the historical
+        # gap-position calculation below.
         gap_in_alignment = []
+
         for exon in tx_exons:
-            data_required = [exon[0],
-                             exon[1],
-                             exon[3],
-                             int(exon[5]) + 1,
-                             int(exon[6]),
-                             int(exon[7]),
-                             int(exon[8]) + 1,
-                             exon[9]]
+            cigar = exon[9]
 
-            if "I" in data_required[-1] or "D" in data_required[-1]:
-                gap_in_alignment.append(data_required)
+            if "I" not in cigar and "D" not in cigar:
+                continue
 
-        # Create warnings
-        gap_information_dict = {"gapped_alignment_warning": "",
-                                "auto_info": ""
-                                }
-        # Identify gaps
-        if gap_in_alignment is not []:
-            found_gaps = []
-            for gap_loc in gap_in_alignment:
-                cigar = gap_loc[-1]
-                split_my_cigar = cigar.replace("=", "=:")
-                split_my_cigar = split_my_cigar.replace("I", "I:")
-                split_my_cigar = split_my_cigar.replace("D", "D:")
-                split_my_cigar = split_my_cigar.replace("X", "X:")
-                split_my_cigar = split_my_cigar.split(":")
+            gap_in_alignment.append([
+                exon[0],
+                exon[1],
+                exon[3],
+                int(exon[5]) + 1,
+                int(exon[6]),
+                int(exon[7]),
+                int(exon[8]) + 1,
+                cigar,
+            ])
 
-                # Get annotation
-                tx_exon_start = int(gap_loc[3])
-                tx_annotation = self.validator.hdp.get_tx_identity_info(gap_loc[0])
-                try:
-                    cds_start = int(tx_annotation[3]) + 1
-                    cds_end = int(tx_annotation[4])
-                    c_tx_exon_start = tx_exon_start - cds_start
-                except TypeError:
-                    c_tx_exon_start = tx_exon_start
+        gap_information = {
+            "gapped_alignment_warning": "",
+            "auto_info": "",
+        }
 
-                # Get all gap locations in the transcript split into ins and del
-                for gap in split_my_cigar:
-                    gap = gap.replace("X", "=")
+        if not gap_in_alignment:
+            return gap_information
 
-                    if "=" in gap and "I" not in gap and "D" not in gap:
-                        if "NM_" in tx_ac:
-                            c_tx_exon_start = c_tx_exon_start + int(gap.split("=")[0])
-                        else:
-                            c_tx_exon_start = c_tx_exon_start + int(gap.split("=")[0])
+        found_gaps = []
 
-                    elif "D" in gap:
-                        if "NM_" in tx_ac:
-                            pos_n_len = ["c." + str(c_tx_exon_start) + "_"
-                                         + str(c_tx_exon_start + int(gap.split("D")[0])+1),
-                                         str(gap.split("D")[0]) + " extra bases"
-                                         ]
-                        else:
-                            pos_n_len = ["n." + str(c_tx_exon_start) + "_"
-                                         + str(c_tx_exon_start + int(gap.split("D")[0])+1),
-                                         str(gap.split("D")[0]) + " extra bases"
-                                         ]
+        # NM_ transcripts use coding coordinates; NR_ transcripts use
+        # non-coding coordinates. These are the only transcript namespaces
+        # accepted by this function.
+        coordinate_type = (
+            "c." if tx_ac.startswith("NM_") else "n."
+        )
 
-                        found_gaps.append(pos_n_len[1] + " between " + pos_n_len[0])
-                        c_tx_exon_start = c_tx_exon_start + int(gap.split("D")[0])
+        for gap_loc in gap_in_alignment:
+            cigar = gap_loc[-1]
 
-                    elif "I" in gap:
-                        if "NM_" in tx_ac:
-                            pos_n_len = ["c." + str(c_tx_exon_start) + "_"
-                                         + str(c_tx_exon_start + 1),
-                                         str(gap.split("I")[0]) + " fewer bases"
-                                        ]
+            # Separate individual CIGAR operations while retaining each
+            # operation character with its preceding length.
+            cigar_parts = (
+                cigar
+                .replace("=", "=:")
+                .replace("I", "I:")
+                .replace("D", "D:")
+                .replace("X", "X:")
+                .split(":")
+            )
 
-                        elif "NR_" in tx_ac:
-                            pos_n_len = ["n." + str(c_tx_exon_start) + "_"
-                                         + str(c_tx_exon_start + 1),
-                                         str(gap.split("I")[0]) + " fewer bases"
-                                        ]
+            tx_exon_start = gap_loc[3]
 
-                        found_gaps.append(pos_n_len[1] + " between " + pos_n_len[0])
-                        c_tx_exon_start = c_tx_exon_start + int(gap.split("I")[0])
+            tx_annotation = (
+                self.validator.hdp.get_tx_identity_info(
+                    gap_loc[0]
+                )
+            )
 
-            # Correct for UTR variants
-            if "NM_" in tx_ac:
-                cp_found_gaps = copy.copy(found_gaps)
-                found_gaps = []
-                for each_found in cp_found_gaps:
-                    crds = each_found.split("c.")[-1]
-                    start = int(crds.split("_")[0])
+            try:
+                cds_start = int(tx_annotation[3]) + 1
+                cds_end = int(tx_annotation[4])
+                tx_position = tx_exon_start - cds_start
+            except TypeError:
+                # NR_ transcripts have no coding-region bounds, so their
+                # positions remain transcript-relative.
+                cds_start = None
+                cds_end = None
+                tx_position = tx_exon_start
 
-                    # 3 prime UTR
-                    if start+cds_start >= cds_end:
-                        utr_3 = start - cds_end
-                        utr_3_pos = "*%s_*%s" % (str(utr_3 + cds_start), str(utr_3+1+cds_start))
-                        each_found = each_found.replace(crds, utr_3_pos)
-                        found_gaps.append(each_found)
+            for cigar_part in cigar_parts:
+                # X and = both consume transcript sequence without
+                # representing an insertion/deletion in the alignment.
+                cigar_part = cigar_part.replace("X", "=")
 
-                    # 5 prime UTR
-                    elif start+cds_start <= cds_start:
-                        found_gaps.append(each_found)
+                if "=" in cigar_part:
+                    match_length = int(
+                        cigar_part.split("=", 1)[0]
+                    )
+                    tx_position += match_length
+                    continue
 
-                    # CDS gap
-                    else:
-                        found_gaps.append(each_found)
+                if "D" in cigar_part:
+                    gap_length = int(
+                        cigar_part.split("D", 1)[0]
+                    )
 
-            # Create the warnings
-            if message is not None:
-                gap_string = message
-            else:
-                gap_string = ", and ".join(found_gaps)
+                    gap_position = (
+                        f"{coordinate_type}{tx_position}_"
+                        f"{tx_position + gap_length + 1}"
+                    )
 
-            gapped_alignment_warning = """Submitted description does not represent a true variant because 
-it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, primary_assembly)
+                    found_gaps.append(
+                        f"{gap_length} extra bases between "
+                        f"{gap_position}"
+                    )
 
-            auto_info = """%s contains %s than %s""" % (tx_ac, gap_string, gen_ac)
+                    tx_position += gap_length
+                    continue
 
-            gap_information_dict["gapped_alignment_warning"] = gapped_alignment_warning. \
-                replace("\n", "")
-            gap_information_dict["auto_info"] = auto_info.replace("\n", "")
+                if "I" in cigar_part:
+                    gap_length = int(
+                        cigar_part.split("I", 1)[0]
+                    )
 
-        return gap_information_dict
+                    gap_position = (
+                        f"{coordinate_type}{tx_position}_"
+                        f"{tx_position + 1}"
+                    )
+
+                    found_gaps.append(
+                        f"{gap_length} fewer bases between "
+                        f"{gap_position}"
+                    )
+
+                    tx_position += gap_length
+
+        # Convert NM_ gap positions beyond the CDS into the historical
+        # 3-prime UTR representation used by VariantValidator warnings.
+        if tx_ac.startswith("NM_"):
+            converted_gaps = []
+
+            for found_gap in found_gaps:
+                coordinates = found_gap.split("c.")[-1]
+                start = int(
+                    coordinates.split("_", 1)[0]
+                )
+
+                if start + cds_start >= cds_end:
+                    utr_3 = start - cds_end
+
+                    utr_3_position = (
+                        f"*{utr_3 + cds_start}_"
+                        f"*{utr_3 + cds_start + 1}"
+                    )
+
+                    found_gap = found_gap.replace(
+                        coordinates,
+                        utr_3_position,
+                    )
+
+                converted_gaps.append(found_gap)
+
+            found_gaps = converted_gaps
+
+        gap_string = (
+            message
+            if message is not None
+            else ", and ".join(found_gaps)
+        )
+
+        gap_information["gapped_alignment_warning"] = (
+            "Submitted description does not represent a true variant because "
+            f"it is an artefact of aligning {tx_ac} with {gen_ac} "
+            f"(genome build {primary_assembly})"
+        )
+
+        gap_information["auto_info"] = (
+            f"{tx_ac} contains {gap_string} than {gen_ac}"
+        )
+
+        return gap_information
 
     def gapped_g_to_c(self, rel_var, select_transcripts_dict):
         """
@@ -392,8 +741,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
         self.disparity_deletion_in = []
 
         # set map data provider
-        if not self.variant.map_dat.hdp:
-            self.variant.map_dat.hdp = self.validator.hdp
+        self._ensure_map_data_provider()
 
         # Create a pseudo VCF so that normalization can be applied and a delins can be generated
         hgvs_genomic_variant = self.variant.hgvs_genomic
@@ -464,64 +812,11 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                 saved_hgvs_coding = var
                 original_var = var
 
-            # Remove un-selected transcripts
-            if self.validator.select_transcripts != 'all' and self.validator.select_transcripts != 'raw' and \
-                    "select" not in self.validator.select_transcripts and \
-                    "mane" not in self.validator.select_transcripts and "refseqgene" not in \
-                    self.validator.select_transcripts:
-                tx_ac = saved_hgvs_coding.ac
-                # If it's in the selected tx dict, keep it
-                if tx_ac.split('.')[0] in list(select_transcripts_dict.keys()):
-                    pass
-                # If not get rid of it!
-                else:
-                    continue
-
-            # Filter for Select transcripts only
-            elif self.validator.select_transcripts == "select":
-                tx_ac = saved_hgvs_coding.ac
-                annotation = self.validator.db.get_transcript_annotation(tx_ac)
-                if '"select": "MANE"' in annotation or '"select": "RefSeq"' in annotation or \
-                        '"select": "Ensembl"' in annotation:
-                    pass
-                else:
-                    continue
-
-            # Filter for MANE transcripts only
-            elif self.validator.select_transcripts == "mane":
-                tx_ac = saved_hgvs_coding.ac
-                annotation = self.validator.db.get_transcript_annotation(tx_ac)
-                if '"mane_select": true' in annotation or '"mane_plus_clinical": true' in annotation:
-                    pass
-                else:
-                    continue
-
-            # Filter for mane Select transcripts only
-            elif self.validator.select_transcripts == "mane_select":
-                tx_ac = saved_hgvs_coding.ac
-                annotation = self.validator.db.get_transcript_annotation(tx_ac)
-                if '"mane_select": true' in annotation:
-                    pass
-                else:
-                    continue
-
-            # Filter for RefSeq Select transcripts only
-            elif self.validator.select_transcripts == "refseq_select":
-                tx_ac = saved_hgvs_coding.ac
-                annotation = self.validator.db.get_transcript_annotation(tx_ac)
-                if '"refseq_select": true' in annotation:
-                    pass
-                else:
-                    continue
-
-            # Filter for ensembl Select transcripts only
-            elif self.validator.select_transcripts == "ensembl_select":
-                tx_ac = saved_hgvs_coding.ac
-                annotation = self.validator.db.get_transcript_annotation(tx_ac)
-                if '"ensembl_select": true' in annotation:
-                    pass
-                else:
-                    continue
+            if not self._transcript_is_selected(
+                    saved_hgvs_coding,
+                    select_transcripts_dict,
+            ):
+                continue
 
             ## Only apply to known gapped alignment mappings
             if not self.variant.map_dat.hdp:
@@ -561,9 +856,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                                                                   self.variant.primary_assembly,
                                                                   message=message)
                             gapped_alignment_warning = gap_warnings["gapped_alignment_warning"]
-                            if self.auto_info != "":
-                                self.auto_info = self.auto_info  # + ", and " + gap_warnings["auto_info"]
-                            else:
+                            if not self.auto_info:
                                 self.auto_info = gap_warnings["auto_info"]
 
                         # Will filter out intronic variants since intronic variants will not normalize
@@ -582,7 +875,9 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                 needs_a_push = False
                 merged_variant = False
 
-                if "+" not in str(saved_hgvs_coding.posedit.pos) and "-" not in str(saved_hgvs_coding.posedit.pos):
+                if not hgvs_position_utils.either_position_is_intronic(
+                        saved_hgvs_coding
+                ):
                     """
                     Directly search for gaps using vcf hard_pushing left
                     we pre-normalise the input (at least as far as basic hgvs), to test for sharing
@@ -731,9 +1026,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                     if "insertion length must be 1" in str(e):
                         pass
 
-                if re.search(r'\d+\+', str(hgvs_seek_var.posedit.pos)) or re.search(r'\d+-', str(
-                        hgvs_seek_var.posedit.pos)) or re.search(r'\*\d+\+', str(
-                        hgvs_seek_var.posedit.pos)) or re.search(r'\*\d+-', str(hgvs_seek_var.posedit.pos)):
+                if _has_any_offset(hgvs_seek_var):
 
                     # Double check to see whether the variant is actually intronic?
                     for exon in ori:
@@ -777,33 +1070,13 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                         # Create normalized version of tx_hgvs_not_delins
                         rn_tx_hgvs_not_delins = copy.deepcopy(self.tx_hgvs_not_delins)
 
-                        # Check for +ve base and adjust
-                        if ('+' in str(rn_tx_hgvs_not_delins.posedit.pos.start) or '-' in
-                            str(rn_tx_hgvs_not_delins.posedit.pos.start)) and (
-                                '+' in str(rn_tx_hgvs_not_delins.posedit.pos.end) or '-' in
-                                str(rn_tx_hgvs_not_delins.posedit.pos.end)):
-                            rn_tx_hgvs_not_delins = self.remove_offsetting_to_span_gap(rn_tx_hgvs_not_delins)
-
-                        elif '+' in str(rn_tx_hgvs_not_delins.posedit.pos.end):
-                            rn_tx_hgvs_not_delins, hgvs_not_delins = self.move_tx_end_base_to_next_nonoffset(
-                                rn_tx_hgvs_not_delins, saved_hgvs_coding, back=False)
-
-                        elif '+' in str(rn_tx_hgvs_not_delins.posedit.pos.start):
-                            rn_tx_hgvs_not_delins, hgvs_not_delins = self.move_tx_start_base_to_previous_nonoffset(
-                                rn_tx_hgvs_not_delins, saved_hgvs_coding)
-
-                        # Check for -ve base and adjust
-                        elif '-' in str(rn_tx_hgvs_not_delins.posedit.pos.end) and '-' in \
-                                str(rn_tx_hgvs_not_delins.posedit.pos.start):
-                            rn_tx_hgvs_not_delins = self.remove_offsetting_to_span_gap(rn_tx_hgvs_not_delins)
-
-                        elif '-' in str(rn_tx_hgvs_not_delins.posedit.pos.end):
-                            rn_tx_hgvs_not_delins, hgvs_not_delins = self.move_tx_end_base_to_next_nonoffset(
-                                rn_tx_hgvs_not_delins, saved_hgvs_coding)
-
-                        elif '-' in str(rn_tx_hgvs_not_delins.posedit.pos.start):
-                            rn_tx_hgvs_not_delins, hgvs_not_delins = self.move_tx_start_base_to_previous_nonoffset(
-                                rn_tx_hgvs_not_delins, saved_hgvs_coding, with_base_subtract=True)
+                        rn_tx_hgvs_not_delins, hgvs_not_delins = (
+                            self._adjust_transcript_gap_offsets(
+                                rn_tx_hgvs_not_delins,
+                                saved_hgvs_coding,
+                                hgvs_not_delins,
+                            )
+                        )
 
                         # Logic
                         if len(hgvs_not_delins.posedit.edit.ref) < len(rn_tx_hgvs_not_delins.posedit.edit.ref):
@@ -834,7 +1107,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                                 try:
                                     self.variant.hn.normalize(hgvs_stash_t)
                                 except Exception as e:
-                                    logger.debug("Except passed, %s", e)
+                                    pass
                                 else:
                                     gap_length = len(stash_hgvs_not_delins.posedit.edit.ref) - len(
                                         hgvs_stash_t.posedit.edit.ref)
@@ -906,7 +1179,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
 
                     # GAP IN THE TRANSCRIPT DISPARITY DETECTED
                     if self.disparity_deletion_in[0] == 'transcript':
-                        logger.info(f"Transcript gap identified as {self.disparity_deletion_in}")
+                        pass
                         # Check for issue https://github.com/openvar/variantValidator/issues/385 where the gap is
                         # being identified but oddly the vm is not compensating, likely due to odd sequence
                         try:
@@ -952,15 +1225,17 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                                 self.auto_info = self.auto_info + gap_warnings["auto_info"]
 
                         # ANY VARIANT WHOLLY WITHIN THE GAP
-                        hgvs_refreshed_variant = self.transcript_disparity(reverse_normalized_hgvs_genomic,
-                                                                           stored_hgvs_not_delins,
-                                                                           self.variant.hgvs_genomic, 1)
+                        hgvs_refreshed_variant = self.transcript_disparity(
+                            reverse_normalized_hgvs_genomic,
+                            self.variant.hgvs_genomic,
+                            1,
+                        )
 
                         # Look for missed duplications into direct complte in-line repeats
                         try:
                             if (hasattr(hgvs_refreshed_variant.posedit.pos.start, "offset")
                              or hasattr(hgvs_refreshed_variant.posedit.pos.end, "offset")):
-                                logger.info("Checks for potential inline missed dups 1")
+                                pass
                                 if(hgvs_refreshed_variant.posedit.pos.start.base ==
                                         rn_tx_hgvs_not_delins.posedit.pos.start.base
                                         and
@@ -969,17 +1244,16 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                                         and
                                     hgvs_refreshed_variant.posedit.edit.alt ==
                                         rn_tx_hgvs_not_delins.posedit.edit.alt):
-                                            logger.info(f"Potential missed in-line tandem repeat dup "
-                                                        f"{rn_tx_hgvs_not_delins}")
+                                            pass
                                             hgvs_refreshed_variant = rn_tx_hgvs_not_delins
                                             try:
                                                 hgvs_refreshed_variant = (self.validator.vm.
                                                                           n_to_c(hgvs_refreshed_variant))
                                             except vvhgvs.exceptions.HGVSError:
                                                 pass
-                                            logger.info(f"direct map to: {hgvs_refreshed_variant}")
+                                            pass
                                             hgvs_refreshed_variant = self.variant.hn.normalize(hgvs_refreshed_variant)
-                                            logger.info(f"normalize to: {hgvs_refreshed_variant}")
+                                            pass
                         except Exception:
                             pass
 
@@ -1081,7 +1355,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                                 tx_hard_right = saved_hgvs_coding
                             else:
                                 normalize_stash_right = self.variant.hn.normalize(stash_hgvs_not_delins_right)
-                                if str(normalize_stash_right.posedit) == str(stash_hgvs_not_delins.posedit):
+                                if _same_posedit(normalize_stash_right, stash_hgvs_not_delins):
                                     tx_hard_right = saved_hgvs_coding
                             try:
                                 tx_hard_left = self.validator.vm.g_to_t(stash_hgvs_not_delins_left,
@@ -1091,7 +1365,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                                 tx_hard_left = saved_hgvs_coding
                             else:
                                 normalize_stash_left = self.variant.hn.normalize(stash_hgvs_not_delins_left)
-                                if str(normalize_stash_left.posedit) == str(stash_hgvs_not_delins.posedit):
+                                if _same_posedit(normalize_stash_left, stash_hgvs_not_delins):
                                     tx_hard_left = saved_hgvs_coding
 
                             try:
@@ -1145,17 +1419,6 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
 
                     # Edit the output
                     hgvs_refreshed_variant = self.edit_output(hgvs_refreshed_variant, saved_hgvs_coding)
-
-                    # Send to empty nw_rel_var
-                    # Never used because module was not imported
-
-                    # if hgvs_refreshed_variant.posedit.edit.type == "delins" and \
-                    #         hgvs_refreshed_variant.posedit.edit.alt == "":
-                    #     hgvs_refreshed_variant = hgvs_obj_from_existing_edit(
-                    #             hgvs_refreshed_variant.ac,
-                    #             hgvs_refreshed_variant.type,
-                    #             hgvs_refreshed_variant.posedit.pos,
-                    #             '',hgvs_refreshed_variant.posedit.edit.ref)
 
                     nw_rel_var.append(hgvs_refreshed_variant)
 
@@ -1216,8 +1479,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
         stash_tx_right = ''
         stash_tx_left = ''
         map_fail = False
-        if not self.variant.map_dat.hdp:
-            self.variant.map_dat.hdp = self.validator.hdp
+        self._ensure_map_data_provider()
 
         try:
             if hgvs_stash.type == 'c':
@@ -1268,7 +1530,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
             try:
                 stash_hgvs_not_delins = self.variant.no_norm_evm.n_to_c(stash_hgvs_not_delins)
             except Exception as e:
-                logger.debug("Except passed, %s", e)
+                pass
 
             test_stash_tx_right = copy.deepcopy(stash_hgvs_not_delins)
             stash_genomic = self.validator.myvm_t_to_g(test_stash_tx_right, hgvs_genomic.ac, self.variant.no_norm_evm,
@@ -1304,7 +1566,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                     self.variant.hn.normalize(hgvs_reform_ident)
                 except vvhgvs.exceptions.HGVSError as e:
                     error = str(e)
-                    if re.search('spanning the exon-intron boundary', error):
+                    if "spanning the exon-intron boundary" in error:
                         stash_tx_right = test_stash_tx_right
                         self.hgvs_genomic_possibilities.append(['', ['false', 'false']])
                 else:
@@ -1368,7 +1630,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                                                                                stash_genomic]]]
         # Intronic positions not supported. Will cause a Value Error
         except (vvhgvs.exceptions.HGVSError, ValueError) as e:
-            logger.debug("Except passed, %s", e)
+            pass
 
         # Then to the left
         try:
@@ -1398,7 +1660,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
             try:
                 stash_hgvs_not_delins = self.variant.no_norm_evm.n_to_c(stash_hgvs_not_delins)
             except Exception as e:
-                logger.debug("Except passed, %s", e)
+                pass
                 # Store a tx copy for later use
             test_stash_tx_left = copy.deepcopy(stash_hgvs_not_delins)
             stash_genomic = self.validator.myvm_t_to_g(test_stash_tx_left, hgvs_genomic.ac, self.variant.no_norm_evm,
@@ -1435,7 +1697,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                     self.variant.hn.normalize(hgvs_reform_ident)
                 except vvhgvs.exceptions.HGVSError as e:
                     error = str(e)
-                    if re.search('spanning the exon-intron boundary', error):
+                    if "spanning the exon-intron boundary" in error:
                         stash_tx_left = test_stash_tx_left
                         self.hgvs_genomic_possibilities.append(['', ['false', 'false']])
                 else:
@@ -1511,7 +1773,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                                                                                stash_genomic]]]
         # Intronic positions not supported. Will cause a Value Error
         except (vvhgvs.exceptions.HGVSError, ValueError)as e:
-            logger.debug("Except passed, %s", e)
+            pass
 
         # direct mapping from reverse_normalized transcript insertions in the delins format
         self.rev_norm_ins(hgvs_coding, hgvs_genomic)
@@ -1642,9 +1904,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                                 intronic_variant = 'true'
 
             if intronic_variant != 'hard_fail':
-                if re.search(r'\d+\+', str(hgvs_seek_var.posedit.pos)) or re.search(r'\d+-', str(
-                        hgvs_seek_var.posedit.pos)) or re.search(r'\*\d+\+', str(
-                        hgvs_seek_var.posedit.pos)) or re.search(r'\*\d+-', str(hgvs_seek_var.posedit.pos)):
+                if _has_any_offset(hgvs_seek_var):
                     # Double check to see whether the variant is actually intronic?
                     for exon in ori:
                         genomic_start = int(exon['alt_start_i'])
@@ -1795,9 +2055,11 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                     suppress_c_normalization = 'true'
                     # amend_RefSeqGene = 'true'
                     # ANY VARIANT WHOLLY WITHIN THE GAP
-                    hgvs_refreshed_variant = self.transcript_disparity(reverse_normalized_hgvs_genomic,
-                                                                       stored_hgvs_not_delins, hgvs_genomic, 2)
-
+                    hgvs_refreshed_variant = self.transcript_disparity(
+                        reverse_normalized_hgvs_genomic,
+                        hgvs_genomic,
+                        2,
+                    )
 
                 # GAP IN THE CHROMOSOME
                 elif self.disparity_deletion_in[0] == 'chromosome':
@@ -1828,7 +2090,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                             'Unsupported normalization of variants spanning the exon-intron boundary' in error:
                         hgvs_refreshed_variant = saved_hgvs_coding
                     else:
-                        logger.info(error)
+                        pass
                         continue
 
                 # Quick check to make sure the coding variant has not changed
@@ -1836,7 +2098,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                     to_test = self.variant.hn.normalize(hgvs_refreshed_variant)
                 except:
                     to_test = hgvs_refreshed_variant
-                if str(to_test.posedit.edit) != str(hgvs_coding.posedit.edit):
+                if not _same_edit(to_test, hgvs_coding):
                     # Try the next available genomic option
                     if hgvs_coding.posedit.edit.type == 'identity' and to_test.posedit.edit.type == 'identity':
                         hgvs_coding = to_test
@@ -1897,15 +2159,14 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                     hgvs_genomic.posedit.pos.end.base = start
                     hgvs_genomic = self.variant.hn.normalize(hgvs_genomic)
 
-        logger.info(f"g_to_t_compensation returning hgvs_genomic {hgvs_genomic } hgvs_coding {hgvs_coding}, "
-                    f"suppress c normalization {suppress_c_normalization}")
+        pass
 
         return hgvs_genomic, suppress_c_normalization, hgvs_coding
 
     def g_to_t_gapped_mapping_stage2(self, ori, hgvs_coding, hgvs_genomic):
-        logger.info('g_to_t gap code 2 active')
+        pass
 
-        logger.info(f"incoming variants: {hgvs_coding}, exons {ori} against {hgvs_genomic}")
+        pass
 
         hgvs_genomic_variant = hgvs_genomic
         reverse_normalized_hgvs_genomic = self.variant.reverse_normalizer.normalize(hgvs_genomic_variant)
@@ -1985,7 +2246,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                                          alt_aln_method=self.validator.alt_aln_method)
             except Exception as e:
                 if str(e) == 'start or end or both are beyond the bounds of transcript record':
-                    logger.info(str(e))
+                    pass
                     hard_fail == 'true'
             try:
                 self.variant.hn.normalize(self.tx_hgvs_not_delins)
@@ -1994,7 +2255,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                 if 'Normalization of intronic variants is not supported' in error or \
                         'Unsupported normalization of variants spanning the exon-intron boundary' in error:
                     if 'Unsupported normalization of variants spanning the exon-intron boundary' in error:
-                        logger.info(error)
+                        pass
                         hard_fail = 'true'
                     elif 'Normalization of intronic variants is not supported' in error:
                         # We know that this cannot be because of an intronic variant, so must be aligned to tx gap
@@ -2018,8 +2279,11 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
             # GAP IN THE TRANSCRIPT DISPARITY DETECTED
             if self.disparity_deletion_in[0] == 'transcript':
                 # ANY VARIANT WHOLLY WITHIN THE GAP
-                hgvs_refreshed_variant = self.transcript_disparity(reverse_normalized_hgvs_genomic,
-                                                                   stored_hgvs_not_delins, hgvs_genomic, 3)
+                hgvs_refreshed_variant = self.transcript_disparity(
+                    reverse_normalized_hgvs_genomic,
+                    hgvs_genomic,
+                    3,
+                )
 
                 # Look for missed duplications into direct complete in-line repeats
                 try:
@@ -2027,19 +2291,18 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                                               n_to_c(self.tx_hgvs_not_delins))
                 except vvhgvs.exceptions.HGVSError:
                     check_refreshed_variant = self.tx_hgvs_not_delins
-                logger.info(f"check_refreshed_variant: {check_refreshed_variant}")
+                pass
 
                 try:
                     if (hasattr(check_refreshed_variant.posedit.pos.start, "offset")
                             or hasattr(check_refreshed_variant.posedit.pos.end, "offset")):
-                        logger.info("Checks for potential inline missed dups 2")
+                        pass
                         if (hgvs_refreshed_variant.posedit.pos.end.base == check_refreshed_variant.posedit.pos.end.base
                             and (int(check_refreshed_variant.posedit.pos.start.base)) ==
                                 (int(hgvs_refreshed_variant.posedit.pos.start.base)+1)
                                 and hgvs_refreshed_variant.posedit.edit.alt[2:] ==
                                 check_refreshed_variant.posedit.edit.alt):
-                                    logger.info(f"Potential missed in-line tandem repeat dup "
-                                                f"{self.tx_hgvs_not_delins}")
+                                    pass
                                     hgvs_refreshed_variant = check_refreshed_variant
                 except Exception:
                     pass
@@ -2061,18 +2324,17 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
             else:
                 hgvs_coding = copy.deepcopy(hgvs_refreshed_variant)
 
-        logger.info(f"g_to_t_gaped_mapping_stage2 returning hgvs_coding {hgvs_coding}")
+        pass
         return hgvs_coding
 
     def g_to_t_gap_compensation_version3(self, hgvs_alt_genomic, hgvs_coding, ori, alt_chr, rec_var):
 
-        logger.info("g_to_t_gap_compensation_version3 active")
+        pass
 
         self.orientation = int(ori[0]['alt_strand'])
         hgvs_genomic = copy.deepcopy(hgvs_alt_genomic)
 
-        logger.debug(f"g_to_t_gap_compensation_version3 triggered with hgvs_alt_genomic {hgvs_alt_genomic},"
-                    f" hgvs_coding {hgvs_coding}, alt_chr {alt_chr}, rec_var {rec_var}, ori {ori}")
+        pass
 
         rn_hgvs_genomic = self.variant.reverse_normalizer.normalize(hgvs_alt_genomic)
         self.hgvs_genomic_possibilities.append([rn_hgvs_genomic, ['false', 'false']])
@@ -2097,8 +2359,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
         hgvs_stash = copy.deepcopy(hgvs_coding)
         stash_tx_right = ''
         stash_tx_left = ''
-        if not self.variant.map_dat.hdp:
-            self.variant.map_dat.hdp = self.validator.hdp
+        self._ensure_map_data_provider()
 
         # Capture instances where variant merging hard-sets the outputs
         map_fail = False
@@ -2153,7 +2414,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
             try:
                 stash_hgvs_not_delins = self.variant.no_norm_evm.n_to_c(stash_hgvs_not_delins)
             except Exception as e:
-                logger.debug("Except passed, %s", e)
+                pass
 
             # Store a tx copy for later use
             test_stash_tx_right = copy.deepcopy(stash_hgvs_not_delins)
@@ -2255,7 +2516,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                                                                                stash_genomic]]]
 
         except (vvhgvs.exceptions.HGVSError, ValueError) as e:
-            logger.debug("Except passed, %s", e)
+            pass
 
         # Then to the left
         try:
@@ -2286,7 +2547,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
             try:
                 stash_hgvs_not_delins = self.variant.no_norm_evm.n_to_c(stash_hgvs_not_delins)
             except Exception as e:
-                logger.debug("Except passed, %s", e)
+                pass
                 # Store a tx copy for later use
             test_stash_tx_left = copy.deepcopy(stash_hgvs_not_delins)
             stash_genomic = self.validator.myvm_t_to_g(test_stash_tx_left, hgvs_alt_genomic.ac,
@@ -2396,7 +2657,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                                                                                stash_genomic]]]
 
         except (vvhgvs.exceptions.HGVSError, ValueError) as e:
-            logger.debug("Except passed, %s", e)
+            pass
 
         # direct mapping from reverse_normalized transcript insertions in the delins format
         self.rev_norm_ins(hgvs_coding, hgvs_genomic)
@@ -2527,11 +2788,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                                 intronic_variant = 'true'
 
             if intronic_variant != 'hard_fail':
-                if re.search(r'\d+\+', str(hgvs_seek_var.posedit.pos)) or re.search(
-                        r'\d+-', str(hgvs_seek_var.posedit.pos)
-                    ) or re.search(
-                        r'\*\d+\+', str(hgvs_seek_var.posedit.pos)
-                    ) or re.search(r'\*\d+-', str(hgvs_seek_var.posedit.pos)):
+                if _has_any_offset(hgvs_seek_var):
                     # Double check to see whether the variant is actually intronic?
                     for exon in ori:
                         genomic_start = int(exon['alt_start_i'])
@@ -2661,9 +2918,12 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
 
                 elif self.disparity_deletion_in[0] == 'transcript':
                     # ANY VARIANT WHOLLY WITHIN THE GAP
-                    logger.info("Variant in tx_gap test 4")
-                    hgvs_refreshed_variant = self.transcript_disparity(reverse_normalized_hgvs_genomic,
-                                                                       stored_hgvs_not_delins, hgvs_genomic, 4)
+                    pass
+                    hgvs_refreshed_variant = self.transcript_disparity(
+                        reverse_normalized_hgvs_genomic,
+                        hgvs_genomic,
+                        4,
+                    )
 
                 # GAP IN THE CHROMOSOME
                 elif self.disparity_deletion_in[0] == 'chromosome':
@@ -2698,7 +2958,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                     to_test = self.variant.hn.normalize(hgvs_refreshed_variant)
                 except:
                     to_test = hgvs_refreshed_variant
-                if str(to_test.posedit.edit) != str(hgvs_coding.posedit.edit):
+                if not _same_edit(to_test, hgvs_coding):
                     # Try the next available genomic option
                     if hgvs_coding.posedit.edit.type == 'identity' and to_test.posedit.edit.type == 'identity':
                         hgvs_coding = to_test
@@ -2777,721 +3037,1288 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
         except UnboundLocalError:
             pass
 
-        logger.debug(f"g_to_t_gap_compensation_version3 returning hgvs_genomic {hgvs_genomic}, "
-                    f"hgvs_coding {hgvs_coding}")
+        pass
         return hgvs_alt_genomic, hgvs_coding
 
-    def dup_ins_5prime_shift(self, stored_hgvs_not_delins, saved_hgvs_coding):
+
+    def dup_ins_5prime_shift(
+            self,
+            stored_hgvs_not_delins,
+            saved_hgvs_coding,
+    ):
+        """
+        Adjust a single-position genomic variant after 5-prime shifting across
+        an alignment gap.
+
+        This path applies only to single-position variants represented as a
+        duplication, insertion, or substitution. For duplications and insertions,
+        expand the genomic interval by one base where required and refresh the
+        reference sequence.
+
+        The previous transcript-span comparison has been removed because both
+        outcomes performed exactly the same adjustment.
+        """
         hgvs_not_delins = copy.deepcopy(stored_hgvs_not_delins)
-        # This test will only occur in dup of single base, insertion or substitution
-        if '_' not in str(hgvs_not_delins.posedit.pos):
-            if 'dup' in self.hgvs_genomic_5pr.posedit.edit.type or 'ins' in self.hgvs_genomic_5pr.posedit.edit.type:
-                # For gap in chr, map to t. - but because we have pushed to 5 prime by norm, add 1 to end pos
-                plussed_hgvs_not_delins = copy.deepcopy(hgvs_not_delins)
-                plussed_hgvs_not_delins.posedit.pos.end.base = plussed_hgvs_not_delins.posedit.pos.end.base + 1
-                plussed_hgvs_not_delins.posedit.edit.ref = ''
-                transcript_variant = self.variant.no_norm_evm.g_to_t(plussed_hgvs_not_delins,
-                                                                     str(saved_hgvs_coding.ac))
-                if ((transcript_variant.posedit.pos.end.base - transcript_variant.posedit.pos.start.base) > (
-                        self.hgvs_genomic_5pr.posedit.pos.end.base - self.hgvs_genomic_5pr.posedit.pos.start.base)):
-                    if 'dup' in str(self.hgvs_genomic_5pr.posedit.edit):
-                        hgvs_not_delins.posedit.pos.end.base = hgvs_not_delins.posedit.pos.start.base + 1
-                        start = hgvs_not_delins.posedit.pos.start.base - 1
-                        end = hgvs_not_delins.posedit.pos.end.base
-                        ref_bases = self.validator.sf.fetch_seq(str(hgvs_not_delins.ac), start, end)
-                        hgvs_not_delins.posedit.edit.ref = ref_bases
-                        hgvs_not_delins.posedit.edit.alt = ref_bases[:1] + hgvs_not_delins.posedit.edit.alt[
-                                                                 1:] + ref_bases[1:]
-                    elif 'ins' in str(self.hgvs_genomic_5pr.posedit.edit) and \
-                            'del' in str(self.hgvs_genomic_5pr.posedit.edit):
-                        hgvs_not_delins.posedit.pos.end.base = hgvs_not_delins.posedit.pos.start.base + 1
-                    elif 'ins' in str(self.hgvs_genomic_5pr.posedit.edit) and \
-                            'del' not in str(self.hgvs_genomic_5pr.posedit.edit):
-                        hgvs_not_delins.posedit.pos.end.base = hgvs_not_delins.posedit.pos.start.base + 1
-                        start = hgvs_not_delins.posedit.pos.start.base - 1
-                        end = hgvs_not_delins.posedit.pos.end.base
-                        ref_bases = self.validator.sf.fetch_seq(str(hgvs_not_delins.ac), start, end)
-                        hgvs_not_delins.posedit.edit.ref = ref_bases
-                        hgvs_not_delins.posedit.edit.alt = ref_bases[:1] + hgvs_not_delins.posedit.edit.alt[
-                                                                 1:] + ref_bases[1:]
-                else:
-                    if 'dup' in str(self.hgvs_genomic_5pr.posedit.edit):
-                        hgvs_not_delins.posedit.pos.end.base = hgvs_not_delins.posedit.pos.start.base + 1
-                        start = hgvs_not_delins.posedit.pos.start.base - 1
-                        end = hgvs_not_delins.posedit.pos.end.base
-                        ref_bases = self.validator.sf.fetch_seq(str(hgvs_not_delins.ac), start, end)
-                        hgvs_not_delins.posedit.edit.ref = ref_bases
-                        hgvs_not_delins.posedit.edit.alt = ref_bases[:1] + hgvs_not_delins.posedit.edit.alt[
-                                                                 1:] + ref_bases[1:]
-                    elif 'ins' in str(self.hgvs_genomic_5pr.posedit.edit) and \
-                            'del' in str(self.hgvs_genomic_5pr.posedit.edit):
-                        hgvs_not_delins.posedit.pos.end.base = hgvs_not_delins.posedit.pos.start.base + 1
-                    elif 'ins' in str(self.hgvs_genomic_5pr.posedit.edit) and \
-                            'del' not in str(self.hgvs_genomic_5pr.posedit.edit):
-                        hgvs_not_delins.posedit.pos.end.base = hgvs_not_delins.posedit.pos.start.base + 1
-                        start = hgvs_not_delins.posedit.pos.start.base - 1
-                        end = hgvs_not_delins.posedit.pos.end.base
-                        ref_bases = self.validator.sf.fetch_seq(str(hgvs_not_delins.ac), start, end)
-                        hgvs_not_delins.posedit.edit.ref = ref_bases
-                        hgvs_not_delins.posedit.edit.alt = ref_bases[:1] + hgvs_not_delins.posedit.edit.alt[
-                                                                 1:] + ref_bases[1:]
+
+        position = hgvs_not_delins.posedit.pos
+        edit = hgvs_not_delins.posedit.edit
+        genomic_edit_type = self.hgvs_genomic_5pr.posedit.edit.type
+
+        # This handling only applies to a single-position variant.
+        if position.start.base != position.end.base:
+            return hgvs_not_delins
+
+        # Only duplications and insertion-containing edits require adjustment.
+        if "dup" not in genomic_edit_type and "ins" not in genomic_edit_type:
+            return hgvs_not_delins
+
+        # Extend the genomic interval by one base.
+        position.end.base = position.start.base + 1
+
+        # A delins already has the required reference-spanning representation.
+        if "ins" in genomic_edit_type and "del" in genomic_edit_type:
+            return hgvs_not_delins
+
+        # Duplications and pure insertions require the flanking reference bases
+        # to reconstruct the expanded representation.
+        start = position.start.base - 1
+        end = position.end.base
+
+        ref_bases = self.validator.sf.fetch_seq(
+            hgvs_not_delins.ac,
+            start,
+            end,
+        )
+
+        edit.ref = ref_bases
+        edit.alt = (
+                ref_bases[:1]
+                + edit.alt[1:]
+                + ref_bases[1:]
+        )
 
         return hgvs_not_delins
 
-    def remove_offsetting_to_span_gap(self, rn_tx_hgvs_not_delins):
-        # Remove offsetting to span the gap
-        rn_tx_hgvs_not_delins.posedit.pos.start.offset = 0
-        rn_tx_hgvs_not_delins.posedit.pos.end.offset = 0
-        rn_tx_hgvs_not_delins.posedit.pos.end.base = rn_tx_hgvs_not_delins.posedit.pos.end.base + 1
-        rn_tx_hgvs_not_delins.posedit.edit.ref = ''
+    def remove_offsetting_to_span_gap(
+            self,
+            rn_tx_hgvs_not_delins,
+    ):
+        """
+        Remove transcript offsets so the variant spans the alignment gap.
+
+        The end position is extended by one base to create a mappable interval,
+        and the edit sequence is cleared before remapping.
+        """
+        position = rn_tx_hgvs_not_delins.posedit.pos
+        edit = rn_tx_hgvs_not_delins.posedit.edit
+
+        position.start.offset = 0
+        position.end.offset = 0
+        position.end.base += 1
+
+        edit.ref = ""
+
         try:
-            rn_tx_hgvs_not_delins.posedit.edit.alt = ''
-        except Exception as e:
-            logger.debug("Except passed, %s", e)
+            edit.alt = ""
+        except AttributeError as error:
+            # Some HGVS edit types may not expose a writable alt attribute.
+            pass
 
         return rn_tx_hgvs_not_delins
 
-    def move_tx_end_base_to_next_nonoffset(self, rn_tx_hgvs_not_delins, saved_hgvs_coding, back=True):
-        # move tx end base back to next available non-offset base
-        rn_tx_hgvs_not_delins.posedit.pos.end.offset = 0
-        rn_tx_hgvs_not_delins.posedit.edit.ref = ''
+    def move_tx_end_base_to_next_nonoffset(
+            self,
+            rn_tx_hgvs_not_delins,
+            saved_hgvs_coding,
+            back=True,
+    ):
+        """
+        Move the transcript end position to the next non-offset base.
+
+        The end offset is removed before rebuilding the variant across the
+        transcript/genome alignment gap. When moving back across the gap, the
+        reference base crossed by the move is appended to the alternate
+        sequence.
+
+        The adjusted transcript variant is then remapped transcript -> genome
+        -> transcript using the non-normalising mapper. Normalisation must not
+        be introduced here because it can reposition the variant relative to
+        the alignment gap.
+        """
+        no_norm_evm = self.variant.no_norm_evm
+        position = rn_tx_hgvs_not_delins.posedit.pos
+        edit = rn_tx_hgvs_not_delins.posedit.edit
+
+        position.end.offset = 0
+        edit.ref = ""
 
         if back:
-            # Add the additional base to the ALT
-            start = rn_tx_hgvs_not_delins.posedit.pos.end.base - 1
-            end = rn_tx_hgvs_not_delins.posedit.pos.end.base
-            ref_bases = self.validator.sf.fetch_seq(str(self.tx_hgvs_not_delins.ac), start, end)
-            rn_tx_hgvs_not_delins.posedit.edit.alt = rn_tx_hgvs_not_delins.posedit.edit.alt + ref_bases
+            # Preserve the transcript reference base crossed while removing
+            # the offset.
+            end = position.end.base
+            edit.alt += self.validator.sf.fetch_seq(
+                rn_tx_hgvs_not_delins.ac,
+                end - 1,
+                end,
+            )
         else:
-            # move tx end base to next available non-offset base
-            rn_tx_hgvs_not_delins.posedit.pos.end.base = self.tx_hgvs_not_delins.posedit.pos.end.base + 1
-        if 'NM_' in str(rn_tx_hgvs_not_delins):
-            test_tx_var = self.variant.no_norm_evm.n_to_c(rn_tx_hgvs_not_delins)
+            # Move the end to the next available non-offset transcript base.
+            position.end.base = (
+                self.tx_hgvs_not_delins.posedit.pos.end.base + 1
+            )
+
+        # Coding RefSeq transcripts are represented as n. variants during
+        # this gap-processing stage and must be returned to c. coordinates
+        # before transcript-to-genome mapping.
+        if rn_tx_hgvs_not_delins.ac.startswith("NM_"):
+            test_tx_var = no_norm_evm.n_to_c(
+                rn_tx_hgvs_not_delins
+            )
         else:
             test_tx_var = rn_tx_hgvs_not_delins
-        # re-make genomic and tx
-        hgvs_not_delins = self.validator.myevm_t_to_g(test_tx_var, self.variant.no_norm_evm,
-                                                      self.variant.primary_assembly, self.variant.hn,
-                                                      self.variant)
-        rn_tx_hgvs_not_delins = self.variant.no_norm_evm.g_to_n(hgvs_not_delins,
-                                                                str(saved_hgvs_coding.ac))
+
+        # Rebuild the genomic representation without normalising across the
+        # alignment gap.
+        hgvs_not_delins = self.validator.myevm_t_to_g(
+            test_tx_var,
+            no_norm_evm,
+            self.variant.primary_assembly,
+            self.variant.hn,
+            self.variant,
+        )
+
+        # Map the rebuilt genomic representation back to transcript
+        # coordinates.
+        rn_tx_hgvs_not_delins = no_norm_evm.g_to_n(
+            hgvs_not_delins,
+            saved_hgvs_coding.ac,
+        )
+
         return rn_tx_hgvs_not_delins, hgvs_not_delins
 
-    def move_tx_start_base_to_previous_nonoffset(self, rn_tx_hgvs_not_delins, saved_hgvs_coding,
-                                                 with_base_subtract=False):
+    def move_tx_start_base_to_previous_nonoffset(
+            self,
+            rn_tx_hgvs_not_delins,
+            saved_hgvs_coding,
+            with_base_subtract=False,
+    ):
+        """
+        Move the transcript start position to the previous non-offset base.
 
-        # Store the original variant
-        store_rn_tx_hgvs_not_delins = copy.deepcopy(rn_tx_hgvs_not_delins)
-        # move tx start base to previous available non-offset base
-        rn_tx_hgvs_not_delins.posedit.pos.start.offset = 0
-        if with_base_subtract and rn_tx_hgvs_not_delins.posedit.pos.start.base > 1:
-            rn_tx_hgvs_not_delins.posedit.pos.start.base = rn_tx_hgvs_not_delins.posedit.pos.start.base - 1
-        rn_tx_hgvs_not_delins.posedit.edit.ref = ''
+        The adjusted transcript variant is remapped transcript -> genome ->
+        transcript using the non-normalising mapper. If removing the offset
+        preserves the reference sequence across the round trip, sequence
+        associated with the original offset is retained in the alternate.
+        """
+        no_norm_evm = self.variant.no_norm_evm
 
-        if 'NM_' in str(rn_tx_hgvs_not_delins):
+        # Preserve the original state because the round trip below may remove
+        # information associated with the transcript offset.
+        stored_tx_variant = copy.deepcopy(rn_tx_hgvs_not_delins)
+
+        position = rn_tx_hgvs_not_delins.posedit.pos
+        edit = rn_tx_hgvs_not_delins.posedit.edit
+
+        position.start.offset = 0
+
+        if with_base_subtract and position.start.base > 1:
+            position.start.base -= 1
+
+        edit.ref = ""
+
+        # Coding RefSeq transcripts are represented as n. variants during this
+        # gap-processing stage but require c. coordinates for T -> G mapping.
+        if rn_tx_hgvs_not_delins.ac.startswith("NM_"):
             try:
-                test_tx_var = self.variant.no_norm_evm.n_to_c(rn_tx_hgvs_not_delins)
-            except vvhgvs.exceptions.HGVSInvalidVariantError as e:
-                if "Expected n. variant;" in str(e):
-                    rn_tx_hgvs_not_delins = self.validator.vm.c_to_n(rn_tx_hgvs_not_delins)
-                    test_tx_var = self.variant.no_norm_evm.n_to_c(rn_tx_hgvs_not_delins)
+                test_tx_var = no_norm_evm.n_to_c(
+                    rn_tx_hgvs_not_delins
+                )
+
+            except vvhgvs.exceptions.HGVSInvalidVariantError as error:
+                # Retain the historical recovery path only for the specific
+                # state in which an n. variant was expected.
+                if "Expected n. variant;" not in str(error):
+                    raise
+
+                rn_tx_hgvs_not_delins = self.validator.vm.c_to_n(
+                    rn_tx_hgvs_not_delins
+                )
+                test_tx_var = no_norm_evm.n_to_c(
+                    rn_tx_hgvs_not_delins
+                )
 
         else:
             test_tx_var = rn_tx_hgvs_not_delins
 
-        # re-make genomic and tx
-        hgvs_not_delins = self.validator.myevm_t_to_g(test_tx_var, self.variant.no_norm_evm,
-                                                      self.variant.primary_assembly, self.variant.hn,
-                                                      self.variant)
+        # Rebuild the genomic representation without normalising across the
+        # alignment gap.
+        hgvs_not_delins = self.validator.myevm_t_to_g(
+            test_tx_var,
+            no_norm_evm,
+            self.variant.primary_assembly,
+            self.variant.hn,
+            self.variant,
+        )
 
         try:
-            rn_tx_hgvs_not_delins = self.variant.no_norm_evm.g_to_n(hgvs_not_delins,
-                                                                str(saved_hgvs_coding.ac))
+            rn_tx_hgvs_not_delins = no_norm_evm.g_to_n(
+                hgvs_not_delins,
+                saved_hgvs_coding.ac,
+            )
+
         except vvhgvs.exceptions.HGVSInvalidIntervalError:
+            # Some gap-spanning intervals cannot be represented by the reverse
+            # G -> N mapping. In that case retain the adjusted transcript
+            # representation produced above.
             rn_tx_hgvs_not_delins = test_tx_var
 
-        if store_rn_tx_hgvs_not_delins.posedit.pos.start.offset != 0 and \
-                rn_tx_hgvs_not_delins.posedit.pos.start.offset == 0 \
-                and store_rn_tx_hgvs_not_delins.posedit.edit.ref == rn_tx_hgvs_not_delins.posedit.edit.ref:
-            offset = store_rn_tx_hgvs_not_delins.posedit.pos.start.offset
-            add_in_these_bases = store_rn_tx_hgvs_not_delins.posedit.edit.ref[0:0+offset]
-            rn_tx_hgvs_not_delins.posedit.edit.alt = rn_tx_hgvs_not_delins.posedit.edit.alt + add_in_these_bases
+        stored_start = stored_tx_variant.posedit.pos.start
+        stored_edit = stored_tx_variant.posedit.edit
+
+        remapped_start = rn_tx_hgvs_not_delins.posedit.pos.start
+        remapped_edit = rn_tx_hgvs_not_delins.posedit.edit
+
+        if (
+                stored_start.offset != 0
+                and remapped_start.offset == 0
+                and stored_edit.ref == remapped_edit.ref
+        ):
+            # Preserve sequence associated with the offset when the round trip
+            # removed the offset without changing the reference.
+            remapped_edit.alt += stored_edit.ref[:stored_start.offset]
+
         else:
-            rn_tx_hgvs_not_delins.posedit.pos.start.offset = 0
+            remapped_start.offset = 0
 
         return rn_tx_hgvs_not_delins, hgvs_not_delins
 
     def c2_pos_edit(self, hgvs_genomic):
+        """
+        Refresh a transcript posedit where the gap affects the start position.
+
+        Extend the transcript variant by one preceding non-offset base, map
+        both transcript components to the genome, combine their reference and
+        alternate sequences, and map the reconstructed genomic variant back
+        to the transcript.
+        """
+        vm = self.validator.vm
+        aln_method = self.validator.alt_aln_method
+        genomic_ac = hgvs_genomic.ac
+
         try:
-            c2 = self.validator.vm.n_to_c(self.tx_hgvs_not_delins)
-        except:
+            c2 = vm.n_to_c(self.tx_hgvs_not_delins)
+        except vvhgvs.exceptions.HGVSError:
+            # NR_ transcripts cannot be converted to coding coordinates.
             c2 = self.tx_hgvs_not_delins
+
         c1 = copy.deepcopy(c2)
-        c1.posedit.pos.start.base = c2.posedit.pos.start.base - 1
-        c1.posedit.pos.start.offset = 0
-        c1.posedit.pos.end = c2.posedit.pos.start
-        c1.posedit.edit.ref = ''
-        c1.posedit.edit.alt = ''
+
+        c1_position = c1.posedit.pos
+        c1_edit = c1.posedit.edit
+
+        c1_position.start.base = c2.posedit.pos.start.base - 1
+        c1_position.start.offset = 0
+        c1_position.end = c2.posedit.pos.start
+        c1_edit.ref = ""
+        c1_edit.alt = ""
+
         if self.orientation != -1:
-            g1 = self.validator.vm.t_to_g(c1, hgvs_genomic.ac, alt_aln_method=self.validator.alt_aln_method)
-            g2 = self.validator.vm.t_to_g(c2, hgvs_genomic.ac, alt_aln_method=self.validator.alt_aln_method)
+            g1 = vm.t_to_g(
+                c1,
+                genomic_ac,
+                alt_aln_method=aln_method,
+            )
+            g2 = vm.t_to_g(
+                c2,
+                genomic_ac,
+                alt_aln_method=aln_method,
+            )
+
+            # The preceding transcript component contributes reference
+            # sequence only to the reconstructed genomic interval.
             g1.posedit.edit.alt = g1.posedit.edit.ref
+
         else:
-            g1 = self.validator.vm.t_to_g(c2, hgvs_genomic.ac, alt_aln_method=self.validator.alt_aln_method)
-            g2 = self.validator.vm.t_to_g(c1, hgvs_genomic.ac, alt_aln_method=self.validator.alt_aln_method)
+            # Reverse-strand mappings require the genomic components in the
+            # opposite order.
+            g1 = vm.t_to_g(
+                c2,
+                genomic_ac,
+                alt_aln_method=aln_method,
+            )
+            g2 = vm.t_to_g(
+                c1,
+                genomic_ac,
+                alt_aln_method=aln_method,
+            )
+
             g2.posedit.edit.alt = g2.posedit.edit.ref
-        reference = g1.posedit.edit.ref + g2.posedit.edit.ref[1:]
-        alternate = g1.posedit.edit.alt + g2.posedit.edit.alt[1:]
+
+        g1_edit = g1.posedit.edit
+        g2_edit = g2.posedit.edit
+
         g3 = copy.deepcopy(g1)
         g3.posedit.pos.end.base = g2.posedit.pos.end.base
-        g3.posedit.edit.ref = reference
-        g3.posedit.edit.alt = alternate
-        c3 = self.validator.vm.g_to_t(g3, c1.ac, alt_aln_method=self.validator.alt_aln_method)
-        hgvs_refreshed_variant = c3
+        g3.posedit.edit.ref = (
+            g1_edit.ref
+            + g2_edit.ref[1:]
+        )
+        g3.posedit.edit.alt = (
+            g1_edit.alt
+            + g2_edit.alt[1:]
+        )
 
-        return hgvs_refreshed_variant
+        return vm.g_to_t(
+            g3,
+            c1.ac,
+            alt_aln_method=aln_method,
+        )
 
     def c1_pos_edit(self, hgvs_genomic):
-        # fill the ref of a c type posedit that goes from tx to genome
-        # i.e offset is for end base not start base
+        """
+        Refresh a transcript posedit where the gap affects the end position.
+
+        Extend the transcript variant to the next non-offset base, map both
+        transcript components to the genome, and reconstruct the complete
+        reference sequence across the alignment gap.
+
+        If the combined genomic variant cannot be mapped directly back to the
+        transcript, reconstruct the transcript and intronic reference
+        components separately.
+        """
+        vm = self.validator.vm
+        aln_method = self.validator.alt_aln_method
+        genomic_ac = hgvs_genomic.ac
+
         try:
-            c1 = self.validator.vm.n_to_c(self.tx_hgvs_not_delins)
-        except:
+            c1 = vm.n_to_c(self.tx_hgvs_not_delins)
+        except vvhgvs.exceptions.HGVSError:
+            # NR_ transcripts cannot be converted to coding coordinates.
             c1 = self.tx_hgvs_not_delins
 
         c2 = copy.deepcopy(c1)
-        c2.posedit.pos.start = c1.posedit.pos.end
-        c2.posedit.pos.end.base = c1.posedit.pos.end.base + 1
-        c2.posedit.pos.end.offset = 0
-        c2.posedit.edit.ref = ''
-        c2.posedit.edit.alt = ''
+
+        c1_position = c1.posedit.pos
+        c2_position = c2.posedit.pos
+        c2_edit = c2.posedit.edit
+
+        c2_position.start = c1_position.end
+        c2_position.end.base = c1_position.end.base + 1
+        c2_position.end.offset = 0
+        c2_edit.ref = ""
+        c2_edit.alt = ""
 
         if self.orientation != -1:
-            g1 = self.validator.vm.t_to_g(c1, hgvs_genomic.ac, alt_aln_method=self.validator.alt_aln_method)
-            g2 = self.validator.vm.t_to_g(c2, hgvs_genomic.ac, alt_aln_method=self.validator.alt_aln_method)
+            g1 = vm.t_to_g(
+                c1,
+                genomic_ac,
+                alt_aln_method=aln_method,
+            )
+            g2 = vm.t_to_g(
+                c2,
+                genomic_ac,
+                alt_aln_method=aln_method,
+            )
+
+            # The following transcript component contributes reference
+            # sequence only to the reconstructed genomic interval.
             g2.posedit.edit.alt = g2.posedit.edit.ref
+
         else:
-            g1 = self.validator.vm.t_to_g(c2, hgvs_genomic.ac, alt_aln_method=self.validator.alt_aln_method)
-            g2 = self.validator.vm.t_to_g(c1, hgvs_genomic.ac, alt_aln_method=self.validator.alt_aln_method)
+            # Reverse-strand mappings require the genomic components in the
+            # opposite order.
+            g1 = vm.t_to_g(
+                c2,
+                genomic_ac,
+                alt_aln_method=aln_method,
+            )
+            g2 = vm.t_to_g(
+                c1,
+                genomic_ac,
+                alt_aln_method=aln_method,
+            )
+
             g1.posedit.edit.alt = g1.posedit.edit.ref
 
-        reference = g1.posedit.edit.ref + g2.posedit.edit.ref[1:]
-        alternate = g1.posedit.edit.alt + g2.posedit.edit.alt[1:]
+        g1_edit = g1.posedit.edit
+        g2_edit = g2.posedit.edit
 
         g3 = copy.deepcopy(g1)
         g3.posedit.pos.end.base = g2.posedit.pos.end.base
-        g3.posedit.edit.ref = reference
-        g3.posedit.edit.alt = alternate
+        g3.posedit.edit.ref = (
+            g1_edit.ref
+            + g2_edit.ref[1:]
+        )
+        g3.posedit.edit.alt = (
+            g1_edit.alt
+            + g2_edit.alt[1:]
+        )
+
         try:
-            c3 = self.validator.vm.g_to_t(g3, c1.ac, alt_aln_method=self.validator.alt_aln_method)
-        except:
+            return vm.g_to_t(
+                g3,
+                c1.ac,
+                alt_aln_method=aln_method,
+            )
+
+        except vvhgvs.exceptions.HGVSError:
+            # A gap-spanning interval may not map directly back to the
+            # transcript. Reconstruct its exonic and intronic reference
+            # components separately instead.
             c_tx_part = copy.deepcopy(c1)
-            c_tx_part.posedit.pos.end.offset = 0
-            c_tx_part.posedit.edit.alt = ''
-            c_tx_part.posedit.edit.ref = ''
-            self.validator.vm._replace_reference(c_tx_part)
+            tx_position = c_tx_part.posedit.pos
+            tx_edit = c_tx_part.posedit.edit
+
+            tx_position.end.offset = 0
+            tx_edit.ref = ""
+            tx_edit.alt = ""
+
+            vm._replace_reference(c_tx_part)
+
             c_intronic_part = copy.deepcopy(c1)
-            c_intronic_part.posedit.pos.start.base = c_intronic_part.posedit.pos.end.base
-            c_intronic_part.posedit.pos.start.offset = 0
-            c_intronic_part.posedit.edit.alt = ''
-            c_intronic_part.posedit.edit.ref = ''
-            g_intronic_ref_eq = self.validator.vm.t_to_g(c_intronic_part,hgvs_genomic.ac, alt_aln_method=self.validator.alt_aln_method)
+            intronic_position = c_intronic_part.posedit.pos
+            intronic_edit = c_intronic_part.posedit.edit
+
+            intronic_position.start.base = intronic_position.end.base
+            intronic_position.start.offset = 0
+            intronic_edit.ref = ""
+            intronic_edit.alt = ""
+
+            g_intronic_ref_eq = vm.t_to_g(
+                c_intronic_part,
+                genomic_ac,
+                alt_aln_method=aln_method,
+            )
+
+            intronic_ref = g_intronic_ref_eq.posedit.edit.ref
+
             if self.orientation == -1:
-                ref =  c_tx_part.posedit.edit.ref + simple_dna_revcomp(g_intronic_ref_eq.posedit.edit.ref)[1:]
-            else:
-                ref = c_tx_part.posedit.edit.ref + g_intronic_ref_eq.posedit.edit.ref[1:]
+                intronic_ref = simple_dna_revcomp(intronic_ref)
+
             c3 = copy.deepcopy(c1)
-            c3.posedit.edit.ref = ref
+            c3.posedit.edit.ref = (
+                c_tx_part.posedit.edit.ref
+                + intronic_ref[1:]
+            )
 
-        hgvs_refreshed_variant = c3
+            return c3
 
-        return hgvs_refreshed_variant
+    def transcript_disparity(
+            self,
+            reverse_normalized_hgvs_genomic,
+            hgvs_genomic,
+            running_option,
+    ):
+        """
+        Correct transcript/genome disparity caused by an alignment gap.
 
-    def transcript_disparity(self, reverse_normalized_hgvs_genomic, stored_hgvs_not_delins, hgvs_genomic,
-                             running_option):
+        This function handles variants whose transcript representation either
+        contains offsets into an alignment gap or spans a known gap without
+        retaining offsets.
 
-        if ('+' in str(self.tx_hgvs_not_delins.posedit.pos.start) or '-' in str(
-                self.tx_hgvs_not_delins.posedit.pos.start)) and (
-                '+' in str(self.tx_hgvs_not_delins.posedit.pos.end) or '-' in str(
-                self.tx_hgvs_not_delins.posedit.pos.end)):
-            self.gapped_transcripts = self.gapped_transcripts + ' ' + str(self.tx_hgvs_not_delins.ac)
+        Mapping, normalisation, sequence fetching and gap reconstruction are kept
+        in their established order because these operations can alter the HGVS
+        representation and may fetch reference sequence.
 
-            # Copy the current variant
-            tx_gap_fill_variant = copy.deepcopy(self.tx_hgvs_not_delins)
+        Further consolidation of the reconstruction paths should only be performed
+        after the individual branches have been exercised with known variants.
+        """
+        vm = self.validator.vm
+        aln_method = self.validator.alt_aln_method
+        tx_variant = self.tx_hgvs_not_delins
+
+        tx_start = tx_variant.posedit.pos.start
+        tx_end = tx_variant.posedit.pos.end
+
+        start_offset = tx_start.offset
+        end_offset = tx_end.offset
+
+        # Both ends of the transcript variant are offset into an alignment gap.
+        if start_offset != 0 and end_offset != 0:
+            self.gapped_transcripts += f" {tx_variant.ac}"
+
+            # Work on an independent copy because the gap-filling representation
+            # is modified extensively before mapping.
+            tx_gap_fill_variant = copy.deepcopy(tx_variant)
+
+            # Dup edits do not expose an alt attribute. Convert them to delins
+            # when necessary so the gap-filling representation has an ALT.
             try:
                 if tx_gap_fill_variant.posedit.edit.alt is None:
-                    tx_gap_fill_variant.posedit.edit.alt = ''
-            except Exception as e:
-                if str(e) == "'Dup' object has no attribute 'alt'":
-                    tx_gap_fill_variant = hgvs_dup_to_delins(tx_gap_fill_variant)
+                    tx_gap_fill_variant.posedit.edit.alt = ""
+            except Exception as error:
+                if str(error) == "'Dup' object has no attribute 'alt'":
+                    tx_gap_fill_variant = hgvs_dup_to_delins(
+                        tx_gap_fill_variant
+                    )
 
-            # Identify which half of the NOT-intron the start position of the variant is in
-            if '-' in str(tx_gap_fill_variant.posedit.pos.start):
-                tx_gap_fill_variant.posedit.pos.start.base = tx_gap_fill_variant.posedit.pos.start.base - 1
-                tx_gap_fill_variant.posedit.pos.start.offset = int('0')  # int('+1')
-                tx_gap_fill_variant.posedit.pos.end.offset = int('0')  # int('-1')
-                tx_gap_fill_variant.posedit.edit.alt = ''
-                tx_gap_fill_variant.posedit.edit.ref = ''
-            elif '+' in str(tx_gap_fill_variant.posedit.pos.start):
-                tx_gap_fill_variant.posedit.pos.start.offset = int('0')  # int('+1')
-                tx_gap_fill_variant.posedit.pos.end.base = tx_gap_fill_variant.posedit.pos.end.base + 1
-                tx_gap_fill_variant.posedit.pos.end.offset = int('0')  # int('-1')
-                tx_gap_fill_variant.posedit.edit.alt = ''
-                tx_gap_fill_variant.posedit.edit.ref = ''
+            gap_start = tx_gap_fill_variant.posedit.pos.start
+            gap_end = tx_gap_fill_variant.posedit.pos.end
+            gap_edit = tx_gap_fill_variant.posedit.edit
+
+            # Move the transcript interval out of the offset region so that an
+            # equivalent genomic interval spanning the alignment gap can be made.
+            if gap_start.offset < 0:
+                gap_start.base -= 1
+                gap_start.offset = 0
+                gap_end.offset = 0
+                gap_edit.alt = ""
+                gap_edit.ref = ""
+
+            elif gap_start.offset > 0:
+                gap_start.offset = 0
+                gap_end.base += 1
+                gap_end.offset = 0
+                gap_edit.alt = ""
+                gap_edit.ref = ""
 
             try:
-                tx_gap_fill_variant = self.validator.vm.n_to_c(tx_gap_fill_variant)
-            except Exception as e:
-                logger.debug("Except passed, %s", e)
-            genomic_gap_fill_variant = self.validator.vm.t_to_g(tx_gap_fill_variant, reverse_normalized_hgvs_genomic.ac,
-                                                                alt_aln_method=self.validator.alt_aln_method)
-            genomic_gap_fill_variant.posedit.edit.alt = genomic_gap_fill_variant.posedit.edit.ref
+                tx_gap_fill_variant = vm.n_to_c(
+                    tx_gap_fill_variant
+                )
+            except Exception as error:
+                # Retain the established fallback for transcript representations
+                # that cannot be converted to coding coordinates.
+                pass
+
+            genomic_gap_fill_variant = vm.t_to_g(
+                tx_gap_fill_variant,
+                reverse_normalized_hgvs_genomic.ac,
+                alt_aln_method=aln_method,
+            )
+
+            genomic_gap_fill_variant.posedit.edit.alt = (
+                genomic_gap_fill_variant.posedit.edit.ref
+            )
 
             try:
-                c_tx_hgvs_not_delins = self.validator.vm.n_to_c(self.tx_hgvs_not_delins)
+                c_tx_hgvs_not_delins = vm.n_to_c(
+                    tx_variant
+                )
             except Exception:
-                c_tx_hgvs_not_delins = copy.copy(self.tx_hgvs_not_delins)
-            genomic_gap_fill_variant_alt = self.validator.myvm_t_to_g(c_tx_hgvs_not_delins,
-                                                                      self.hgvs_genomic_5pr.ac,
-                                                                      self.variant.no_norm_evm,
-                                                                      self.variant.hn,
-                                                                      self.variant.map_dat)
+                c_tx_hgvs_not_delins = copy.copy(
+                    tx_variant
+                )
 
-            # Ensure an ALT exists
+            genomic_gap_fill_variant_alt = self.validator.myvm_t_to_g(
+                c_tx_hgvs_not_delins,
+                self.hgvs_genomic_5pr.ac,
+                self.variant.no_norm_evm,
+                self.variant.hn,
+                self.variant.map_dat,
+            )
+
+            # Ensure that the alternate genomic representation exposes an ALT.
+            # Dup handling is retained here for later targeted investigation.
             try:
                 if genomic_gap_fill_variant_alt.posedit.edit.alt is None:
-                    genomic_gap_fill_variant_alt.posedit.edit.alt = 'X'
-            except Exception as e:
-                if str(e) == "'Dup' object has no attribute 'alt'":
-                    genomic_gap_fill_variant = hgvs_dup_to_delins(genomic_gap_fill_variant)
-                    genomic_gap_fill_variant_alt = hgvs_dup_to_delins(genomic_gap_fill_variant_alt)
+                    genomic_gap_fill_variant_alt.posedit.edit.alt = "X"
+            except Exception as error:
+                if str(error) == "'Dup' object has no attribute 'alt'":
+                    genomic_gap_fill_variant = hgvs_dup_to_delins(
+                        genomic_gap_fill_variant
+                    )
+                    genomic_gap_fill_variant_alt = hgvs_dup_to_delins(
+                        genomic_gap_fill_variant_alt
+                    )
 
-            # Correct insertion alts
-            if genomic_gap_fill_variant_alt.posedit.edit.type == 'ins':
-                append_ref = self.validator.sf.fetch_seq(genomic_gap_fill_variant_alt.ac,
-                                                         genomic_gap_fill_variant_alt.posedit.pos.start.base - 1,
-                                                         genomic_gap_fill_variant_alt.posedit.pos.end.base)
-                genomic_gap_fill_variant_alt.posedit.edit.alt = append_ref[0] + \
-                    genomic_gap_fill_variant_alt.posedit.edit.alt + append_ref[1]
+            alt_edit = genomic_gap_fill_variant_alt.posedit.edit
+            alt_position = genomic_gap_fill_variant_alt.posedit.pos
 
-            # Split the reference and replacing alt sequence into a dictionary
-            reference_bases = list(genomic_gap_fill_variant.posedit.edit.ref)
-            if genomic_gap_fill_variant_alt.posedit.edit.alt is not None:
-                alternate_bases = list(genomic_gap_fill_variant_alt.posedit.edit.alt)
+            # Insertions need their flanking genomic reference bases added before
+            # the replacement sequence can be projected across the gap interval.
+            if alt_edit.type == "ins":
+                append_ref = self.validator.sf.fetch_seq(
+                    genomic_gap_fill_variant_alt.ac,
+                    alt_position.start.base - 1,
+                    alt_position.end.base,
+                )
+                alt_edit.alt = (
+                        append_ref[0]
+                        + alt_edit.alt
+                        + append_ref[1]
+                )
+
+            gap_edit = genomic_gap_fill_variant.posedit.edit
+            gap_position = genomic_gap_fill_variant.posedit.pos
+
+            reference_bases = list(gap_edit.ref)
+
+            if alt_edit.alt is not None:
+                alternate_bases = list(alt_edit.alt)
             else:
-                # Deletions with no ins
-                pre_alternate_bases = list(genomic_gap_fill_variant_alt.posedit.edit.ref)
-                alternate_bases = []
-                for base in pre_alternate_bases:
-                    alternate_bases.append('X')
+                # A deletion has no inserted sequence. X is used internally to
+                # mark deleted positions and is removed after reconstruction.
+                alternate_bases = [
+                    "X"
+                    for _ in alt_edit.ref
+                ]
 
-            # Create the dictionaries
-            ref_start = genomic_gap_fill_variant.posedit.pos.start.base
-            alt_start = genomic_gap_fill_variant_alt.posedit.pos.start.base
-            ref_base_dict = {}
-            for base in reference_bases:
-                ref_base_dict[ref_start] = str(base)
-                ref_start = ref_start + 1
+            ref_start = gap_position.start.base
+            alt_start = alt_position.start.base
 
+            ref_base_dict = {
+                ref_start + index: base
+                for index, base in enumerate(reference_bases)
+            }
+
+            # Force the alternate representation into an interval-based
+            # delete/insert form. Deleted positions are represented temporarily
+            # by X so they can be removed after the complete sequence is built.
             alt_base_dict = {}
 
-            # NEED TO SEARCH FOR RANGE = and replace with interval_range
-            # Need to search for int and replace with integer
-
-            # Note, all variants will be forced into the format delete insert
-            # Deleted bases in the ALT will be substituted for X
-            for integer in range(genomic_gap_fill_variant_alt.posedit.pos.start.base,
-                                 genomic_gap_fill_variant_alt.posedit.pos.end.base + 1, 1):
-                if integer == alt_start:
-                    alt_base_dict[integer] = str(''.join(alternate_bases))
+            for position in range(
+                    alt_position.start.base,
+                    alt_position.end.base + 1,
+            ):
+                if position == alt_start:
+                    alt_base_dict[position] = "".join(
+                        alternate_bases
+                    )
                 else:
-                    alt_base_dict[integer] = 'X'
+                    alt_base_dict[position] = "X"
 
-            # Generate the alt sequence
             alternate_sequence_bases = []
-            for integer in range(genomic_gap_fill_variant.posedit.pos.start.base,
-                                 genomic_gap_fill_variant.posedit.pos.end.base + 1, 1):
-                if integer in list(alt_base_dict.keys()):
-                    alternate_sequence_bases.append(alt_base_dict[integer])
+
+            for position in range(
+                    gap_position.start.base,
+                    gap_position.end.base + 1,
+            ):
+                if position in alt_base_dict:
+                    alternate_sequence_bases.append(
+                        alt_base_dict[position]
+                    )
                 else:
-                    alternate_sequence_bases.append(ref_base_dict[integer])
-            alternate_sequence = ''.join(alternate_sequence_bases)
-            alternate_sequence = alternate_sequence.replace('X', '')
+                    alternate_sequence_bases.append(
+                        ref_base_dict[position]
+                    )
 
-            # Add the new alt to the gap fill variant and generate transcript variant
-            genomic_gap_fill_variant.posedit.edit.alt = alternate_sequence
-            hgvs_refreshed_variant = self.validator.vm.g_to_t(genomic_gap_fill_variant,
-                                                              tx_gap_fill_variant.ac,
-                                                              alt_aln_method=self.validator.alt_aln_method)
+            alternate_sequence = "".join(
+                alternate_sequence_bases
+            ).replace("X", "")
 
-            # Set warning
-            gap_size = str(len(genomic_gap_fill_variant.posedit.edit.ref) - 2)
+            gap_edit.alt = alternate_sequence
+
+            hgvs_refreshed_variant = vm.g_to_t(
+                genomic_gap_fill_variant,
+                tx_gap_fill_variant.ac,
+                alt_aln_method=aln_method,
+            )
+
+            # Record the number of reference bases represented by the alignment
+            # disparity, excluding the two flanking bases.
+            gap_size = str(len(gap_edit.ref) - 2)
             self.disparity_deletion_in[1] = [gap_size]
 
         else:
-
-            if self.tx_hgvs_not_delins.posedit.pos.start.offset == 0 and \
-                    self.tx_hgvs_not_delins.posedit.pos.end.offset == 0:
-
-                # In this instance, we have identified a transcript gap but the n. version of
-                # the transcript variant but do not have a position which actually hits the gap,
-                # so the variant likely spans the gap, and is not picked up by an offset.
+            # A transcript gap may be known even when neither endpoint retains an
+            # offset. This can occur when the variant itself spans the gap.
+            if start_offset == 0 and end_offset == 0:
                 try:
-                    c1 = self.validator.vm.n_to_c(self.tx_hgvs_not_delins)
-                except:
-                    c1 = self.tx_hgvs_not_delins
-                g3 = self.validator.nr_vm.t_to_g(c1, hgvs_genomic.ac, alt_aln_method=self.validator.alt_aln_method)
+                    c1 = vm.n_to_c(tx_variant)
+                except Exception:
+                    c1 = tx_variant
 
-                # Check to see if gap is already handled
-                hgvs_genomic_norm = self.variant.hn.normalize(hgvs_genomic)
-                if (((g3.posedit.pos.end.base - g3.posedit.pos.start.base) >
-                        (hgvs_genomic_norm.posedit.pos.end.base - hgvs_genomic_norm.posedit.pos.start.base)) and
-                hgvs_genomic_norm.posedit.edit.type == 'del' and
-                    g3.posedit.pos.end.base == hgvs_genomic_norm.posedit.pos.end.base):
-                    hgvs_refreshed_variant = self.tx_hgvs_not_delins
-                    return hgvs_refreshed_variant
+                g3 = self.validator.nr_vm.t_to_g(
+                    c1,
+                    hgvs_genomic.ac,
+                    alt_aln_method=aln_method,
+                )
 
-                elif (((g3.posedit.pos.end.base - g3.posedit.pos.start.base) >
-                        (hgvs_genomic_norm.posedit.pos.end.base - hgvs_genomic_norm.posedit.pos.start.base)) and
-                        hgvs_genomic_norm.posedit.edit.type == 'del' and
-                        g3.posedit.pos.start.base < hgvs_genomic_norm.posedit.pos.start.base and
-                        (g3.posedit.pos.end.base + int(self.disparity_deletion_in[1])) <
-                      hgvs_genomic_norm.posedit.pos.end.base):
-                    hgvs_refreshed_variant = self.tx_hgvs_not_delins
-                    return hgvs_refreshed_variant
+                # Normalisation is intentionally retained here. The following
+                # tests compare the remapped interval with the established
+                # normalised genomic representation to determine whether the gap
+                # has already been handled.
+                hgvs_genomic_norm = self.variant.hn.normalize(
+                    hgvs_genomic
+                )
 
-                g3.posedit.pos.end.base = g3.posedit.pos.start.base + (len(g3.posedit.edit.ref) - 1)
+                g3_span = (
+                        g3.posedit.pos.end.base
+                        - g3.posedit.pos.start.base
+                )
+                genomic_span = (
+                        hgvs_genomic_norm.posedit.pos.end.base
+                        - hgvs_genomic_norm.posedit.pos.start.base
+                )
+
+                if (
+                        g3_span > genomic_span
+                        and hgvs_genomic_norm.posedit.edit.type == "del"
+                        and (
+                        g3.posedit.pos.end.base
+                        == hgvs_genomic_norm.posedit.pos.end.base
+                )
+                ):
+                    return tx_variant
+
+                if (
+                        g3_span > genomic_span
+                        and hgvs_genomic_norm.posedit.edit.type == "del"
+                        and (
+                        g3.posedit.pos.start.base
+                        < hgvs_genomic_norm.posedit.pos.start.base
+                )
+                        and (
+                        g3.posedit.pos.end.base
+                        + int(self.disparity_deletion_in[1])
+                        < hgvs_genomic_norm.posedit.pos.end.base
+                )
+                ):
+                    return tx_variant
+
+                g3.posedit.pos.end.base = (
+                        g3.posedit.pos.start.base
+                        + len(g3.posedit.edit.ref)
+                        - 1
+                )
+
                 try:
-                    c2 = self.validator.vm.g_to_t(g3, c1.ac, alt_aln_method=self.validator.alt_aln_method)
-                    if c2.posedit.pos.start.offset == 0 and c2.posedit.pos.end.offset == 0:
-                        pass
-                    else:
+                    c2 = vm.g_to_t(
+                        g3,
+                        c1.ac,
+                        alt_aln_method=aln_method,
+                    )
+
+                    if (
+                            c2.posedit.pos.start.offset != 0
+                            or c2.posedit.pos.end.offset != 0
+                    ):
                         self.tx_hgvs_not_delins = c2
+
                         try:
-                            self.tx_hgvs_not_delins = self.validator.vm.c_to_n(self.tx_hgvs_not_delins)
-                        except vvhgvs.exceptions.HGVSError as e:
-                            logger.debug("Except passed, %s", e)
-                except vvhgvs.exceptions.HGVSInvalidVariantError as e:
-                    logger.debug("Except passed, %s", e)
+                            self.tx_hgvs_not_delins = vm.c_to_n(
+                                self.tx_hgvs_not_delins
+                            )
+                        except vvhgvs.exceptions.HGVSError as error:
+                            pass
 
-            if '+' in str(self.tx_hgvs_not_delins.posedit.pos.start) and \
-                    '+' not in str(self.tx_hgvs_not_delins.posedit.pos.end):
-                hgvs_refreshed_variant = self.c2_pos_edit(hgvs_genomic)
+                except vvhgvs.exceptions.HGVSInvalidVariantError as error:
+                    pass
 
-            elif '+' in str(self.tx_hgvs_not_delins.posedit.pos.end) and \
-                    '+' not in str(self.tx_hgvs_not_delins.posedit.pos.start):
-                # hgvs_genomic_norm = self.variant.hn.normalize(hgvs_genomic)
-                self.auto_info = self.auto_info
-                self.gapped_transcripts = self.gapped_transcripts + ' ' + str(self.tx_hgvs_not_delins.ac)
+                # The previous block may replace the stored transcript variant.
+                tx_variant = self.tx_hgvs_not_delins
+                tx_start = tx_variant.posedit.pos.start
+                tx_end = tx_variant.posedit.pos.end
+
+                start_offset = tx_start.offset
+                end_offset = tx_end.offset
+
+            if start_offset > 0 and end_offset <= 0:
+                hgvs_refreshed_variant = self.c2_pos_edit(
+                    hgvs_genomic
+                )
+
+            elif end_offset > 0 and start_offset <= 0:
+                self.gapped_transcripts += f" {tx_variant.ac}"
+
                 try:
-                    hgvs_refreshed_variant = self.c1_pos_edit(hgvs_genomic)
+                    hgvs_refreshed_variant = self.c1_pos_edit(
+                        hgvs_genomic
+                    )
                 except vvhgvs.exceptions.HGVSDataNotAvailableError:
-                    hgvs_refreshed_variant = self.tx_hgvs_not_delins
+                    hgvs_refreshed_variant = tx_variant
 
-            elif '-' in str(self.tx_hgvs_not_delins.posedit.pos.start) and \
-                    '-' not in str(self.tx_hgvs_not_delins.posedit.pos.end):
-                hgvs_refreshed_variant = self.c2_pos_edit(hgvs_genomic)
+            elif start_offset < 0 and end_offset >= 0:
+                hgvs_refreshed_variant = self.c2_pos_edit(
+                    hgvs_genomic
+                )
 
-            elif '-' in str(self.tx_hgvs_not_delins.posedit.pos.end) and \
-                    '-' not in str(self.tx_hgvs_not_delins.posedit.pos.start):
-                self.auto_info = self.auto_info #
-                self.gapped_transcripts = self.gapped_transcripts + ' ' + str(self.tx_hgvs_not_delins.ac)
+            elif end_offset < 0 and start_offset >= 0:
+                self.gapped_transcripts += f" {tx_variant.ac}"
 
-                # Have variation in first copy here!
+                # This path handles variation associated with the first copy.
                 if running_option == 1:
                     try:
-                        c1 = self.validator.vm.n_to_c(self.tx_hgvs_not_delins)
-                    except:
-                        c1 = self.tx_hgvs_not_delins
+                        c1 = vm.n_to_c(tx_variant)
+                    except Exception:
+                        c1 = tx_variant
+
                     c2 = copy.deepcopy(c1)
                     c2.posedit.pos.start = c1.posedit.pos.end
                     c2.posedit.pos.end.base = c1.posedit.pos.end.base
                     c2.posedit.pos.end.offset = 0
-                    c2.posedit.edit.ref = ''
-                    c2.posedit.edit.alt = ''
-                    g2 = self.validator.vm.t_to_g(c2, self.variant.hgvs_genomic.ac,
-                                                  alt_aln_method=self.validator.alt_aln_method)
-                    c2 = self.validator.vm.g_to_t(g2, c2.ac, alt_aln_method=self.validator.alt_aln_method)
-                    # reference = c1.posedit.edit.ref + c2.posedit.edit.ref[1:]
-                    alternate = c1.posedit.edit.alt + c2.posedit.edit.ref[1:]
+                    c2.posedit.edit.ref = ""
+                    c2.posedit.edit.alt = ""
+
+                    g2 = vm.t_to_g(
+                        c2,
+                        self.variant.hgvs_genomic.ac,
+                        alt_aln_method=aln_method,
+                    )
+
+                    c2 = vm.g_to_t(
+                        g2,
+                        c2.ac,
+                        alt_aln_method=aln_method,
+                    )
+
+                    alternate = (
+                            c1.posedit.edit.alt
+                            + c2.posedit.edit.ref[1:]
+                    )
+
                     c3 = copy.deepcopy(c1)
                     c3.posedit.pos.end = c2.posedit.pos.end
-                    c3.posedit.edit.ref = ''  # reference
+                    c3.posedit.edit.ref = ""
                     c3.posedit.edit.alt = alternate
+
                     hgvs_refreshed_variant = c3
+
                 else:
-                    hgvs_refreshed_variant = self.c1_pos_edit(hgvs_genomic)
+                    hgvs_refreshed_variant = self.c1_pos_edit(
+                        hgvs_genomic
+                    )
 
             else:
-                # Have variation in second copy here!
+                # This path handles variation associated with the second copy.
                 if running_option == 2:
-                    self.tx_hgvs_not_delins.posedit.pos.end.base = self.tx_hgvs_not_delins.posedit.pos.start.base + len(
-                        self.tx_hgvs_not_delins.posedit.edit.ref) - 1
-                elif running_option != 4:
-                    self.gapped_transcripts = self.gapped_transcripts + ' ' + str(self.tx_hgvs_not_delins.ac)
+                    tx_variant.posedit.pos.end.base = (
+                            tx_variant.posedit.pos.start.base
+                            + len(tx_variant.posedit.edit.ref)
+                            - 1
+                    )
 
-                hgvs_refreshed_variant = self.tx_hgvs_not_delins
+                elif running_option != 4:
+                    self.gapped_transcripts += f" {tx_variant.ac}"
+
+                hgvs_refreshed_variant = tx_variant
 
         return hgvs_refreshed_variant
 
     def edit_output(self, hgvs_refreshed_variant, saved_hgvs_coding):
-        if 'NM_' in str(hgvs_refreshed_variant.ac) and 'c' not in str(hgvs_refreshed_variant.type):
-            hgvs_refreshed_variant = self.variant.evm.n_to_c(hgvs_refreshed_variant)
+        """
+        Normalise and tidy the refreshed transcript variant.
+
+        If normalisation cannot be performed because the variant is intronic or
+        spans an exon/intron or UTR/exon boundary, retain the original coding
+        representation.
+        """
+        if (
+                hgvs_refreshed_variant.ac.startswith("NM_")
+                and hgvs_refreshed_variant.type != "c"
+        ):
+            hgvs_refreshed_variant = self.variant.evm.n_to_c(
+                hgvs_refreshed_variant
+            )
 
         try:
-            hgvs_refreshed_variant = self.variant.hn.normalize(hgvs_refreshed_variant)
+            hgvs_refreshed_variant = self.variant.hn.normalize(
+                hgvs_refreshed_variant
+            )
 
-            logger.info(f"Editing {hgvs_refreshed_variant}")
+            pass
 
+            edit = hgvs_refreshed_variant.posedit.edit
+            pos = hgvs_refreshed_variant.posedit.pos
 
-            if hgvs_refreshed_variant.posedit.edit.type == 'delins' and \
-                    hgvs_refreshed_variant.posedit.edit.ref[-1] == \
-                    hgvs_refreshed_variant.posedit.edit.alt[-1]:
-                hgvs_refreshed_variant.posedit.edit.ref = hgvs_refreshed_variant.posedit.edit.ref[
-                                                          0:-1]
-                hgvs_refreshed_variant.posedit.edit.alt = hgvs_refreshed_variant.posedit.edit.alt[
-                                                          0:-1]
-                hgvs_refreshed_variant.posedit.pos.end.base = hgvs_refreshed_variant.posedit.pos.end.base - 1
-                hgvs_refreshed_variant = self.variant.hn.normalize(hgvs_refreshed_variant)
+            if edit.type == "delins":
+                if edit.ref[-1] == edit.alt[-1]:
+                    edit.ref = edit.ref[:-1]
+                    edit.alt = edit.alt[:-1]
+                    pos.end.base -= 1
 
-            elif hgvs_refreshed_variant.posedit.edit.type == 'delins' and \
-                    hgvs_refreshed_variant.posedit.edit.ref[0] == \
-                    hgvs_refreshed_variant.posedit.edit.alt[0]:
-                hgvs_refreshed_variant.posedit.edit.ref = hgvs_refreshed_variant.posedit.edit.ref[
-                                                          1:]
-                hgvs_refreshed_variant.posedit.edit.alt = hgvs_refreshed_variant.posedit.edit.alt[
-                                                          1:]
-                hgvs_refreshed_variant.posedit.pos.start.base = hgvs_refreshed_variant.posedit.pos.start.base + 1
-                hgvs_refreshed_variant = self.variant.hn.normalize(hgvs_refreshed_variant)
+                    hgvs_refreshed_variant = self.variant.hn.normalize(
+                        hgvs_refreshed_variant
+                    )
 
-        except Exception as e:
-            error = str(e)
-            # Ensure the final variant is not intronic nor does it cross exon boundaries
-            if 'Normalization of intronic variants is not supported' in error or \
-                    'Unsupported normalization of variants spanning the exon-intron boundary' in error or \
-                    "Unsupported normalization of variants spanning the UTR-exon boundary" in error:
+                elif edit.ref[0] == edit.alt[0]:
+                    edit.ref = edit.ref[1:]
+                    edit.alt = edit.alt[1:]
+                    pos.start.base += 1
+
+                    hgvs_refreshed_variant = self.variant.hn.normalize(
+                        hgvs_refreshed_variant
+                    )
+
+        except Exception as error:
+            error_message = str(error)
+
+            # Normalisation cannot safely process these transcript-coordinate
+            # states. Retain the original coding representation instead.
+            unsupported_normalisation = (
+                    "Normalization of intronic variants is not supported"
+                    in error_message
+                    or
+                    "Unsupported normalization of variants spanning the "
+                    "exon-intron boundary"
+                    in error_message
+                    or
+                    "Unsupported normalization of variants spanning the "
+                    "UTR-exon boundary"
+                    in error_message
+            )
+
+            if unsupported_normalisation:
                 hgvs_refreshed_variant = saved_hgvs_coding
-
-                # Never used because module was not imported
-
-                # if hgvs_refreshed_variant.posedit.edit.type == 'delins' and \
-                #         hgvs_refreshed_variant.posedit.edit.alt == "":
-                #     hgvs_refreshed_variant = hgvs_obj_from_existing_edit(
-                #             hgvs_refreshed_variant.ac,
-                #             hgvs_refreshed_variant.type,
-                #             hgvs_refreshed_variant.posedit.pos,
-                #             hgvs_refreshed_variant.posedit.edit.ref,'')
 
         return hgvs_refreshed_variant
 
-    def logic_check(self, hgvs_not_delins, rn_tx_hgvs_not_delins, hgvs_coding, do_continue=False, offset_check=False):
-        # Logic
-        if hgvs_not_delins.posedit.edit.ref is None:
-            hgvs_not_delins.posedit.edit.ref = ''
-        if rn_tx_hgvs_not_delins.posedit.edit.ref is None:
-            rn_tx_hgvs_not_delins.posedit.edit.ref = ''
-        if len(hgvs_not_delins.posedit.edit.ref) < len(rn_tx_hgvs_not_delins.posedit.edit.ref):
-            gap_length = len(rn_tx_hgvs_not_delins.posedit.edit.ref) - len(hgvs_not_delins.posedit.edit.ref)
-            self.disparity_deletion_in = ['chromosome', gap_length]
-        elif len(hgvs_not_delins.posedit.edit.ref) > len(rn_tx_hgvs_not_delins.posedit.edit.ref):
-            gap_length = len(hgvs_not_delins.posedit.edit.ref) - len(rn_tx_hgvs_not_delins.posedit.edit.ref)
-            self.disparity_deletion_in = ['transcript', gap_length]
+    def logic_check(
+            self,
+            hgvs_not_delins,
+            rn_tx_hgvs_not_delins,
+            hgvs_coding,
+            do_continue=False,
+            offset_check=False,
+    ):
+        """
+        Compare genomic and transcript reference lengths to identify alignment
+        disparity.
+
+        Where the initial comparison is inconclusive, inspect stored genomic
+        possibilities and attempt to recover the corresponding transcript
+        representation.
+        """
+        genomic_edit = hgvs_not_delins.posedit.edit
+        tx_edit = rn_tx_hgvs_not_delins.posedit.edit
+
+        if genomic_edit.ref is None:
+            genomic_edit.ref = ""
+
+        if tx_edit.ref is None:
+            tx_edit.ref = ""
+
+        genomic_ref_length = len(genomic_edit.ref)
+        tx_ref_length = len(tx_edit.ref)
+
+        if genomic_ref_length < tx_ref_length:
+            gap_length = tx_ref_length - genomic_ref_length
+            self.disparity_deletion_in = [
+                "chromosome",
+                gap_length,
+            ]
+
+        elif genomic_ref_length > tx_ref_length:
+            gap_length = genomic_ref_length - tx_ref_length
+            self.disparity_deletion_in = [
+                "transcript",
+                gap_length,
+            ]
+
         else:
             re_capture_tx_variant = []
-            for an_internal_possibility in self.hgvs_genomic_possibilities:
 
-                # Set variables from list formats
+            for an_internal_possibility in self.hgvs_genomic_possibilities:
                 try:
                     internal_possibility = an_internal_possibility[1][3]
                 except IndexError:
                     internal_possibility = an_internal_possibility[0]
 
-                # Continue
-                if internal_possibility == '':
+                if internal_possibility == "":
                     continue
-                hgvs_t_possibility = self.validator.vm.g_to_t(internal_possibility,
-                                                              hgvs_coding.ac,
-                                                              alt_aln_method=self.validator.alt_aln_method)
-                if hgvs_t_possibility.posedit.edit.type == 'ins':
-                    try:
-                        hgvs_t_possibility = self.validator.vm.c_to_n(hgvs_t_possibility)
-                    except Exception as e:
-                        if do_continue:
-                            continue
-                        logger.debug("Except passed, %s", e)
-                    if offset_check:
-                        if hgvs_t_possibility.posedit.pos.start.offset != 0 or \
-                                hgvs_t_possibility.posedit.pos.end.offset != 0:
-                            continue
-                    ins_ref = self.validator.sf.fetch_seq(hgvs_t_possibility.ac,
-                                                          hgvs_t_possibility.posedit.pos.start.base - 1,
-                                                          hgvs_t_possibility.posedit.pos.start.base + 1)
-                    try:
-                        hgvs_t_possibility = self.validator.vm.n_to_c(hgvs_t_possibility)
-                    except Exception as e:
-                        if do_continue:
-                            continue
-                        logger.debug("Except passed, %s", e)
-                    hgvs_t_possibility.posedit.edit.ref = ins_ref
-                    hgvs_t_possibility.posedit.edit.alt = ins_ref[
-                                                              0] + hgvs_t_possibility.posedit.edit.alt + ins_ref[1]
-                if internal_possibility.posedit.edit.type == 'ins':
-                    ins_ref = self.validator.sf.fetch_seq(internal_possibility.ac,
-                                                          internal_possibility.posedit.pos.start.base - 1,
-                                                          internal_possibility.posedit.pos.end.base)
-                    internal_possibility.posedit.edit.ref = ins_ref
-                    internal_possibility.posedit.edit.alt = ins_ref[
-                                                                0] + internal_possibility.posedit.edit.alt + ins_ref[1]
 
-                if len(hgvs_t_possibility.posedit.edit.ref) < len(internal_possibility.posedit.edit.ref):
-                    gap_length = len(internal_possibility.posedit.edit.ref) - len(hgvs_t_possibility.posedit.edit.ref)
-                    re_capture_tx_variant = ['transcript', gap_length, hgvs_t_possibility]
+                hgvs_t_possibility = self.validator.vm.g_to_t(
+                    internal_possibility,
+                    hgvs_coding.ac,
+                    alt_aln_method=self.validator.alt_aln_method,
+                )
+
+                if hgvs_t_possibility.posedit.edit.type == "ins":
+                    try:
+                        hgvs_t_possibility = self.validator.vm.c_to_n(
+                            hgvs_t_possibility
+                        )
+                    except Exception as error:
+                        if do_continue:
+                            continue
+                        pass
+
+                    if offset_check:
+                        pos = hgvs_t_possibility.posedit.pos
+
+                        if (
+                                pos.start.offset != 0
+                                or pos.end.offset != 0
+                        ):
+                            continue
+
+                    pos = hgvs_t_possibility.posedit.pos
+
+                    ins_ref = self.validator.sf.fetch_seq(
+                        hgvs_t_possibility.ac,
+                        pos.start.base - 1,
+                        pos.start.base + 1,
+                    )
+
+                    try:
+                        hgvs_t_possibility = self.validator.vm.n_to_c(
+                            hgvs_t_possibility
+                        )
+                    except Exception as error:
+                        if do_continue:
+                            continue
+                        pass
+
+                    edit = hgvs_t_possibility.posedit.edit
+                    edit.ref = ins_ref
+                    edit.alt = ins_ref[0] + edit.alt + ins_ref[1]
+
+                if internal_possibility.posedit.edit.type == "ins":
+                    pos = internal_possibility.posedit.pos
+                    edit = internal_possibility.posedit.edit
+
+                    ins_ref = self.validator.sf.fetch_seq(
+                        internal_possibility.ac,
+                        pos.start.base - 1,
+                        pos.end.base,
+                    )
+
+                    edit.ref = ins_ref
+                    edit.alt = ins_ref[0] + edit.alt + ins_ref[1]
+
+                if (
+                        len(hgvs_t_possibility.posedit.edit.ref)
+                        < len(internal_possibility.posedit.edit.ref)
+                ):
+                    gap_length = (
+                            len(internal_possibility.posedit.edit.ref)
+                            - len(hgvs_t_possibility.posedit.edit.ref)
+                    )
+
+                    re_capture_tx_variant = [
+                        "transcript",
+                        gap_length,
+                        hgvs_t_possibility,
+                    ]
+
                     hgvs_not_delins = internal_possibility
                     self.hgvs_genomic_5pr = internal_possibility
                     break
 
             if re_capture_tx_variant:
                 try:
-                    self.tx_hgvs_not_delins = self.validator.vm.c_to_n(re_capture_tx_variant[2])
-                except:
+                    self.tx_hgvs_not_delins = self.validator.vm.c_to_n(
+                        re_capture_tx_variant[2]
+                    )
+                except Exception:
                     self.tx_hgvs_not_delins = re_capture_tx_variant[2]
-                self.disparity_deletion_in = re_capture_tx_variant[0:-1]
+
+                self.disparity_deletion_in = re_capture_tx_variant[:-1]
 
         return hgvs_not_delins
 
-    def get_hgvs_seek_var(self, hgvs_genomic, hgvs_coding, ori=None, with_query_genomic=False):
-        if not ori:
+    def get_hgvs_seek_var(
+            self,
+            hgvs_genomic,
+            hgvs_coding,
+            ori=None,
+            with_query_genomic=False,
+    ):
+        """
+        Position a genomic variant according to transcript orientation and map it
+        back to the transcript to determine whether its representation moves.
+        """
+        if ori is None:
             ori = self.orientation
 
         if ori == -1:
             try:
-                query_genomic = self.variant.reverse_normalizer.normalize(hgvs_genomic)
-            except:
+                query_genomic = self.variant.reverse_normalizer.normalize(
+                    hgvs_genomic
+                )
+            except Exception:
                 query_genomic = hgvs_genomic
         else:
-            # position genomic at its most 3 prime position
+            # Position the genomic variant at its most 3-prime representation.
             try:
-                query_genomic = self.variant.hn.normalize(hgvs_genomic)
-            except:
+                query_genomic = self.variant.hn.normalize(
+                    hgvs_genomic
+                )
+            except Exception:
                 query_genomic = hgvs_genomic
 
-        # Normalise intronic, if called with query_genomic
-        if with_query_genomic:
-            if hgvs_coding.posedit.pos.start.offset != 0:
-                try:
-                    hgvs_coding = self.variant.evm.g_to_t(query_genomic, hgvs_coding.ac)
-                except vvhgvs.exceptions.HGVSInvalidIntervalError:
-                    pass
+        # Refresh an intronic transcript representation against the positioned
+        # genomic variant when the caller requires query-genomic information.
+        if (
+                with_query_genomic
+                and hgvs_coding.posedit.pos.start.offset != 0
+        ):
+            try:
+                hgvs_coding = self.variant.evm.g_to_t(
+                    query_genomic,
+                    hgvs_coding.ac,
+                )
+            except vvhgvs.exceptions.HGVSInvalidIntervalError:
+                pass
 
-        # Map to the transcript and test for movement
         try:
-            hgvs_seek_var = self.variant.evm.g_to_t(query_genomic, hgvs_coding.ac)
+            hgvs_seek_var = self.variant.evm.g_to_t(
+                query_genomic,
+                hgvs_coding.ac,
+            )
         except vvhgvs.exceptions.HGVSError:
             hgvs_seek_var = hgvs_coding
 
         if with_query_genomic:
-            return hgvs_seek_var, query_genomic, hgvs_coding
+            return (
+                hgvs_seek_var,
+                query_genomic,
+                hgvs_coding,
+            )
 
         return hgvs_seek_var
 
     def rev_norm_ins(self, hgvs_coding, hgvs_genomic):
-        # direct mapping from reverse_normalized transcript insertions in the delins format
+        """
+        Compare the genomic mappings of the most 3-prime and most 5-prime
+        transcript representations of an insertion.
+
+        Insertions are expanded to delins-like representations by adding their
+        flanking reference bases before genomic mapping. The resulting genomic
+        representations are normalised and retained when they indicate sequence
+        disparity relative to the transcript.
+        """
         try:
-            if hgvs_coding.posedit.edit.type == 'ins':
-                most_5pr_hgvs_transcript_variant = copy.deepcopy(hgvs_coding)
-                most_3pr_hgvs_transcript_variant = self.variant.reverse_normalizer.normalize(hgvs_coding)
-                try:
-                    n_3pr = self.validator.vm.c_to_n(most_3pr_hgvs_transcript_variant)
-                    n_5pr = self.validator.vm.c_to_n(most_5pr_hgvs_transcript_variant)
-                except:
-                    n_3pr = most_3pr_hgvs_transcript_variant
-                    n_5pr = most_5pr_hgvs_transcript_variant
-                # Make into a delins by adding the ref bases to the variant ref and alt
-                pr3_ref = self.validator.sf.fetch_seq(hgvs_coding.ac, n_3pr.posedit.pos.start.base - 1,
-                                                      n_3pr.posedit.pos.end.base)
-                pr5_ref = self.validator.sf.fetch_seq(hgvs_coding.ac, n_5pr.posedit.pos.start.base - 1,
-                                                      n_5pr.posedit.pos.end.base)
-                most_3pr_hgvs_transcript_variant.posedit.edit.ref = pr3_ref
-                most_5pr_hgvs_transcript_variant.posedit.edit.ref = pr5_ref
-                most_3pr_hgvs_transcript_variant.posedit.edit.alt = pr3_ref[0] + \
-                    most_3pr_hgvs_transcript_variant.posedit.edit.alt + pr3_ref[1]
-                most_5pr_hgvs_transcript_variant.posedit.edit.alt = pr5_ref[0] + \
-                    most_5pr_hgvs_transcript_variant.posedit.edit.alt + pr5_ref[1]
-                # Map to the genome
-                genomic_from_most_3pr_hgvs_transcript_variant = self.validator.vm.t_to_g(
-                    most_3pr_hgvs_transcript_variant, hgvs_genomic.ac, alt_aln_method=self.validator.alt_aln_method)
-                genomic_from_most_5pr_hgvs_transcript_variant = self.validator.vm.t_to_g(
-                    most_5pr_hgvs_transcript_variant, hgvs_genomic.ac, alt_aln_method=self.validator.alt_aln_method)
+            if hgvs_coding.posedit.edit.type != "ins":
+                return
 
-                # Normalize - If the variant spans a gap it should then form a static genomic variant
-                try:
-                    genomic_from_most_3pr_hgvs_transcript_variant = self.variant.hn.normalize(
-                        genomic_from_most_3pr_hgvs_transcript_variant)
-                except vvhgvs.exceptions.HGVSInvalidVariantError as e:
-                    error = str(e)
-                    if error == 'base start position must be <= end position':
-                        start = genomic_from_most_3pr_hgvs_transcript_variant.posedit.pos.start.base
-                        end = genomic_from_most_3pr_hgvs_transcript_variant.posedit.pos.end.base
-                        genomic_from_most_3pr_hgvs_transcript_variant.posedit.pos.start.base = end
-                        genomic_from_most_3pr_hgvs_transcript_variant.posedit.pos.end.base = start
-                        genomic_from_most_3pr_hgvs_transcript_variant = self.variant.hn.normalize(
-                            genomic_from_most_3pr_hgvs_transcript_variant)
-                try:
-                    genomic_from_most_5pr_hgvs_transcript_variant = self.variant.hn.normalize(
-                        genomic_from_most_5pr_hgvs_transcript_variant)
-                except vvhgvs.exceptions.HGVSInvalidVariantError as e:
-                    error = str(e)
-                    if error == 'base start position must be <= end position':
-                        start = genomic_from_most_5pr_hgvs_transcript_variant.posedit.pos.start.base
-                        end = genomic_from_most_5pr_hgvs_transcript_variant.posedit.pos.end.base
-                        genomic_from_most_5pr_hgvs_transcript_variant.posedit.pos.start.base = end
-                        genomic_from_most_5pr_hgvs_transcript_variant.posedit.pos.end.base = start
-                        genomic_from_most_5pr_hgvs_transcript_variant = self.variant.hn.normalize(
-                            genomic_from_most_5pr_hgvs_transcript_variant)
+            vm = self.validator.vm
+            aln_method = self.validator.alt_aln_method
 
-                try:
-                    if genomic_from_most_3pr_hgvs_transcript_variant.posedit.edit.alt is None:
-                        genomic_from_most_3pr_hgvs_transcript_variant.posedit.edit.alt = ''
-                except Exception as e:
-                    if str(e) == "'Dup' object has no attribute 'alt'":
-                        genomic_from_most_3pr_hgvs_transcript_variant = hgvs_dup_to_delins(
-                                genomic_from_most_3pr_hgvs_transcript_variant)
+            most_5pr_tx = copy.deepcopy(hgvs_coding)
+            most_3pr_tx = self.variant.reverse_normalizer.normalize(
+                hgvs_coding
+            )
 
-                try:
-                    if most_3pr_hgvs_transcript_variant.posedit.edit.alt is None:
-                        most_3pr_hgvs_transcript_variant.posedit.edit.alt = ''
-                except Exception as e:
-                    if str(e) == "'Dup' object has no attribute 'alt'":
-                        most_3pr_hgvs_transcript_variant = hgvs_dup_to_delins(
-                                most_3pr_hgvs_transcript_variant)
+            try:
+                n_3pr = vm.c_to_n(most_3pr_tx)
+                n_5pr = vm.c_to_n(most_5pr_tx)
+            except Exception:
+                n_3pr = most_3pr_tx
+                n_5pr = most_5pr_tx
 
-                try:
-                    if genomic_from_most_5pr_hgvs_transcript_variant.posedit.edit.alt is None:
-                        genomic_from_most_5pr_hgvs_transcript_variant.posedit.edit.alt = ''
-                except Exception as e:
-                    if str(e) == "'Dup' object has no attribute 'alt'":
-                        genomic_from_most_5pr_hgvs_transcript_variant = hgvs_dup_to_delins(
-                                genomic_from_most_5pr_hgvs_transcript_variant)
+            # Expand each insertion using its flanking transcript reference bases.
+            pr3_pos = n_3pr.posedit.pos
+            pr5_pos = n_5pr.posedit.pos
 
-                try:
-                    if most_5pr_hgvs_transcript_variant.posedit.edit.alt is None:
-                        most_5pr_hgvs_transcript_variant.posedit.edit.alt = ''
-                except Exception as e:
-                    if str(e) == "'Dup' object has no attribute 'alt'":
-                        most_5pr_hgvs_transcript_variant = hgvs_dup_to_delins(
-                                most_5pr_hgvs_transcript_variant)
+            pr3_ref = self.validator.sf.fetch_seq(
+                hgvs_coding.ac,
+                pr3_pos.start.base - 1,
+                pr3_pos.end.base,
+            )
+            pr5_ref = self.validator.sf.fetch_seq(
+                hgvs_coding.ac,
+                pr5_pos.start.base - 1,
+                pr5_pos.end.base,
+            )
 
-                if len(genomic_from_most_3pr_hgvs_transcript_variant.posedit.edit.alt) < len(
-                        most_3pr_hgvs_transcript_variant.posedit.edit.alt):
-                    self.hgvs_genomic_possibilities.append([genomic_from_most_3pr_hgvs_transcript_variant,
-                                                            ['false', 'false']])
-                if len(genomic_from_most_5pr_hgvs_transcript_variant.posedit.edit.alt) < len(
-                        most_5pr_hgvs_transcript_variant.posedit.edit.alt):
-                    self.hgvs_genomic_possibilities.append([genomic_from_most_5pr_hgvs_transcript_variant,
-                                                            ['false', 'false']])
+            most_3pr_tx.posedit.edit.ref = pr3_ref
+            most_5pr_tx.posedit.edit.ref = pr5_ref
 
-        except vvhgvs.exceptions.HGVSUnsupportedOperationError as e:
-            logger.debug("Except passed, %s", e)
+            most_3pr_tx.posedit.edit.alt = (
+                    pr3_ref[0]
+                    + most_3pr_tx.posedit.edit.alt
+                    + pr3_ref[1]
+            )
+            most_5pr_tx.posedit.edit.alt = (
+                    pr5_ref[0]
+                    + most_5pr_tx.posedit.edit.alt
+                    + pr5_ref[1]
+            )
+
+            genomic_3pr = vm.t_to_g(
+                most_3pr_tx,
+                hgvs_genomic.ac,
+                alt_aln_method=aln_method,
+            )
+            genomic_5pr = vm.t_to_g(
+                most_5pr_tx,
+                hgvs_genomic.ac,
+                alt_aln_method=aln_method,
+            )
+
+            # If the variant spans a gap, normalisation should produce a stable
+            # genomic representation. Some reverse-strand mappings can initially
+            # return the interval in reverse order; retain the established repair.
+            try:
+                genomic_3pr = self.variant.hn.normalize(
+                    genomic_3pr
+                )
+            except vvhgvs.exceptions.HGVSInvalidVariantError as error:
+                if str(error) == "base start position must be <= end position":
+                    start = genomic_3pr.posedit.pos.start.base
+                    end = genomic_3pr.posedit.pos.end.base
+
+                    genomic_3pr.posedit.pos.start.base = end
+                    genomic_3pr.posedit.pos.end.base = start
+
+                    genomic_3pr = self.variant.hn.normalize(
+                        genomic_3pr
+                    )
+
+            try:
+                genomic_5pr = self.variant.hn.normalize(
+                    genomic_5pr
+                )
+            except vvhgvs.exceptions.HGVSInvalidVariantError as error:
+                if str(error) == "base start position must be <= end position":
+                    start = genomic_5pr.posedit.pos.start.base
+                    end = genomic_5pr.posedit.pos.end.base
+
+                    genomic_5pr.posedit.pos.start.base = end
+                    genomic_5pr.posedit.pos.end.base = start
+
+                    genomic_5pr = self.variant.hn.normalize(
+                        genomic_5pr
+                    )
+
+            # Retain the historical Dup handling for now. This should eventually
+            # be replaced by explicit edit-type handling rather than exception
+            # message inspection.
+            try:
+                if genomic_3pr.posedit.edit.alt is None:
+                    genomic_3pr.posedit.edit.alt = ""
+            except Exception as error:
+                if str(error) == "'Dup' object has no attribute 'alt'":
+                    genomic_3pr = hgvs_dup_to_delins(genomic_3pr)
+
+            try:
+                if most_3pr_tx.posedit.edit.alt is None:
+                    most_3pr_tx.posedit.edit.alt = ""
+            except Exception as error:
+                if str(error) == "'Dup' object has no attribute 'alt'":
+                    most_3pr_tx = hgvs_dup_to_delins(most_3pr_tx)
+
+            try:
+                if genomic_5pr.posedit.edit.alt is None:
+                    genomic_5pr.posedit.edit.alt = ""
+            except Exception as error:
+                if str(error) == "'Dup' object has no attribute 'alt'":
+                    genomic_5pr = hgvs_dup_to_delins(genomic_5pr)
+
+            try:
+                if most_5pr_tx.posedit.edit.alt is None:
+                    most_5pr_tx.posedit.edit.alt = ""
+            except Exception as error:
+                if str(error) == "'Dup' object has no attribute 'alt'":
+                    most_5pr_tx = hgvs_dup_to_delins(most_5pr_tx)
+
+            if (
+                    len(genomic_3pr.posedit.edit.alt)
+                    < len(most_3pr_tx.posedit.edit.alt)
+            ):
+                self.hgvs_genomic_possibilities.append(
+                    [
+                        genomic_3pr,
+                        ["false", "false"],
+                    ]
+                )
+
+            if (
+                    len(genomic_5pr.posedit.edit.alt)
+                    < len(most_5pr_tx.posedit.edit.alt)
+            ):
+                self.hgvs_genomic_possibilities.append(
+                    [
+                        genomic_5pr,
+                        ["false", "false"],
+                    ]
+                )
+
+        except vvhgvs.exceptions.HGVSUnsupportedOperationError:
+            pass
+
 
 # <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors

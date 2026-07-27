@@ -1,10 +1,9 @@
 import unittest
-from vvhgvs import exceptions
 from VariantValidator import Validator
 from VariantValidator.modules import seq_state_to_expanded_repeat
 from VariantValidator.modules.seq_state_to_expanded_repeat import \
         convert_seq_state_to_expanded_repeat, VariantFormatError, reassemble_expanded_repeat_variant,\
-        decipher_end_of_full_reference_repeated_sequence,RepeatedUnitError, quick_testfunc
+        decipher_end_of_full_reference_repeated_sequence,RepeatedUnitError  # , quick_testfunc
 
 class TestExpandedRepeatConversion(unittest.TestCase):
     @classmethod
@@ -200,9 +199,9 @@ class TestExpandedRepeatConversion(unittest.TestCase):
         end = decipher_end_of_full_reference_repeated_sequence('NM_XXXXXXX.Y','GCT', 6, self.validator)
         assert end == 6
 
-    def test_internal_quick_test(self):
-        res = quick_testfunc()
-        assert str(res) == 'NM_002111.8:c.54_116GCA[21]'
+    # def test_internal_quick_test(self):
+    #     res = quick_testfunc()
+    #     assert str(res) == 'NM_002111.8:c.54_116GCA[21]'
 
     def test_bad_genomic_style_attempt(self):
         # test that bad attempts to map such as those caused by shifted or

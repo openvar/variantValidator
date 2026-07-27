@@ -664,6 +664,7 @@ def run_formatting(
         ),
         checkOnly=args.check_only,
         liftover_level=liftover_level,
+        legacy_genomic_structure=False,
     )
 
     LOGGER.debug(

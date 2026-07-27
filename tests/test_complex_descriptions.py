@@ -103,9 +103,11 @@ class TestComplexDescriptionsFunctional(TestCase):
             "LRG_199t1:c.(100_200)del"
         )
 
-        assert results[ "validation_warning_1"]["validation_warnings"] == [
+        assert results[ "NM_004006.2:c.(100_200)del"]["validation_warnings"] == [
             "UncertainPositionWarning: Uncertain positions are not fully supported, however the syntax is valid",
-            "IntronSpanningWarning: This coding sequence variant description spans at least one intron"
+            "IntronSpanningWarning: This coding sequence variant description spans at least one intron",
+            "VariantNormalizationWarning: NM_004006.2:c.(100_200)del normalized to NM_004006.2:c.(101_201)del",
+            "TranscriptVersionWarning: A more recent version of the selected reference sequence NM_004006.2 is available for genome build GRCh38 (NM_004006.3)"
         ]
 
 
@@ -397,7 +399,9 @@ def test_uncertain_positions_invalid_range(mock_obj):
     validator = make_validator()
 
     parsed = MagicMock()
-    parsed.posedit.pos = "5_8"
+    parsed.posedit.pos.start.offset = 0
+    parsed.posedit.pos.end.offset = 0
+    parsed.posedit.pos.__str__.return_value = "5_8"
     mock_obj.return_value = parsed
 
     validator.vr.validate.side_effect = (
@@ -530,14 +534,16 @@ def test_uncertain_positions_nc_selects_mane(mock_obj):
     tx.type = "c"
     tx.posedit.pos = MagicMock()
 
-    tx.__str__.return_value = "NM_000001.1:c.100_200del"
+    tx_variant = MagicMock()
+    tx_variant.ac = "NM_000001.1"
+    tx_variant.type = "c"
+    tx_variant.posedit.pos = MagicMock()
 
-    mock_obj.side_effect = [parsed, tx]
+    mock_obj.side_effect = [parsed, tx_variant, tx_variant]
 
     validator.vr.validate.return_value = None
     validator.select_transcripts = "select"
     validator.relevant_transcripts.return_value = [tx]
-
     validator.db.get_transcript_annotation.return_value = '{"select": "MANE"}'
 
     uncertain_positions(variant, validator)
@@ -560,12 +566,13 @@ def test_uncertain_positions_nc_selects_refseq(mock_obj):
     tx.ac = "NM_000001.1"
     tx.type = "c"
     tx.posedit.pos = MagicMock()
-    tx.__str__.return_value = "NM_000001.1:c.100_200del"
 
     tx_variant = MagicMock()
+    tx_variant.ac = "NM_000001.1"
+    tx_variant.type = "c"
     tx_variant.posedit.pos = MagicMock()
 
-    mock_obj.side_effect = [parsed, tx_variant]
+    mock_obj.side_effect = [parsed, tx_variant, tx_variant]
 
     validator.vr.validate.return_value = None
     validator.select_transcripts = "select"
@@ -683,14 +690,12 @@ def test_fuzzy_ends_out_of_order_star_positions(mock_boundaries):
     )
 
 
-def test_fuzzy_position_end_only():
+def test_fuzzy_position_start_only():
     variant = make_variant("NM_000001.1:c.123A>G")
 
     pos = MagicMock()
-    pos.__str__.return_value = "123_?"
-
-    pos.start.__str__.return_value = "123"
-    pos.end.__str__.return_value = "?"
+    pos.start.base = None
+    pos.end.base = 123
 
     variant.hgvs_formatted.posedit.pos = pos
 
@@ -698,14 +703,12 @@ def test_fuzzy_position_end_only():
         fuzzy_ends(variant, make_validator())
 
 
-def test_fuzzy_position_start_only():
+def test_fuzzy_position_end_only():
     variant = make_variant("NM_000001.1:c.123A>G")
 
     pos = MagicMock()
-    pos.__str__.return_value = "?_123"
-
-    pos.start.__str__.return_value = "?"
-    pos.end.__str__.return_value = "123"
+    pos.start.base = 123
+    pos.end.base = None
 
     variant.hgvs_formatted.posedit.pos = pos
 
@@ -717,10 +720,8 @@ def test_fuzzy_position_both():
     variant = make_variant("NM_000001.1:c.123A>G")
 
     pos = MagicMock()
-    pos.__str__.return_value = "?_?"
-
-    pos.start.__str__.return_value = "?"
-    pos.end.__str__.return_value = "?"
+    pos.start.base = None
+    pos.end.base = None
 
     variant.hgvs_formatted.posedit.pos = pos
 

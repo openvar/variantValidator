@@ -1,7 +1,7 @@
-import unittest
 import importlib
-from unittest.mock import patch
+import unittest
 import warnings
+from unittest.mock import patch
 
 
 class TestVersionFetching(unittest.TestCase):
@@ -10,17 +10,16 @@ class TestVersionFetching(unittest.TestCase):
     def test_version_fetching_package_not_found(self, mock_version):
         mock_version.side_effect = importlib.metadata.PackageNotFoundError
 
-        with warnings.catch_warnings(record=True) as w:
+        with warnings.catch_warnings(record=True) as caught_warnings:
             import VariantValidator.version as version
             importlib.reload(version)
 
             self.assertTrue(
                 any(
-                    "can't get __version__" in str(warn.message)
-                    for warn in w
+                    "can't get __version__" in str(warning.message)
+                    for warning in caught_warnings
                 )
             )
-
             self.assertIsNone(version.__version__)
             self.assertFalse(version._is_released_version)
 
@@ -39,6 +38,32 @@ class TestVersionFetching(unittest.TestCase):
 
         self.assertEqual(version.__version__, "3.2.1.dev1")
         self.assertFalse(version._is_released_version)
+
+
+class TestVariantFormatterVersion(unittest.TestCase):
+
+    @patch("importlib.metadata.version", return_value="3.2.1")
+    def test_version_fetching_release_version(self, mock_version):
+        import VariantFormatter
+        importlib.reload(VariantFormatter)
+
+        self.assertEqual(VariantFormatter.__version__, "3.2.1")
+        self.assertTrue(VariantFormatter._is_released_version)
+        mock_version.assert_called_with("VariantValidator")
+
+    @patch("importlib.metadata.version", return_value="3.2.1.dev1")
+    def test_version_fetching_dev_version(self, mock_version):
+        import VariantFormatter
+        importlib.reload(VariantFormatter)
+
+        self.assertEqual(VariantFormatter.__version__, "3.2.1.dev1")
+        self.assertFalse(VariantFormatter._is_released_version)
+        mock_version.assert_called_with("VariantValidator")
+
+
+if __name__ == "__main__":
+    unittest.main()
+
 
 # <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors

@@ -1,4 +1,8 @@
 from unittest.mock import MagicMock, patch
+
+import vvhgvs.exceptions
+
+from VariantValidator.modules import format_converters
 from VariantValidator.modules.format_converters import final_hgvs_convert
 from VariantValidator.modules.format_converters import vcf2hgvs_stage1
 
@@ -678,6 +682,131 @@ def test_refseq_catch_non_coding_type():
     ) is False
 
 
+
+# ---------------------------------------------------------------------------
+# initial_format_conversions
+# ---------------------------------------------------------------------------
+
+def test_initial_format_conversions_hgvs_parse_error():
+    variant = MockVariant("NM_000546.6:c.bad")
+    validator = MockValidator()
+
+    with patch.object(
+        format_converters,
+        "vcf2hgvs_stage1",
+        return_value=False,
+    ), patch.object(
+        format_converters,
+        "vcf2hgvs_stage2",
+        return_value=False,
+    ), patch.object(
+        format_converters,
+        "gene_symbol_catch",
+        return_value=False,
+    ), patch.object(
+        format_converters,
+        "refseq_catch",
+        return_value=False,
+    ), patch.object(
+        format_converters,
+        "vcf2hgvs_stage4",
+        return_value=False,
+    ), patch.object(
+        format_converters.use_checking,
+        "pre_parsing_global_common_mistakes",
+        return_value=False,
+    ), patch.object(
+        format_converters.methyl_syntax,
+        "methyl_syntax",
+    ), patch.object(
+        format_converters,
+        "uncertain_pos",
+        return_value=False,
+    ), patch.object(
+        format_converters.use_checking,
+        "refseq_common_mistakes",
+        return_value=False,
+    ), patch.object(
+        format_converters,
+        "intronic_converter",
+    ), patch.object(
+        format_converters,
+        "final_hgvs_convert",
+        side_effect=vvhgvs.exceptions.HGVSParseError("bad HGVS"),
+    ):
+        result = format_converters.initial_format_conversions(
+            variant,
+            validator,
+            {},
+            [],
+        )
+
+    assert result is True
+    assert variant.warnings == [
+        "HgvsSyntaxError: bad HGVS"
+    ]
+
+
+def test_initial_format_conversions_generic_hgvs_error():
+    variant = MockVariant("NM_000546.6:c.bad")
+    validator = MockValidator()
+
+    with patch.object(
+        format_converters,
+        "vcf2hgvs_stage1",
+        return_value=False,
+    ), patch.object(
+        format_converters,
+        "vcf2hgvs_stage2",
+        return_value=False,
+    ), patch.object(
+        format_converters,
+        "gene_symbol_catch",
+        return_value=False,
+    ), patch.object(
+        format_converters,
+        "refseq_catch",
+        return_value=False,
+    ), patch.object(
+        format_converters,
+        "vcf2hgvs_stage4",
+        return_value=False,
+    ), patch.object(
+        format_converters.use_checking,
+        "pre_parsing_global_common_mistakes",
+        return_value=False,
+    ), patch.object(
+        format_converters.methyl_syntax,
+        "methyl_syntax",
+    ), patch.object(
+        format_converters,
+        "uncertain_pos",
+        return_value=False,
+    ), patch.object(
+        format_converters.use_checking,
+        "refseq_common_mistakes",
+        return_value=False,
+    ), patch.object(
+        format_converters,
+        "intronic_converter",
+    ), patch.object(
+        format_converters,
+        "final_hgvs_convert",
+        side_effect=vvhgvs.exceptions.HGVSError("boom"),
+    ):
+        result = format_converters.initial_format_conversions(
+            variant,
+            validator,
+            {},
+            [],
+        )
+
+    assert result is True
+    assert variant.warnings == [
+        "HgvsParserError: Unknown error during reading of variant "
+        "NM_000546.6:c.bad"
+    ]
+
 # <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors
 #
@@ -694,4 +823,3 @@ def test_refseq_catch_non_coding_type():
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # </LICENSE>
-

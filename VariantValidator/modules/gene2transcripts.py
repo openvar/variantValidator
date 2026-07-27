@@ -1,8 +1,6 @@
-import re
 import copy
 import json
 import vvhgvs.exceptions
-import vvhgvs.sequencevariant
 import logging
 from . import utils as fn
 from . import seq_data, lovd_api
@@ -53,9 +51,7 @@ def gene2transcripts(g2t,
         except json.decoder.JSONDecodeError:
             sel_tx_lst = [select_transcripts]
 
-    if bypass_web_searches is True:
-        pass
-    else:
+    if not bypass_web_searches:
         # Remove whitespace
         query = ''.join(query.split())
 
@@ -66,14 +62,14 @@ def gene2transcripts(g2t,
         except ValueError:
             pass
         if isinstance(query, int):
-            query = f"HGNC:{str(query)}"
+            query = f"HGNC:{query}"
 
         # Search by gene IDs
         if "HGNC:" in query:
             store_query = query
             query = query.upper()
             if store_query != query:
-                if lovd_syntax_check is True:  # Try LOVD syntax checker
+                if lovd_syntax_check:  # Try LOVD syntax checker
                     lovd_messages, lovd_corrections = lovd_syntax_check_g2t(submitted, lovd_syntax_check)
             query = g2t.db.get_stable_gene_id_from_hgnc_id(query)[1]
             if query == "No data":
@@ -84,7 +80,7 @@ def gene2transcripts(g2t,
                             if tx[5] != "unassigned":
                                 query = tx[5]
                                 break
-                    elif lovd_syntax_check is True: # Try LOVD syntax checker
+                    elif lovd_syntax_check: # Try LOVD syntax checker
                         error = f"Unable to recognise {submitted}. Please provide a gene symbol"
                         lovd_messages, lovd_corrections = lovd_syntax_check_g2t(submitted, lovd_syntax_check)
                         if lovd_messages:
@@ -102,11 +98,16 @@ def gene2transcripts(g2t,
                     pass
 
         query = query.upper()
-        if re.search(r'\d+ORF\d+', query):
+        orf_index = query.find('ORF')
+        if (
+                orf_index > 0
+                and query[:orf_index][-1].isdigit()
+                and query[orf_index + 3:].isdigit()
+        ):
             query = query.replace('ORF', 'orf')
 
         if query != submitted:
-            if lovd_syntax_check is True:  # Try LOVD syntax checker
+            if lovd_syntax_check:  # Try LOVD syntax checker
                 lovd_messages, lovd_corrections = lovd_syntax_check_g2t(submitted, lovd_syntax_check)
 
         # Quick check for LRG
@@ -122,7 +123,7 @@ def gene2transcripts(g2t,
                     , "requested_symbol": submitted}
 
     # Gather transcript information lists
-    if bypass_web_searches is True:
+    if bypass_web_searches:
         tx_for_gene = []
         tx_info = g2t.hdp.get_tx_identity_info(query.hgvs_coding.ac)
 
@@ -148,7 +149,7 @@ def gene2transcripts(g2t,
     else:
         # Search for gene symbol on Transcript inputs
         hgnc = query
-        if 'NM_' in hgnc or 'NR_' in hgnc or "ENST" in hgnc:
+        if hgnc.startswith(("NM_", "NR_", "ENST")):
 
             # Remove version
             if '.' in hgnc:
@@ -177,9 +178,7 @@ def gene2transcripts(g2t,
             hgnc = tx_info[6]
             hgnc2 = g2t.db.get_hgnc_symbol(hgnc)
 
-            if re.match("LOC", hgnc2) and not re.match("LOC", hgnc):
-                hgnc = hgnc
-            else:
+            if not (hgnc2.startswith("LOC") and not hgnc.startswith("LOC")):
                 hgnc = hgnc2
 
         # First perform a search against the input gene symbol or the symbol inferred from UTA
@@ -214,7 +213,7 @@ def gene2transcripts(g2t,
                     try:
                         old_symbol = g2t.db.get_uta_symbol(hgnc)
                     except Exception:
-                        if lovd_syntax_check is True:
+                        if lovd_syntax_check:
                             lovd_messages, lovd_corrections = lovd_syntax_check_g2t(submitted, lovd_syntax_check)
                             if len(lovd_corrections) == 1 and list(lovd_corrections.values())[0] == 1:
                                 corrected_symbol = list(lovd_corrections.keys())[0]
@@ -247,8 +246,8 @@ def gene2transcripts(g2t,
                             previous_sym = old_symbol
                             symbol_identified = True
 
-        if symbol_identified is False:
-            if lovd_syntax_check is True:
+        if not symbol_identified:
+            if lovd_syntax_check:
                 lovd_messages, lovd_corrections = lovd_syntax_check_g2t(submitted, lovd_syntax_check)
                 if len(lovd_corrections) == 1 and list(lovd_corrections.values())[0] == 1:
                     corrected_symbol = list(lovd_corrections.keys())[0]
@@ -308,7 +307,7 @@ def gene2transcripts(g2t,
                 kept_tx.append(tx)
 
         # Clean structures
-        kept_tx  = clean_transcripts(kept_tx, genome_build=genome_build, transcript_set=transcript_set)
+        kept_tx = clean_transcripts(kept_tx, genome_build=genome_build, transcript_set=transcript_set)
 
         if "all" in sel_tx_lst:
             logger.info("Set filter to all")
@@ -323,10 +322,10 @@ def gene2transcripts(g2t,
     for line in tx_for_gene:
         # Remove unrequested transcript_sets
         if transcript_set == "refseq":
-            if "ENST" in line[3]:
+            if line[3].startswith("ENST"):
                 continue
         elif transcript_set == "ensembl":
-            if re.match("N[MR]_", line[3]):
+            if line[3].startswith(("NM_", "NR_")):
                 continue
 
         # Transcript ID
@@ -407,9 +406,9 @@ def gene2transcripts(g2t,
         # reverse the exon_set to maintain gene and not genome orientation if gene is -1 orientated
         if tx_orientation == -1:
             exon_set.reverse()
-        if bypass_genomic_spans is True:
+        if bypass_genomic_spans:
             gen_span = False
-        elif ('NG_' in line[4] or 'NC_0' in line[4]) and line[5] != 'blat':
+        elif line[4].startswith(("NG_", "NC_0")) and line[5] != "blat":
             gen_span = True
         else:
             gen_span = False
@@ -422,7 +421,6 @@ def gene2transcripts(g2t,
             except fn.DatabaseConnectionError as e:
                 error = 'Currently unable to update gene_ids or transcript information records because ' \
                         'VariantValidator %s' % str(e)
-                # my_variant.warnings.append(error)
                 logger.warning(error)
             tx_description = g2t.db.get_transcript_description(tx)
 
@@ -445,7 +443,6 @@ def gene2transcripts(g2t,
                                      'length': tx_len,
                                      'coding_start': line[1] + 1,
                                      'coding_end': line[2],
-                                     # 'orientation': tx_orientation,
                                      'genomic_spans': {}
                                      })
             else:
@@ -456,7 +453,6 @@ def gene2transcripts(g2t,
                                      'length': tx_len,
                                      'coding_start': None,
                                      'coding_end': None,
-                                     # 'orientation': tx_orientation,
                                      'genomic_spans': {}
                                      })
             # LRG information
@@ -470,8 +466,7 @@ def gene2transcripts(g2t,
                                          'length': tx_len,
                                          'coding_start': None,
                                          'coding_end': None,
-                                         # 'orientation': tx_orientation,
-                                         'genomic_spans': {}
+                                             'genomic_spans': {}
                                          })
                 elif sel_tx_lst is False:
                     genes_and_tx.append({'reference': lrg_transcript,
@@ -496,7 +491,7 @@ def gene2transcripts(g2t,
                                              })
 
         # Add the genomic span information
-        if gen_span is True:
+        if gen_span:
             for check_tx in genes_and_tx:
                 lrg_transcript = g2t.db.get_lrg_transcript_id_from_refseq_transcript_id(tx)
                 if check_tx['reference'] == tx:
@@ -514,7 +509,7 @@ def gene2transcripts(g2t,
                                                               "total_exons": total_exons}
                 if lrg_transcript != 'none':
                     if check_tx['reference'] == lrg_transcript:
-                        if 'NG_' in line[4]:
+                        if line[4].startswith("NG_"):
                             lrg_id = g2t.db.get_lrg_id_from_refseq_gene_id(line[4])
                             if lrg_id[0] in lrg_transcript:
                                 check_tx['genomic_spans'][line[4]] = {'start_position': gen_start_pos + 1,
@@ -530,7 +525,7 @@ def gene2transcripts(g2t,
                                                                         "total_exons": total_exons}
 
     # Return data dict
-    if bypass_web_searches is True:
+    if bypass_web_searches:
         g2d_data = {'transcripts': genes_and_tx}
     else:
         g2d_data = {'current_symbol': current_sym,
@@ -615,7 +610,6 @@ def clean_transcripts(rows, genome_build="GRCh38", transcript_set=None):
         ]
 
     return rows
-
 
 
 

@@ -15,6 +15,6 @@ RUN rm -rf /var/lib/apt/lists/*
 RUN echo '[mysqld]' >> /etc/mysql/my.cnf && \
     echo 'max_connections=1000' >> /etc/mysql/my.cnf
 
-RUN wget https://data.variantvalidator.org/vvdata/validator/validator_2025_03.sql.gz -O /docker-entrypoint-initdb.d/validator_2025_03.sql.gz
+RUN wget https://data.variantvalidator.org/vvdata/validator/validator_2026_07.sql.gz -O /docker-entrypoint-initdb.d/validator_2026_07.sql.gz
 
 CMD ["mysqld"]

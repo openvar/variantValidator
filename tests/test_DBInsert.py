@@ -77,7 +77,7 @@ def test_insert_methods(mixin_instance, mock_db_objects, lastrowid):
             'ccds_id': 'CCDS1'
         }
         # This method returns lowercase 'unknown error'
-        expected = 'true' if lastrowid else 'unknown error'
+        expected = 'true' if lastrowid else 'Unknown error'
         assert mixin_instance.insert_gene_stable_ids(gene_data) == expected
 
 

@@ -1,29 +1,25 @@
 # Supported Input Formats
 
-This guide describes the input formats accepted throughout the VariantValidator software suite.
+This guide describes the input formats accepted by tools within the VariantValidator software suite.
 
-The supported input formats are common across the following tools:
+The following tools accept different classes of input depending on their purpose:
 
 - [VariantValidator](#variantvalidator)
 - [VariantFormatter](#variantformatter)
 - [gene2transcripts](#gene2transcripts)
 - [hgvs2reference](#hgvs2reference)
 
-These tools share the same parsing and normalisation engine. Consequently, many of the input formats described in this guide are recognised consistently throughout the software suite unless explicitly stated otherwise.
+VariantValidator accepts a broad range of sequence variant descriptions, including fully compliant HGVS descriptions, commonly encountered non-HGVS representations, legacy formats and common formatting mistakes.
 
-Where a particular tool supports additional input formats or imposes specific restrictions, these are described in the relevant section of this guide and in that tool's individual documentation.
+VariantFormatter uses the same genomic input processing infrastructure and therefore accepts the same supported **genomic input formats** as VariantValidator. However, VariantFormatter is specifically a genomic-to-transcript/protein formatting tool and does not accept transcript, RNA or protein variants as its starting input.
 
-VariantValidator accepts a wide range of sequence variant descriptions. In addition to fully compliant HGVS sequence variant descriptions, it recognises many commonly encountered non-HGVS representations, legacy formats and common formatting mistakes, automatically converting them into valid HGVS sequence variant descriptions where possible.
-
-The parser automatically detects the submitted format, performs any necessary preprocessing, and then validates or formats the resulting variant. Where an unambiguous correction cannot be made, informative warnings or error messages are returned to assist the user.
+Where a particular tool imposes additional restrictions, these are described in the relevant section below.
 
 !!! tip "Related documentation"
 
     - See the [Transcript Selection](transcript_selection.md) guide for information on transcript selection strategies such as `mane_select`, `mane`, `select` and `all`.
     - See the [Output Formats](output_formats.md) guide to understand the results returned by each tool.
     - See the [Errors and Error Codes](errors_and_error_codes.md) reference for explanations of validation errors and warnings.
-
-The following sections describe the supported input formats accepted by each tool within the VariantValidator software suite.
 
 ---
 
@@ -33,13 +29,17 @@ The examples described in this guide are representative rather than exhaustive.
 
 VariantValidator has been designed to recognise and interpret a wide range of real-world sequence variant descriptions. In addition to fully compliant HGVS sequence variant descriptions, it accepts many commonly encountered non-HGVS formats, legacy representations and common formatting mistakes originating from clinical laboratories, research pipelines, databases and published literature.
 
-Together, VariantValidator and the integrated LOVD HGVS Syntax Checker recognise and process a broader range of HGVS syntax, legacy representations and common user errors than any other currently available software. Many non-standard inputs are recognised automatically and, where possible, converted into valid HGVS sequence variant descriptions before validation. When automatic correction is not possible, VariantValidator provides informative error messages and guidance to help users generate a valid HGVS sequence variant description.
+Where possible, non-standard inputs are recognised automatically and converted into valid HGVS sequence variant descriptions before validation. When an unambiguous correction cannot be made, informative warnings or error messages are returned to help the user generate a valid description.
+
+VariantFormatter shares VariantValidator's genomic input processing and therefore accepts the same supported genomic representations. Once a genomic input has been interpreted, VariantFormatter maps the genomic variant to corresponding transcript and protein representations where appropriate.
 
 Support for additional input formats continues to evolve as new real-world examples are encountered. If you regularly encounter a sequence variant description that is not currently recognised, we encourage you to submit a feature request through the project's contact page so that support can be considered for a future release.
 
 ---
 
 # VariantValidator
+
+VariantValidator accepts HGVS sequence variant descriptions at genomic, transcript, RNA, protein and mitochondrial levels, together with a broad range of non-HGVS and recoverable input formats.
 
 ---
 
@@ -56,8 +56,6 @@ Example:
 ```text
 NC_000017.11:g.50198002C>A
 ```
-
-This is the most commonly submitted variant type and forms the primary input for VariantValidator.
 
 ---
 
@@ -97,7 +95,7 @@ Example:
 NM_000088.4:r.589g>u
 ```
 
-RNA variants must use the IUPAC RNA alphabet (for example, **U** rather than **T**). Where possible, informative error messages are returned for incorrect RNA syntax.
+RNA variants must use the IUPAC RNA alphabet, for example **U** rather than **T**. Where possible, informative error messages are returned for incorrect RNA syntax.
 
 ---
 
@@ -126,6 +124,8 @@ NC_012920.1:m.3243A>G
 ```
 
 The software automatically recognises mitochondrial reference sequences and checks that the appropriate HGVS sequence type (`m.`) is used.
+
+---
 
 ### Allele descriptions
 
@@ -173,13 +173,15 @@ NC_000017.11:g.(50198000_50198005)_(50198020_50198025)del
 NC_000017.11:g.(?_50198002)_(50198020_?)del
 ```
 
-Uncertain intervals, fuzzy breakpoints, and unknown variant boundaries are recognised where supported by the HGVS recommendations. If a submitted description cannot be interpreted unambiguously, VariantValidator returns an informative validation message describing the problem.
+Uncertain intervals, fuzzy breakpoints and unknown variant boundaries are recognised where supported by the HGVS recommendations.
+
+If a submitted description cannot be interpreted unambiguously, VariantValidator returns an informative validation message describing the problem.
 
 ---
 
 ### LRG reference sequences
 
-Legacy LRG reference sequences are recognised throughout the software suite.
+Legacy LRG reference sequences are recognised.
 
 Examples include:
 
@@ -191,7 +193,7 @@ LRG_199:c.589G>T
 LRG_199t1:c.589G>T
 ```
 
-Where appropriate, LRG identifiers are automatically converted to their equivalent RefSeq reference sequences before further processing.
+Where appropriate, LRG identifiers are converted to their equivalent RefSeq reference sequences before further processing.
 
 ---
 
@@ -229,7 +231,7 @@ NW_012345678.9(NM_000088.4):c.589G>T
 NT_012345678.9(NM_000088.4):c.589G>T
 ```
 
-Compound reference sequence descriptions define the genomic sequence against which the transcript is aligned. This allows transcript variants to be interpreted relative to an alternative genomic reference sequence, such as a RefSeqGene record, chromosome, scaffold or other supported genomic reference sequence.
+Compound reference sequence descriptions define the genomic sequence against which the transcript is aligned. This allows transcript variants to be interpreted relative to a RefSeqGene record, chromosome, scaffold or other supported genomic reference sequence.
 
 VariantValidator recognises these descriptions and performs transcript mapping using the specified genomic alignment.
 
@@ -255,36 +257,35 @@ Predicted variants are recognised according to the HGVS recommendations and are 
 
 ## Common Non-HGVS Input Formats
 
-In addition to fully compliant HGVS sequence variant descriptions, VariantValidator accepts several commonly encountered non-HGVS variant representations.
+In addition to fully compliant HGVS sequence variant descriptions, VariantValidator accepts commonly encountered non-HGVS variant representations.
 
-These formats commonly originate from variant calling pipelines, databases, spreadsheets and legacy software. Where possible, VariantValidator automatically converts these representations into valid HGVS sequence variant descriptions before validation.
+These formats frequently originate from variant calling pipelines, databases, spreadsheets, clinical reports, publications and legacy software.
 
-The following non-HGVS input formats are recognised.
+Where possible, VariantValidator automatically converts these representations into valid HGVS sequence variant descriptions before validation.
 
+---
 
 ### Gene symbols used as reference sequence identifiers
 
-Gene symbols are frequently—but incorrectly—used in place of transcript reference sequence identifiers.
+Gene symbols are frequently, but incorrectly, used in place of transcript reference sequence identifiers.
 
-For example,
+For example:
 
 ```text
 COL1A1:c.589G>T
 ```
 
-This is **not valid HGVS nomenclature**, as HGVS requires a transcript reference sequence (for example, `NM_000088.4`) rather than a gene symbol. Because many genes have multiple transcript reference sequences, a gene symbol alone is insufficient to uniquely identify an HGVS sequence variant description.
+This is **not valid HGVS nomenclature**, because HGVS requires a reference sequence identifier rather than a gene symbol.
 
-If a transcript selection strategy is supplied (for example `mane_select`, `mane`, `select`, or a user-specified transcript accession), VariantValidator automatically substitutes the appropriate transcript reference sequence and continues validation.
+If a transcript selection strategy is supplied, VariantValidator can substitute an appropriate transcript reference sequence and continue validation.
 
-If no transcript selection strategy is provided, VariantValidator cannot determine which transcript was intended. Validation stops and a warning is returned together with a list of compatible transcript reference sequences that may be used to resubmit the variant.
-
-Providing a transcript selection strategy or explicitly specifying the desired transcript is therefore recommended whenever gene symbols are used as input.
+If the intended transcript cannot be determined unambiguously, validation stops and guidance is returned.
 
 ---
 
 ### Pseudo-VCF chromosome notation
 
-VariantValidator accepts several simplified chromosome coordinate formats that are commonly used in spreadsheets, databases and analysis pipelines.
+VariantValidator accepts simplified chromosome-coordinate formats commonly used in spreadsheets, databases and analysis pipelines.
 
 Examples include:
 
@@ -306,9 +307,9 @@ chr17:50198002:C:A
 
 These descriptions are automatically recognised and converted into the corresponding genomic HGVS sequence variant description before validation.
 
-VariantValidator also accepts pseudo-VCF descriptions containing multiple alternate alleles.
+Pseudo-VCF descriptions containing multiple alternate alleles are also recognised.
 
-For example,
+For example:
 
 ```text
 17-50198002-C-A,G,T
@@ -318,13 +319,13 @@ For example,
 17:50198002:C:A,G,T
 ```
 
-HGVS requires each alternate allele to be represented as an independent sequence variant description. VariantValidator therefore decomposes pseudo-VCF descriptions containing multiple alternate alleles into individual variants before converting each into HGVS format and validating them independently.
+Each alternate allele is decomposed into an independent sequence variant description before conversion to HGVS.
 
 ---
 
 ### Genome assembly prefixes
 
-Some pipelines include the genome assembly as part of the chromosome coordinate description.
+Some pipelines include the genome assembly as part of the chromosome-coordinate description.
 
 Examples include:
 
@@ -344,15 +345,15 @@ hg19-17-50198002-C-A
 hg38:17:50198002:C:A
 ```
 
-VariantValidator recognises these formats, extracts the genome assembly, converts the description into HGVS format and validates the resulting variant. If the embedded genome assembly conflicts with the selected genome assembly, validation fails with an informative error.
+VariantValidator recognises these formats, extracts the genome assembly, converts the description into HGVS format and validates the resulting variant.
+
+If the embedded genome assembly conflicts with the selected genome assembly, an informative error is returned.
 
 ---
 
 ### VCF/HGVS hybrid formats
 
-VariantValidator accepts several hybrid formats that combine HGVS reference sequence identifiers with VCF-style coordinate or allele notation.
-
-These representations commonly arise following partial or incomplete conversion of VCF records into HGVS sequence variant descriptions.
+VariantValidator accepts hybrid formats that combine HGVS reference sequence identifiers with VCF-style coordinate or allele notation.
 
 Examples include:
 
@@ -388,17 +389,13 @@ Chr17(GRCh38):g.50198002C>A
 Chr17(hg19):g.48275363C>A
 ```
 
-VariantValidator recognises these hybrid representations, extracts any embedded genome assembly information where present, resolves chromosome identifiers to the appropriate reference sequence accession, converts the description into valid HGVS syntax, and then performs standard validation.
-
-If the embedded genome assembly conflicts with the selected genome assembly, validation fails with an informative error.
+These representations are recognised, converted into genomic HGVS and then validated.
 
 ---
 
 ### Chromosome identifiers
 
-Chromosome identifiers are accepted in several commonly used forms.
-
-Examples include:
+Chromosome identifiers are recognised in commonly used forms, including:
 
 ```text
 17
@@ -412,39 +409,33 @@ chr17
 Chr17
 ```
 
-These identifiers are automatically mapped to the appropriate genomic reference sequence accession for the selected genome assembly.
+Where a chromosome identifier forms part of a genomic variant description, it is mapped to the appropriate genomic reference sequence accession for the selected genome assembly.
 
 ---
 
 ### Variant Call Format (VCF)
 
-VariantValidator accepts complete Variant Call Format (VCF) records copied directly from VCF files.
+VariantValidator accepts Variant Call Format representations and converts the chromosome, position, reference allele and alternate allele into the corresponding genomic HGVS sequence variant description.
 
-For example,
+For example:
 
 ```text
 17    50198002    .    C    A
 ```
 
-The chromosome, position, reference allele and alternate allele fields are used to construct the corresponding HGVS sequence variant description. Additional VCF columns, including quality scores, filter status and genotype information, are ignored.
-
-Both single-record VCF input and multi-allelic VCF records are recognised. Where appropriate, multiple alternate alleles are decomposed into individual HGVS sequence variant descriptions and validated independently.
-
----
-
-The following sections describe any additional input conventions or restrictions that apply to the remaining tools within the VariantValidator software suite.
+Multi-allelic representations can be decomposed into individual variants and processed independently.
 
 ---
 
 ## Additional supported formats
 
-The examples presented in this document illustrate the most commonly encountered HGVS and non-HGVS input formats accepted by VariantValidator. They are **not** intended to be an exhaustive list of every supported syntax.
+The examples presented above illustrate commonly encountered HGVS and non-HGVS input formats accepted by VariantValidator. They are **not** intended to be an exhaustive list of every supported syntax.
 
-VariantValidator has been developed to recognise the broad range of sequence variant descriptions encountered in real-world clinical and research workflows. In addition to supporting the current HGVS recommendations, it recognises many legacy representations, common formatting mistakes and hybrid notations that frequently occur in publications, databases, spreadsheets and bioinformatics pipelines.
+VariantValidator has been developed to recognise the broad range of sequence variant descriptions encountered in real-world clinical and research workflows.
 
-Where possible, VariantValidator automatically converts these representations into valid HGVS sequence variant descriptions before validation. When an unambiguous correction cannot be made, the software returns informative warnings or error messages describing the problem and, where appropriate, guidance on how the submitted description can be corrected.
+Where possible, VariantValidator automatically converts recoverable representations into valid HGVS sequence variant descriptions before validation. When an unambiguous correction cannot be made, the software returns informative warnings or errors describing the problem.
 
-Together with the integrated LOVD HGVS Syntax Checker, VariantValidator supports a broader range of HGVS syntax and commonly encountered input formats than any other currently available validation tool. New input formats and common user mistakes are continually incorporated as they are encountered to improve compatibility and user experience.
+Together with the integrated LOVD HGVS Syntax Checker, VariantValidator supports a broad range of HGVS syntax, legacy representations and commonly encountered input formats.
 
 If you encounter a sequence variant description that is not recognised, or would like support for an additional input format, please submit a feature request through the project's contact page.
 
@@ -452,40 +443,46 @@ If you encounter a sequence variant description that is not recognised, or would
 
 # VariantFormatter
 
-VariantFormatter is designed for automated bioinformatics pipelines and software integration.
+VariantFormatter is designed to map **genomic variants** to corresponding transcript and protein representations for automated bioinformatics pipelines, software integration and other programmatic workflows.
 
-Unlike VariantValidator, which is intended to recognise and validate a very broad range of HGVS and non-HGVS sequence variant descriptions, VariantFormatter assumes that submitted variants are already of good quality. It performs minimal input recovery before converting accepted variant descriptions into equivalent genomic, transcript and protein representations.
+VariantFormatter accepts the same supported **genomic input formats** as VariantValidator. This includes compliant genomic HGVS descriptions as well as genomic non-HGVS, pseudo-VCF, VCF-style, hybrid and recoverable representations recognised by the VariantValidator genomic input processing pipeline.
 
-This design makes VariantFormatter well suited to production workflows where variant descriptions have already been validated or originate from trusted sources.
+The important distinction between VariantValidator and VariantFormatter is therefore not the range of supported genomic syntax.
 
-VariantFormatter supports the following input formats:
+Instead:
 
-- Genomic HGVS (`g.`) sequence variant descriptions.
-- Pseudo-VCF chromosome coordinate formats.
-- Pseudo-VCF descriptions containing multiple alternate alleles.
-- Complete Variant Call Format (VCF) records.
+- **VariantValidator** accepts genomic, transcript, RNA, protein and other supported sequence variant types and performs comprehensive validation and recovery.
+- **VariantFormatter** accepts genomic variant input and maps that genomic variant to transcript and protein representations.
 
-Unlike VariantValidator, VariantFormatter does not attempt to recognise the extensive range of legacy HGVS syntax, hybrid formats or common user formatting errors accepted by the VariantValidator parser. Users wishing to validate or recover imperfect sequence variant descriptions should use VariantValidator before formatting.
+Transcript (`c.` and `n.`), RNA (`r.`) and protein (`p.`) descriptions are therefore not accepted as starting inputs to VariantFormatter.
 
 ---
 
 ## HGVS genomic sequence variants
 
-Genomic HGVS (`g.`) sequence variant descriptions are the primary input accepted by VariantFormatter.
+Genomic HGVS (`g.`) descriptions are accepted using supported genomic reference sequences.
 
-Example:
+Examples include:
 
 ```text
 NC_000017.11:g.50198002C>A
 ```
 
-These descriptions are formatted into equivalent transcript and protein representations where possible.
+```text
+NT_187361.1:g.1000A>G
+```
+
+```text
+NW_012345678.9:g.1000A>G
+```
+
+Accepted genomic descriptions are validated and normalised before being mapped to relevant transcript and protein representations.
 
 ---
 
 ## Pseudo-VCF chromosome notation
 
-VariantFormatter accepts the simplified chromosome coordinate formats commonly produced by variant calling pipelines.
+VariantFormatter accepts the same supported genomic pseudo-VCF representations as VariantValidator.
 
 Examples include:
 
@@ -498,6 +495,24 @@ Examples include:
 ```
 
 ```text
+chr17-50198002-C-A
+```
+
+```text
+chr17:50198002:C:A
+```
+
+These descriptions are converted into genomic HGVS before transcript mapping.
+
+---
+
+## Genome assembly prefixes
+
+Genomic pseudo-VCF descriptions may include an assembly identifier.
+
+Examples include:
+
+```text
 GRCh38-17-50198002-C-A
 ```
 
@@ -505,13 +520,63 @@ GRCh38-17-50198002-C-A
 GRCh38:17:50198002:C:A
 ```
 
-These descriptions are converted into genomic HGVS sequence variant descriptions before formatting.
+```text
+hg19-17-50198002-C-A
+```
+
+```text
+hg38:17:50198002:C:A
+```
+
+The assembly information is interpreted during genomic input processing.
+
+---
+
+## Genomic VCF/HGVS hybrid formats
+
+VariantFormatter accepts the genomic hybrid representations recognised by VariantValidator.
+
+Examples include:
+
+```text
+NC_000017.11:50198002:C:A
+```
+
+```text
+NC_000017.11-50198002-C-A
+```
+
+```text
+NC_000017.11:g.50198002:C:A
+```
+
+```text
+NC_000017.11:g.50198002-C-A
+```
+
+```text
+NC_000017.11(GRCh38):g.50198002C>A
+```
+
+```text
+NC_000017.11(hg38):g.50198002C>A
+```
+
+```text
+Chr17(GRCh38):g.50198002C>A
+```
+
+```text
+Chr17(hg19):g.48275363C>A
+```
+
+These descriptions are resolved to an appropriate genomic reference sequence and converted into genomic HGVS before formatting continues.
 
 ---
 
 ## Multiple alternate alleles
 
-Pseudo-VCF descriptions containing multiple alternate alleles are supported.
+Genomic pseudo-VCF input containing multiple alternate alleles is recognised.
 
 Examples include:
 
@@ -523,23 +588,49 @@ Examples include:
 17:50198002:C:A,G,T
 ```
 
-Each alternate allele is decomposed into an independent HGVS sequence variant description before formatting.
+Each alternate allele is processed as an independent genomic variant.
 
 ---
 
-## Variant Call Format (VCF)
+## Variant Call Format representations
 
-VariantFormatter accepts complete Variant Call Format (VCF) records.
+VariantFormatter accepts supported genomic VCF representations processed by the shared VariantValidator genomic input conversion pipeline.
 
-For example,
+For example:
 
 ```text
 17    50198002    .    C    A
 ```
 
-The chromosome, position, reference allele and alternate allele fields are extracted and converted into genomic HGVS before formatting. Additional VCF columns, such as quality metrics, filters and genotype information, are ignored.
+Where multiple alternate alleles are supplied, they can be decomposed into individual genomic variants for formatting.
 
-Multi-allelic VCF records are also supported and are decomposed into individual HGVS sequence variant descriptions before formatting.
+---
+
+## Invalid VariantFormatter starting types
+
+VariantFormatter is not a general HGVS-to-HGVS converter.
+
+The following are not accepted as starting inputs:
+
+```text
+NM_000088.4:c.589G>T
+```
+
+```text
+NR_023343.1:n.245G>A
+```
+
+```text
+NM_000088.4:r.589g>u
+```
+
+```text
+NP_000079.2:p.Gly197Val
+```
+
+These representations may be produced as part of VariantFormatter output, but VariantFormatter processing begins with a genomic variant.
+
+Users who need to validate transcript, RNA, protein or other non-genomic HGVS descriptions should use VariantValidator.
 
 ---
 
@@ -613,9 +704,7 @@ ENST00000357654.9
 
 # hgvs2reference
 
-`hgvs2reference` accepts HGVS sequence variant descriptions and returns the corresponding reference sequence.
-
-The following input formats are supported.
+`hgvs2reference` accepts supported HGVS sequence variant descriptions and returns the corresponding reference sequence.
 
 ---
 
@@ -658,5 +747,5 @@ The current implementation does not support:
 - RNA variants (`r.`)
 - Protein variants (`p.`)
 - Mitochondrial variants (`m.`)
-- Compound genomic/transcript reference sequence descriptions (for example `NG_(NM_):c.` or `NC_(NM_):c.`)
-- Fully intronic transcript variants (a warning is returned requesting the use of a genomic reference sequence instead)
+- Compound genomic/transcript reference sequence descriptions, for example `NG_(NM_):c.` or `NC_(NM_):c.`
+- Fully intronic transcript variants; a warning is returned requesting the use of a genomic reference sequence instead

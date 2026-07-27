@@ -1,22 +1,27 @@
 
 def methyl_syntax(my_variant):
     """
-    :param my_variant:
-    :return: False if no | is detected otherwise raises Exception and provides information as to where the
-    | is located
-    """
+    Remove and store a methylation syntax suffix before HGVS object parsing.
 
-    if "|" in my_variant.quibble:
-        if "gom" in my_variant.quibble or "lom" in my_variant.quibble or "met=" in my_variant.quibble:
-            if "|gom" in my_variant.quibble:
-                my_variant.reformat_output = "|gom"
-            if "|lom" in my_variant.quibble:
-                my_variant.reformat_output = "|lom"
-            if "|met=" in my_variant.quibble:
-                my_variant.reformat_output = "|met="
-            met_var = str(my_variant.quibble.split("|")[0]) + "="
-            my_variant.quibble = met_var
-            return my_variant
+    :param my_variant:
+    :return: Updated variant if methylation syntax is detected, otherwise None.
+    """
+    quibble = my_variant.quibble
+
+    if "|" not in quibble:
+        return None
+
+    if "|gom" in quibble:
+        my_variant.reformat_output = "|gom"
+    elif "|lom" in quibble:
+        my_variant.reformat_output = "|lom"
+    elif "|met=" in quibble:
+        my_variant.reformat_output = "|met="
+    else:
+        return None
+
+    my_variant.quibble = quibble.split("|", 1)[0] + "="
+    return my_variant
 
 
 # <LICENSE>

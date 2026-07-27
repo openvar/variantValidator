@@ -6,13 +6,13 @@ RUN apt-get install -y wget
 
 RUN mkdir -p /usr/local/share/seqdata
 
-RUN wget --output-document=/usr/local/share/seqdata/VV_SR_2025_02.tar \
-    https://data.variantvalidator.org/vvdata/vv_seqrepo/VV_SR_2025_02.tar
+RUN wget --output-document=/usr/local/share/seqdata/VV_SR_2026_07.tar \
+    https://data.variantvalidator.org/vvdata/vv_seqrepo/VV_SR_2026_07.tar
 
-RUN tar -xvf /usr/local/share/seqdata/VV_SR_2025_02.tar \
+RUN tar -xvf /usr/local/share/seqdata/VV_SR_2026_07.tar \
     --directory /usr/local/share/seqdata
 
-RUN rm /usr/local/share/seqdata/VV_SR_2025_02.tar
+RUN rm /usr/local/share/seqdata/VV_SR_2026_07.tar
 
 VOLUME /usr/local/share/seqdata
 

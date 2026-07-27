@@ -13,6 +13,7 @@ def fake_db():
     db.conn = MagicMock()
     db.conn.commit = MagicMock()
     db.execute = MagicMock()
+    db.execute_write = MagicMock()
     db.update_refseqgene_loci = MagicMock()
     db.update_lrg_rs_lookup = MagicMock()
     db.update_lrgt_rst = MagicMock()
@@ -87,8 +88,21 @@ def test_update_lrg_executes_all_updates(mock_requests, fake_db):
 
 
 def test_map_line_builds_list_correctly():
-    line = {'rsg_id': 'RSG123', 'chr_id': 'NC_000001', 'rsg_start': '100', 'rsg_end': '200', 'ori': '+'}
-    rsg_info = [{'rsg_id': 'RSG123', 'symbol': 'GENE1', 'gene_id': '1234'}]
+    line = {
+        'rsg_id': 'RSG123',
+        'chr_id': 'NC_000001',
+        'rsg_start': '100',
+        'rsg_end': '200',
+        'ori': '+'
+    }
+    rsg_info = [
+        {
+            'rsg_id': 'RSG123',
+            'symbol': 'GENE1',
+            'gene_id': '1234'
+        }
+    ]
+
     ml = uv.map_line(line, 'GRCh38', rsg_info)
 
     assert ml[0] == 'RSG123'
@@ -97,34 +111,35 @@ def test_map_line_builds_list_correctly():
     assert ml[6] == 'GENE1'
     assert ml[7] == '1234'
 
+
 def test_drop_core_indexes_success(fake_db):
     uv.drop_core_indexes(fake_db)
 
-    assert fake_db.execute.call_count == 6
+    assert fake_db.execute_write.call_count == 6
 
 
 def test_drop_core_indexes_index_missing(fake_db):
-    fake_db.execute.side_effect = Exception("missing")
+    fake_db.execute_write.side_effect = Exception("missing")
 
     # Should not raise
     uv.drop_core_indexes(fake_db)
 
-    assert fake_db.execute.call_count == 6
+    assert fake_db.execute_write.call_count == 6
 
 
 def test_rebuild_core_indexes_success(fake_db):
     uv.rebuild_core_indexes(fake_db)
 
-    assert fake_db.execute.call_count == 6
+    assert fake_db.execute_write.call_count == 6
 
 
 def test_rebuild_core_indexes_failure(fake_db):
-    fake_db.execute.side_effect = Exception("boom")
+    fake_db.execute_write.side_effect = Exception("boom")
 
     # Should not raise
     uv.rebuild_core_indexes(fake_db)
 
-    assert fake_db.execute.call_count == 6
+    assert fake_db.execute_write.call_count == 6
 
 
 def test_count_ng_nc_non_mapping():
@@ -149,7 +164,7 @@ def test_count_ng_nc_bad_columns():
         "NC_000001\tRefSeq\tmatch\t1\t2\t.\t+\t."
         "\tID=x"
     )
-    assert uv.count_ng_nc(line) == None
+    assert uv.count_ng_nc(line) is None
 
 
 def test_count_ng_nc_success():
@@ -212,35 +227,6 @@ def test_update_connect_called(mock_connect):
         mock_connect.assert_called_once()
         mock_refseq.assert_called_once_with(fake_db)
         mock_lrg.assert_called_once_with(fake_db)
-
-def test_drop_core_indexes_calls_all(fake_db):
-    uv.drop_core_indexes(fake_db)
-
-    assert fake_db.execute.call_count == 6
-
-
-def test_rebuild_core_indexes_calls_all(fake_db):
-    uv.rebuild_core_indexes(fake_db)
-
-    assert fake_db.execute.call_count == 6
-
-
-def test_drop_core_indexes_ignores_errors(fake_db):
-    fake_db.execute.side_effect = Exception("boom")
-
-    # Should not raise
-    uv.drop_core_indexes(fake_db)
-
-    assert fake_db.execute.call_count == 6
-
-
-def test_rebuild_core_indexes_ignores_errors(fake_db):
-    fake_db.execute.side_effect = Exception("boom")
-
-    # Should not raise
-    uv.rebuild_core_indexes(fake_db)
-
-    assert fake_db.execute.call_count == 6
 
 
 def test_count_ng_nc_returns_none():
@@ -306,6 +292,7 @@ def test_update_lrg_skips_comments_and_short_lines(mock_requests, fake_db):
     fake_db.update_lrgt_rst.assert_called_once()
     fake_db.update_lrg_p_rs_p_lookup.assert_called_once()
 
+
 @patch("VariantValidator.update_vv_db.requests.get")
 def test_update_refseq_latest_assembly_http_error(mock_get, fake_db):
     """HTTP failure when retrieving the latest assembly listing."""
@@ -363,6 +350,7 @@ def test_update_refseq_missing_genomic_gff(mock_get, fake_db):
     with pytest.raises(IndexError):
         uv.update_refseq(fake_db)
 
+
 @patch("VariantValidator.update_vv_db.gzip.decompress")
 @patch("VariantValidator.update_vv_db.requests.get")
 def test_update_refseq_single_valid_mapping(mock_get, mock_decompress, fake_db):
@@ -371,24 +359,17 @@ def test_update_refseq_single_valid_mapping(mock_get, mock_decompress, fake_db):
     fake_db.get_gene_symbol_from_refseq_id.return_value = "none"
 
     mock_get.side_effect = [
-        # gene_RefSeqGene
         MagicMock(
             text="0\t1234\tGENE1\tNG_000001.1"
         ),
-
-        # latest_assembly_versions
         MagicMock(
             text='href="GCF_000001405.40_GRCh38.p14/"',
             raise_for_status=MagicMock(),
         ),
-
-        # assembly directory
         MagicMock(
             text='href="GCF_000001405.40_GRCh38.p14_genomic.gff.gz"',
             raise_for_status=MagicMock(),
         ),
-
-        # downloaded file
         MagicMock(
             content=b"dummy",
             raise_for_status=MagicMock(),
@@ -411,6 +392,7 @@ def test_update_refseq_single_valid_mapping(mock_get, mock_decompress, fake_db):
     assert written[2] == "GRCh38"
     assert written[9] == "1234"
     assert written[10] == "GENE1"
+
 
 @patch("VariantValidator.update_vv_db.gzip.decompress")
 @patch("VariantValidator.update_vv_db.requests.get")
@@ -577,6 +559,7 @@ def test_update_refseq_entrez_geneid_fallback(
     assert written[9] == "1234"
     assert written[10] == "GENE1"
 
+
 @patch("VariantValidator.update_vv_db.gzip.decompress")
 @patch("VariantValidator.update_vv_db.requests.get")
 def test_update_refseq_entrez_regulatory_loc_fallback(
@@ -634,6 +617,7 @@ def test_update_refseq_entrez_regulatory_loc_fallback(
     assert written[0] == "NG_000001.1"
     assert written[9] == "1234"
     assert written[10] == "LOC12345"
+
 
 @patch("VariantValidator.update_vv_db.VariantValidator.modules.seq_data.to_accession")
 @patch("VariantValidator.update_vv_db.gzip.decompress")

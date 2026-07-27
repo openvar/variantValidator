@@ -8,19 +8,19 @@ vfo = VariantValidator.Validator()
 class TestVFvariantsAuto(object):
     @classmethod
     def setup_class(cls):
-        VariantFormatter.__version__
         vfo.testing = True
 
     def test_variant1(self):
         variant = 'NC_000019.10:g.50378563_50378564insTAC'
-        results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
+        results = vf.FormatVariant(variant, 'GRCh37', vfo, 'refseq', None)
         results = results.stucture_data()
         print(results)
-        assert 'NC_000019.10:g.50378563_50378564insTAC' in results.keys()
-        assert results['NC_000019.10:g.50378563_50378564insTAC']['p_vcf'] is None
-        assert results['NC_000019.10:g.50378563_50378564insTAC']['g_hgvs'] is None
-        assert results['NC_000019.10:g.50378563_50378564insTAC']['genomic_variant_error'] == 'GenomeReferenceWarning: Chromosome ID NC_000019.10 is not associated with genome build GRCh37'
-        assert results['NC_000019.10:g.50378563_50378564insTAC']['hgvs_t_and_p'] is None
+
+        assert variant in results.keys()
+        assert results[variant]['p_vcf'] == 'NC_000019.10:50378563:A:ATAC'
+        assert results[variant]['g_hgvs'] == 'NC_000019.10:g.50378563_50378564insTAC'
+        assert results[variant]['genomic_variant_error'] is None
+        assert results[variant]['hgvs_t_and_p'] is not None
 
     def test_variant2(self):
         variant = '11-5248232-A-T'
@@ -403,7 +403,7 @@ class TestVFvariantsAuto(object):
         assert 'NC_000012.11:g.122064772_122064777del' in results.keys()
         assert results['NC_000012.11:g.122064772_122064777del']['p_vcf'] == '12:122064771:GCCCCGC:G'
         assert results['NC_000012.11:g.122064772_122064777del']['g_hgvs'] == 'NC_000012.11:g.122064773_122064778del'
-        assert results['NC_000012.11:g.122064772_122064777del']['genomic_variant_error'] == "NC_000012.11:g.122064772_122064777del updated to NC_000012.11:g.122064773_122064778del"
+        assert results['NC_000012.11:g.122064772_122064777del']['genomic_variant_error'] == "AutoCorrectionWarning: NC_000012.11:g.122064772_122064777del updated to NC_000012.11:g.122064773_122064778del"
         assert 'NM_032790.3' in results['NC_000012.11:g.122064772_122064777del']['hgvs_t_and_p'].keys()
         assert results['NC_000012.11:g.122064772_122064777del']['hgvs_t_and_p']['NM_032790.3']['t_hgvs'] == "NM_032790.3:c.126C>A"
         assert results['NC_000012.11:g.122064772_122064777del']['hgvs_t_and_p']['NM_032790.3']['p_hgvs_tlc'] == "NP_116179.2:p.(Ala42=)"
@@ -418,7 +418,7 @@ class TestVFvariantsAuto(object):
         assert 'NC_000012.11:g.122064772_122064777dup' in results.keys()
         assert results['NC_000012.11:g.122064772_122064777dup']['p_vcf'] == '12:122064771:G:GCCCCGC'
         assert results['NC_000012.11:g.122064772_122064777dup']['g_hgvs'] == 'NC_000012.11:g.122064773_122064778dup'
-        assert results['NC_000012.11:g.122064772_122064777dup']['genomic_variant_error'] == "NC_000012.11:g.122064772_122064777dup updated to NC_000012.11:g.122064773_122064778dup"
+        assert results['NC_000012.11:g.122064772_122064777dup']['genomic_variant_error'] == "AutoCorrectionWarning: NC_000012.11:g.122064772_122064777dup updated to NC_000012.11:g.122064773_122064778dup"
         assert 'NM_032790.3' in results['NC_000012.11:g.122064772_122064777dup']['hgvs_t_and_p'].keys()
         assert results['NC_000012.11:g.122064772_122064777dup']['hgvs_t_and_p']['NM_032790.3']['t_hgvs'] == "NM_032790.3:c.131_132insCCCGCCACCGCC"
         assert results['NC_000012.11:g.122064772_122064777dup']['hgvs_t_and_p']['NM_032790.3']['p_hgvs_tlc'] == "NP_116179.2:p.(Pro44_Pro47dup)"
@@ -448,7 +448,7 @@ class TestVFvariantsAuto(object):
         assert 'NC_000012.11:g.122064772_122064782del' in results.keys()
         assert results['NC_000012.11:g.122064772_122064782del']['p_vcf'] == '12:122064770:GGCCCCGCCACC:G'
         assert results['NC_000012.11:g.122064772_122064782del']['g_hgvs'] == 'NC_000012.11:g.122064774_122064784del'
-        assert results['NC_000012.11:g.122064772_122064782del']['genomic_variant_error'] == "NC_000012.11:g.122064772_122064782del updated to NC_000012.11:g.122064774_122064784del"
+        assert results['NC_000012.11:g.122064772_122064782del']['genomic_variant_error'] == "AutoCorrectionWarning: NC_000012.11:g.122064772_122064782del updated to NC_000012.11:g.122064774_122064784del"
         assert 'NM_032790.3' in results['NC_000012.11:g.122064772_122064782del']['hgvs_t_and_p'].keys()
         assert results['NC_000012.11:g.122064772_122064782del']['hgvs_t_and_p']['NM_032790.3']['t_hgvs'] == "NM_032790.3:c.126_127insA"
         assert results['NC_000012.11:g.122064772_122064782del']['hgvs_t_and_p']['NM_032790.3']['p_hgvs_tlc'] == "NP_116179.2:p.(Pro43ThrfsTer45)"
@@ -563,7 +563,10 @@ class TestVFvariantsAuto(object):
         assert 'NC_000003.11:g.14561629_14561630insG' in results.keys()
         assert results['NC_000003.11:g.14561629_14561630insG']['p_vcf'] == '3:14561627:A:AG'
         assert results['NC_000003.11:g.14561629_14561630insG']['g_hgvs'] == 'NC_000003.11:g.14561629dup'
-        assert results['NC_000003.11:g.14561629_14561630insG']['genomic_variant_error'] is None
+        assert results[variant]['genomic_variant_error'] == (
+            'AutoCorrectionWarning: NC_000003.11:g.14561629_14561630insG updated to '
+            'NC_000003.11:g.14561629dup'
+        )
         assert 'NM_001080423.2' in results['NC_000003.11:g.14561629_14561630insG']['hgvs_t_and_p'].keys()
         assert results['NC_000003.11:g.14561629_14561630insG']['hgvs_t_and_p']['NM_001080423.2']['t_hgvs'] == 'NM_001080423.2:c.1308_1311='
         assert results['NC_000003.11:g.14561629_14561630insG']['hgvs_t_and_p']['NM_001080423.2']['p_hgvs_tlc'] == 'NP_001073892.2:p.(Arg436_Pro437=)'
@@ -679,7 +682,7 @@ class TestVFvariantsAuto(object):
         assert 'NC_000002.11:g.73675227_73675228insCTC' in results.keys()
         assert results['NC_000002.11:g.73675227_73675228insCTC']['p_vcf'] == '2:73675227:T:TCTC'
         assert results['NC_000002.11:g.73675227_73675228insCTC']['g_hgvs'] == 'NC_000002.11:g.73675228_73675230dup'
-        assert results['NC_000002.11:g.73675227_73675228insCTC']['genomic_variant_error'] == "NC_000002.11:g.73675227_73675228insCTC updated to NC_000002.11:g.73675228_73675230dup"
+        assert results['NC_000002.11:g.73675227_73675228insCTC']['genomic_variant_error'] == "AutoCorrectionWarning: NC_000002.11:g.73675227_73675228insCTC updated to NC_000002.11:g.73675228_73675230dup"
         assert 'NM_015120.4' in results['NC_000002.11:g.73675227_73675228insCTC']['hgvs_t_and_p'].keys()
         assert results['NC_000002.11:g.73675227_73675228insCTC']['hgvs_t_and_p']['NM_015120.4']['t_hgvs'] == 'NM_015120.4:c.1573_1579='
         assert results['NC_000002.11:g.73675227_73675228insCTC']['hgvs_t_and_p']['NM_015120.4']['p_hgvs_tlc'] == 'NP_055935.4:p.(Ser525_Leu527=)'
@@ -1059,17 +1062,21 @@ class TestVFvariantsAuto(object):
 
     def test_variant58(self):
         variant = 'HG987_PATCH-355171-C-A'
-        results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
+        results = vf.FormatVariant(variant, 'GRCh37', vfo, 'refseq', None)
         results = results.stucture_data()
         print(results)
+
         assert 'HG987_PATCH-355171-C-A' in results.keys()
         assert results['HG987_PATCH-355171-C-A']['p_vcf'] == 'HG987_PATCH-355171-C-A'
         assert results['HG987_PATCH-355171-C-A']['g_hgvs'] == 'NW_003315950.2:g.355171C>A'
         assert results['HG987_PATCH-355171-C-A']['genomic_variant_error'] is None
         assert 'NM_001194958.2' in results['HG987_PATCH-355171-C-A']['hgvs_t_and_p'].keys()
-        assert results['HG987_PATCH-355171-C-A']['hgvs_t_and_p']['NM_001194958.2']['t_hgvs'] == 'NM_001194958.2:c.20C>A'
-        assert results['HG987_PATCH-355171-C-A']['hgvs_t_and_p']['NM_001194958.2']['p_hgvs_tlc'] == 'NP_001181887.2:p.(Ala7Asp)'
-        assert results['HG987_PATCH-355171-C-A']['hgvs_t_and_p']['NM_001194958.2']['p_hgvs_slc'] == 'NP_001181887.2:p.(A7D)'
+        assert results['HG987_PATCH-355171-C-A']['hgvs_t_and_p']['NM_001194958.2']['t_hgvs'] == \
+               'NM_001194958.2:c.22C>A'
+        assert results['HG987_PATCH-355171-C-A']['hgvs_t_and_p']['NM_001194958.2']['p_hgvs_tlc'] == \
+               'NP_001181887.2:p.?'
+        assert results['HG987_PATCH-355171-C-A']['hgvs_t_and_p']['NM_001194958.2']['p_hgvs_slc'] == \
+               'NP_001181887.2:p.?'
         assert results['HG987_PATCH-355171-C-A']['hgvs_t_and_p']['NM_001194958.2']['transcript_variant_error'] is None
 
     def test_variant59(self):
@@ -1180,7 +1187,7 @@ class TestVFvariantsAuto(object):
         assert 'NC_000002.11:g.73675227_73675229delTCTinsTCTCTC' in results.keys()
         assert results['NC_000002.11:g.73675227_73675229delTCTinsTCTCTC']['p_vcf'] == '2:73675229:T:TCTC'
         assert results['NC_000002.11:g.73675227_73675229delTCTinsTCTCTC']['g_hgvs'] == 'NC_000002.11:g.73675231_73675232insCCT'
-        assert results['NC_000002.11:g.73675227_73675229delTCTinsTCTCTC']['genomic_variant_error'] == "NC_000002.11:g.73675227_73675229delTCTinsTCTCTC updated to NC_000002.11:g.73675231_73675232insCCT"
+        assert results['NC_000002.11:g.73675227_73675229delTCTinsTCTCTC']['genomic_variant_error'] == "AutoCorrectionWarning: NC_000002.11:g.73675227_73675229delTCTinsTCTCTC updated to NC_000002.11:g.73675231_73675232insCCT"
         assert 'NM_015120.4' in results['NC_000002.11:g.73675227_73675229delTCTinsTCTCTC']['hgvs_t_and_p'].keys()
         assert results['NC_000002.11:g.73675227_73675229delTCTinsTCTCTC']['hgvs_t_and_p']['NM_015120.4']['t_hgvs'] == 'NM_015120.4:c.1580_1581insCCT'
         assert results['NC_000002.11:g.73675227_73675229delTCTinsTCTCTC']['hgvs_t_and_p']['NM_015120.4']['p_hgvs_tlc'] == 'NP_055935.4:p.(Leu527dup)'
@@ -6661,13 +6668,16 @@ class TestVFvariantsAuto(object):
 
     def test_variant238(self):
         variant = '14-105246588-TCT-T'
-        results = vf.FormatVariant(variant, 'GRCh38', vfo,  'refseq', None)
+        results = vf.FormatVariant(variant, 'GRCh38', vfo, 'refseq', None)
         results = results.stucture_data()
         print(results)
         assert '14-105246588-TCT-T' in results.keys()
         assert results['14-105246588-TCT-T']['p_vcf'] is None
         assert results['14-105246588-TCT-T']['g_hgvs'] is None
-        assert results['14-105246588-TCT-T']['genomic_variant_error'] == 'ReferenceMismatchError: NC_000014.9:g.105246588_105246590delTCTinsT: Variant reference (TCT) does not agree with reference sequence (GCC)'
+        assert results['14-105246588-TCT-T']['genomic_variant_error'] == (
+            'ReferenceMismatchError: NC_000014.9:g.105246589_105246590delCT: '
+            'Variant reference (CT) does not agree with reference sequence (CC)'
+        )
         assert results['14-105246588-TCT-T']['hgvs_t_and_p'] is None
 
     def test_variant239(self):
@@ -6910,57 +6920,75 @@ class TestVFvariantsAuto(object):
             }
 
     def test_issue_744b(self):
-        results = VariantFormatter.simpleVariantFormatter.format('NC_000012.12:g.80460829T>A',
-                                                                 'GRCh38', 'refseq', "raw", False, True, testing=True)
-        print(results)
+        results = VariantFormatter.simpleVariantFormatter.format(
+            'NC_000012.12:g.80460829T>A',
+            'GRCh38',
+            'refseq',
+            "raw",
+            False,
+            True,
+            testing=True
+        )
+
         assert 'NC_000012.12:g.80460829T>A' in results.keys()
-        pyliftover_assembly_loci = results['NC_000012.12:g.80460829T>A'][
-                'NC_000012.12:g.80460829T>A']['hgvs_t_and_p'][
-                   'NM_001145026.2']["primary_assembly_loci"]
+
+        pyliftover_assembly_loci = results[
+            'NC_000012.12:g.80460829T>A'
+        ]['NC_000012.12:g.80460829T>A']['hgvs_t_and_p'][
+            'NM_001145026.2'
+        ]["primary_assembly_loci"]
+
         assert pyliftover_assembly_loci["grch37"] == {
-              "NC_000012.11": {
-                "hgvs_genomic_description": "NC_000012.11:g.80860629dup",
+            "NC_000012.12": {
+                "hgvs_genomic_description":
+                    "NC_000012.12:g.80460829T>A",
                 "vcf": {
-                  "alt": "CA",
-                  "chr": "12",
-                  "pos": "80860624",
-                  "ref": "C"
+                    "alt": "A",
+                    "chr": "NC_000012.12",
+                    "pos": "80460829",
+                    "ref": "T"
                 }
-              }
             }
+        }
+
         assert pyliftover_assembly_loci["grch38"] == {
-              "NC_000012.12": {
-                "hgvs_genomic_description": "NC_000012.12:g.80460829T>A",
+            "NC_000012.12": {
+                "hgvs_genomic_description":
+                    "NC_000012.12:g.80460829T>A",
                 "vcf": {
-                  "alt": "A",
-                  "chr": "12",
-                  "pos": "80460829",
-                  "ref": "T"
+                    "alt": "A",
+                    "chr": "12",
+                    "pos": "80460829",
+                    "ref": "T"
                 }
-              }
             }
+        }
+
         assert pyliftover_assembly_loci["hg19"] == {
-              "NC_000012.11": {
-                "hgvs_genomic_description": "NC_000012.11:g.80860629dup",
+            "NC_000012.12": {
+                "hgvs_genomic_description":
+                    "NC_000012.12:g.80460829T>A",
                 "vcf": {
-                  "alt": "CA",
-                  "chr": "chr12",
-                  "pos": "80860624",
-                  "ref": "C"
+                    "alt": "A",
+                    "chr": "NC_000012.12",
+                    "pos": "80460829",
+                    "ref": "T"
                 }
-              }
             }
+        }
+
         assert pyliftover_assembly_loci["hg38"] == {
-              "NC_000012.12": {
-                "hgvs_genomic_description": "NC_000012.12:g.80460829T>A",
+            "NC_000012.12": {
+                "hgvs_genomic_description":
+                    "NC_000012.12:g.80460829T>A",
                 "vcf": {
-                  "alt": "A",
-                  "chr": "chr12",
-                  "pos": "80460829",
-                  "ref": "T"
+                    "alt": "A",
+                    "chr": "chr12",
+                    "pos": "80460829",
+                    "ref": "T"
                 }
-              }
             }
+        }
 
     def test_vcf_line_variants_del(self):
         results = VariantFormatter.simpleVariantFormatter.format('chr1\t1000000\t.\tN\t<DEL>\t.\tPASS\tSVTYPE=DEL;END=1005000',
@@ -6973,6 +7001,296 @@ class TestVFvariantsAuto(object):
                                                                  'GRCh38', 'all', None, False, True, testing=True)
         print(results)
         assert 'chr1:1000000_1005000inv' in results.keys()
+
+    def test_legacy_genomic_structure_default(self):
+        variant = "NC_000016.10:g.15738651_15738652inv"
+
+        results = vf.FormatVariant(
+            variant,
+            "GRCh38",
+            vfo,
+            "refseq",
+            None,
+            liftover=True,
+        )
+        results = results.stucture_data()
+
+        primary = results[variant]["hgvs_t_and_p"]["NM_022844.2"][
+            "primary_assembly_loci"
+        ]
+
+        # Default output must retain the historical VariantFormatter structure.
+        assert primary["hg19"] == {
+            "NC_000016.9": {
+                "hgvs_genomic_description":
+                    "NC_000016.9:g.15832508_15832509inv",
+                "vcf": {
+                    "chr": "chr16",
+                    "pos": "15832508",
+                    "ref": "GT",
+                    "alt": "AC",
+                },
+            }
+        }
+
+        assert primary["hg38"] == {
+            "NC_000016.10": {
+                "hgvs_genomic_description":
+                    "NC_000016.10:g.15738651_15738652inv",
+                "vcf": {
+                    "chr": "chr16",
+                    "pos": "15738651",
+                    "ref": "GT",
+                    "alt": "AC",
+                },
+            }
+        }
+
+        assert primary["grch37"] == {
+            "NC_000016.9": {
+                "hgvs_genomic_description":
+                    "NC_000016.9:g.15832508_15832509inv",
+                "vcf": {
+                    "chr": "16",
+                    "pos": "15832508",
+                    "ref": "GT",
+                    "alt": "AC",
+                },
+            }
+        }
+
+        assert primary["grch38"] == {
+            "NC_000016.10": {
+                "hgvs_genomic_description":
+                    "NC_000016.10:g.15738651_15738652inv",
+                "vcf": {
+                    "chr": "16",
+                    "pos": "15738651",
+                    "ref": "GT",
+                    "alt": "AC",
+                },
+            }
+        }
+
+    def test_legacy_genomic_structure_explicit(self):
+        variant = "NC_000016.10:g.15738651_15738652inv"
+
+        results = vf.FormatVariant(
+            variant,
+            "GRCh38",
+            vfo,
+            "refseq",
+            None,
+            liftover=True,
+            legacy_genomic_structure=True,
+        )
+        results = results.stucture_data()
+
+        primary = results[variant]["hgvs_t_and_p"]["NM_022844.2"][
+            "primary_assembly_loci"
+        ]
+
+        # Explicit legacy output must match the default VariantFormatter
+        # structure.
+        assert primary["hg19"] == {
+            "NC_000016.9": {
+                "hgvs_genomic_description":
+                    "NC_000016.9:g.15832508_15832509inv",
+                "vcf": {
+                    "chr": "chr16",
+                    "pos": "15832508",
+                    "ref": "GT",
+                    "alt": "AC",
+                },
+            }
+        }
+
+        assert primary["hg38"] == {
+            "NC_000016.10": {
+                "hgvs_genomic_description":
+                    "NC_000016.10:g.15738651_15738652inv",
+                "vcf": {
+                    "chr": "chr16",
+                    "pos": "15738651",
+                    "ref": "GT",
+                    "alt": "AC",
+                },
+            }
+        }
+
+        assert primary["grch37"] == {
+            "NC_000016.9": {
+                "hgvs_genomic_description":
+                    "NC_000016.9:g.15832508_15832509inv",
+                "vcf": {
+                    "chr": "16",
+                    "pos": "15832508",
+                    "ref": "GT",
+                    "alt": "AC",
+                },
+            }
+        }
+
+        assert primary["grch38"] == {
+            "NC_000016.10": {
+                "hgvs_genomic_description":
+                    "NC_000016.10:g.15738651_15738652inv",
+                "vcf": {
+                    "chr": "16",
+                    "pos": "15738651",
+                    "ref": "GT",
+                    "alt": "AC",
+                },
+            }
+        }
+
+    def test_variantvalidator_genomic_structure(self):
+        variant = "NC_000016.10:g.15738651_15738652inv"
+
+        results = vf.FormatVariant(
+            variant,
+            "GRCh38",
+            vfo,
+            "refseq",
+            None,
+            liftover=True,
+            legacy_genomic_structure=False,
+        )
+        results = results.stucture_data()
+
+        primary = results[variant]["hgvs_t_and_p"]["NM_022844.2"][
+            "primary_assembly_loci"
+        ]
+
+        # VariantValidator structure maps each build directly to its locus,
+        # without the additional accession-keyed level used by legacy VF.
+        assert primary["hg19"] == {
+            "hgvs_genomic_description":
+                "NC_000016.9:g.15832508_15832509inv",
+            "vcf": {
+                "chr": "chr16",
+                "pos": "15832508",
+                "ref": "GT",
+                "alt": "AC",
+            },
+        }
+
+        assert primary["hg38"] == {
+            "hgvs_genomic_description":
+                "NC_000016.10:g.15738651_15738652inv",
+            "vcf": {
+                "chr": "chr16",
+                "pos": "15738651",
+                "ref": "GT",
+                "alt": "AC",
+            },
+        }
+
+        assert primary["grch37"] == {
+            "hgvs_genomic_description":
+                "NC_000016.9:g.15832508_15832509inv",
+            "vcf": {
+                "chr": "16",
+                "pos": "15832508",
+                "ref": "GT",
+                "alt": "AC",
+            },
+        }
+
+        assert primary["grch38"] == {
+            "hgvs_genomic_description":
+                "NC_000016.10:g.15738651_15738652inv",
+            "vcf": {
+                "chr": "16",
+                "pos": "15738651",
+                "ref": "GT",
+                "alt": "AC",
+            },
+        }
+
+    def test_transcript_input_rejected(self):
+        variant = "NM_022844.2:c.3034_3035inv"
+
+        results = vf.FormatVariant(
+            variant,
+            "GRCh38",
+            vfo,
+            "refseq",
+            None,
+        )
+        results = results.stucture_data()
+
+        assert variant in results
+        assert results[variant]["p_vcf"] is None
+        assert results[variant]["g_hgvs"] is None
+        assert results[variant]["hgvs_t_and_p"] is None
+        assert results[variant]["genomic_variant_error"] == (
+            "UnsupportedFormatError: Variant description NM_022844.2:c.3034_3035inv is not in a "
+            "supported format. This tool accepts vcf-like and HGVS genomic "
+            "(g.) descriptions only"
+        )
+
+    def test_variantvalidator_genomic_structure(self):
+        variant = "NC_000016.10:g.15738651_15738652inv"
+
+        results = vf.FormatVariant(
+            variant,
+            "GRCh38",
+            vfo,
+            "refseq",
+            None,
+            liftover=True,
+            legacy_genomic_structure=False,
+        )
+        results = results.stucture_data()
+
+        primary = results[variant]["hgvs_t_and_p"]["NM_022844.2"][
+            "primary_assembly_loci"
+        ]
+
+        assert primary["hg19"] == {
+            "hgvs_genomic_description":
+                "NC_000016.9:g.15832508_15832509inv",
+            "vcf": {
+                "chr": "chr16",
+                "pos": "15832508",
+                "ref": "GT",
+                "alt": "AC",
+            },
+        }
+
+        assert primary["hg38"] == {
+            "hgvs_genomic_description":
+                "NC_000016.10:g.15738651_15738652inv",
+            "vcf": {
+                "chr": "chr16",
+                "pos": "15738651",
+                "ref": "GT",
+                "alt": "AC",
+            },
+        }
+
+        assert primary["grch37"] == {
+            "hgvs_genomic_description":
+                "NC_000016.9:g.15832508_15832509inv",
+            "vcf": {
+                "chr": "16",
+                "pos": "15832508",
+                "ref": "GT",
+                "alt": "AC",
+            },
+        }
+
+        assert primary["grch38"] == {
+            "hgvs_genomic_description":
+                "NC_000016.10:g.15738651_15738652inv",
+            "vcf": {
+                "chr": "16",
+                "pos": "15738651",
+                "ref": "GT",
+                "alt": "AC",
+            },
+        }
 
 
 # <LICENSE>

@@ -233,7 +233,7 @@ class TandemRepeats:
             return False
             #  This returns False to VV to indicate no tandem repeats present.
 
-        if "LRG" in reference:
+        if reference.startswith("LRG"):
             if "t" in reference:
                 reference = validator.db.get_refseq_transcript_id_from_lrg_transcript_id(reference)
             else:
@@ -773,10 +773,13 @@ class TandemRepeats:
             f"check_exon_boundaries({str(self.original_position)})"
         )
         # Return without error if no boundaries used
-        if not isinstance(self.original_position, BaseOffsetInterval) or (
-            isinstance(self.original_position, BaseOffsetInterval) and not (
-                self.original_position.start.offset or
-                self.original_position.end.offset)):
+        if (
+                not isinstance(self.original_position, BaseOffsetInterval)
+                or not (
+                self.original_position.start.offset
+                or self.original_position.end.offset
+        )
+        ):
             return
 
         exon_data = self.map_dat.mapped_exons(
@@ -814,41 +817,43 @@ class TandemRepeats:
         check_exon_pos(pos.end)
 
 
-def convert_tandem(variant, validator, build, my_all):
-    "convenience function to encapsulate TandemRepeats->VV integration"
-    try:
-        logger.info(f"parse_repeat_variant from {variant} which is a {type(variant)} from the my_variant object")
-        expanded_variant = TandemRepeats.parse_repeat_variant(
-                variant.quibble, build, my_all, validator)
-    except AttributeError:
-        logger.info(f"parse_repeat_variant from {variant} which is a {type(variant)} passed as a string")
-        expanded_variant = TandemRepeats.parse_repeat_variant(
-                variant, build, my_all, validator)
+def convert_tandem(variant, validator, build, select_transcripts):
+    """
+    Parse expanded repeat syntax from a Variant object and store the
+    resulting structured repeat data on that object.
+    """
+    logger.info(
+        "Parsing expanded repeat variant from %s",
+        variant.quibble
+    )
+
+    expanded_variant = TandemRepeats.parse_repeat_variant(
+        variant.quibble,
+        build,
+        select_transcripts,
+        validator
+    )
 
     if expanded_variant is False:
         return False
-    expanded_var_hgvs_obj = expanded_variant.reformat(validator)
 
-    try:
-        variant.expanded_repeat = {
-                "variant": expanded_var_hgvs_obj,
-                "position": expanded_variant.variant_position,
-                "copy_number": expanded_variant.copy_number,
-                "repeat_sequence": expanded_variant.repeat_sequence,
-                "reference": expanded_variant.reference,
-                "prefix": expanded_variant.prefix,
-                "reference_sequence_bases": expanded_variant.reference_sequence_bases}
-        logger.info(f"variant.expanded_repeat: {variant.expanded_repeat}")
-    except AttributeError:
-        expanded_repeat = {"variant": expanded_var_hgvs_obj,
-                           "position": expanded_variant.variant_position,
-                           "copy_number": expanded_variant.copy_number,
-                           "repeat_sequence": expanded_variant.repeat_sequence,
-                           "reference": expanded_variant.reference,
-                           "prefix": expanded_variant.prefix,
-                           "reference_sequence_bases": expanded_variant.reference_sequence_bases}
-        logger.info(f"expanded_repeat: {expanded_repeat}")
-        return expanded_repeat
+    expanded_hgvs = expanded_variant.reformat(validator)
+
+    variant.expanded_repeat = {
+        "variant": expanded_hgvs,
+        "position": expanded_variant.variant_position,
+        "copy_number": expanded_variant.copy_number,
+        "repeat_sequence": expanded_variant.repeat_sequence,
+        "reference": expanded_variant.reference,
+        "prefix": expanded_variant.prefix,
+        "reference_sequence_bases": expanded_variant.reference_sequence_bases,
+    }
+
+    logger.info(
+        "variant.expanded_repeat: %s",
+        variant.expanded_repeat
+    )
+
     return True
 
 

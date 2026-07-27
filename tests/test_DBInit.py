@@ -2,6 +2,11 @@ import pytest
 from unittest.mock import MagicMock, patch
 
 from VariantValidator.modules.vvDBInit import Mixin
+
+import builtins
+import importlib
+import sys
+
 import VariantValidator.modules.vvDBInit as vvDBInit
 
 
@@ -237,6 +242,71 @@ def test_get_conn_retries_exhausted():
     # Multiple attempts should have been made
     assert pool.get_connection.call_count == 4
     assert bad_conn.close.call_count == 4
+
+
+def test_mariadb_import_success():
+    mock_mariadb = MagicMock()
+    mock_pool = MagicMock()
+    mock_error = type("ProgrammingError", (Exception,), {})
+
+    mock_mariadb.ConnectionPool = mock_pool
+    mock_mariadb.ProgrammingError = mock_error
+
+    with patch.dict(
+        sys.modules,
+        {"mariadb": mock_mariadb},
+    ):
+        module = importlib.reload(vvDBInit)
+
+        assert module.MariaDBConnectionPool is mock_pool
+        assert module.MariaDBProgrammingError is mock_error
+
+    importlib.reload(vvDBInit)
+
+
+def test_mariadb_import_missing():
+    real_import = builtins.__import__
+
+    def import_without_mariadb(name, *args, **kwargs):
+        if name == "mariadb":
+            raise ModuleNotFoundError("No module named 'mariadb'")
+        return real_import(name, *args, **kwargs)
+
+    with patch(
+        "builtins.__import__",
+        side_effect=import_without_mariadb,
+    ):
+        module = importlib.reload(vvDBInit)
+
+        assert module.mariadb is None
+        assert module.MariaDBConnectionPool is None
+        assert issubclass(
+            module.MariaDBProgrammingError,
+            Exception,
+        )
+
+    importlib.reload(vvDBInit)
+
+
+def test_mysql_connector_import_missing():
+    real_import = builtins.__import__
+
+    def import_without_mysql(name, *args, **kwargs):
+        if name == "mysql.connector.pooling":
+            raise ModuleNotFoundError(
+                "No module named 'mysql.connector.pooling'"
+            )
+        return real_import(name, *args, **kwargs)
+
+    with patch(
+        "builtins.__import__",
+        side_effect=import_without_mysql,
+    ):
+        module = importlib.reload(vvDBInit)
+
+        assert module.MySQLConnectionPool is None
+
+    importlib.reload(vvDBInit)
 
 # <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors

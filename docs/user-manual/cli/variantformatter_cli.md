@@ -1,6 +1,8 @@
 # VariantFormatter Command Line Interface
 
-The VariantFormatter Command Line Interface (CLI) provides a simple way to convert genetic variant descriptions between genomic, transcript and protein representations directly from the command line. It is suitable for formatting individual variants, processing batches of variants and generating structured JSON output for downstream analysis.
+The VariantFormatter Command Line Interface (CLI) provides a simple way to format genomic variant descriptions and generate corresponding genomic, transcript and protein representations directly from the command line.
+
+It is suitable for formatting individual variants, processing batches of variants and generating structured JSON output for downstream analysis.
 
 The CLI is intended for users who wish to use VariantFormatter without writing Python code.
 
@@ -13,7 +15,7 @@ For users who are not familiar with command-line tools or Python programming:
 
 ## Basic Usage
 
-The simplest way to format a variant is to provide the variant description and the genome assembly.
+The simplest way to format a variant is to provide a genomic variant description and the genome assembly.
 
 ```bash
 variantformatter \
@@ -21,7 +23,7 @@ variantformatter \
     --genome GRCh38
 ```
 
-VariantFormatter converts the supplied variant into alternative genomic, transcript and protein representations where appropriate and returns the results as JSON.
+VariantFormatter validates and formats the supplied genomic variant, maps it to relevant transcripts and proteins where appropriate, and returns the results as JSON.
 
 ---
 
@@ -45,7 +47,7 @@ The following argument is always required.
 
 | Argument | Description |
 |----------|-------------|
-| `-v`, `--variant` | The variant description(s) to format. |
+| `-v`, `--variant` | The genomic variant description(s) to format. |
 
 ---
 
@@ -53,15 +55,15 @@ The following argument is always required.
 
 Commonly used command-line options include:
 
-| Option                       | Description                                                                 |
-|------------------------------|-----------------------------------------------------------------------------|
-| `-g`, `--genome`             | Specify the reference genome assembly (e.g. `GRCh37` or `GRCh38`).          |
-| `-t`, `--select-transcripts` | Restrict the returned transcript representations.                           |
-| `--transcript-model`         | Select the transcript database (`refseq`, `ensembl` or `all`).              |
-| `--check-only`               | Validate genomic HGVS syntax without transcript or protein mapping.         |
-| `-l`, `--liftover-level`      | Generate equivalent genomic representations on alternate genome assemblies. |
-| `-o`, `--output`             | Write the results to a file.                                                |
-| `--help`                     | Display the command help message.                                           |
+| Option | Description |
+|--------|-------------|
+| `-g`, `--genome` | Specify the reference genome assembly (e.g. `GRCh37` or `GRCh38`). |
+| `-t`, `--select-transcripts` | Restrict the returned transcript representations. |
+| `--transcript-model` | Select the transcript database (`refseq`, `ensembl` or `all`). |
+| `--check-only` | Validate genomic HGVS syntax without transcript or protein mapping. |
+| `-l`, `--liftover-level` | Control generation of equivalent genomic representations on alternate genome assemblies. |
+| `-o`, `--output` | Write the results to a JSON file. |
+| `--help` | Display the command help message. |
 
 ---
 
@@ -69,39 +71,51 @@ Commonly used command-line options include:
 
 Unless otherwise specified, VariantFormatter uses the following defaults.
 
-| Setting | Default                    |
-|---------|----------------------------|
-| Genome assembly | `GRCh38`                   |
-| Transcript selection | `mane_select`              |
-| Transcript database | `refseq`                   |
-| Genomic syntax checking only | Disabled                   |
-| Liftover | Enabled                    |
-| Output format | JSON                       |
+| Setting | Default |
+|---------|---------|
+| Genome assembly | `GRCh38` |
+| Transcript selection | `mane_select` |
+| Transcript database | `refseq` |
+| Genomic syntax checking only | Disabled |
+| Liftover | Enabled |
+| Output format | JSON |
 | Output destination | Standard output (`stdout`) |
 
-These defaults can be overridden using the appropriate command-line options described below and demonstrated in the examples.
+These defaults can be overridden using the appropriate command-line options described below.
 
 ---
 
 ## Supported Input Formats
 
-VariantFormatter accepts a range of commonly used variant descriptions, including:
+VariantFormatter accepts **genomic variant descriptions** as input and generates corresponding transcript and protein descriptions where appropriate.
 
-- Genomic HGVS (g. notation)
-- Coding HGVS (c. notation)
-- Non-coding HGVS (n. notation)
-- RNA HGVS (r. notation)
-- Protein HGVS (p. notation)
-- Pseudo-VCF/Chromosome coordinate notation (e.g. `17-50198002-C-A` or `17:50198002:C:A`)
-- VCF notation (i.e. full VCF lines with chromosome, position, reference and alternate alleles)
+Supported input formats include:
 
-See the [Supported Input Formats](../reference/supported_inputs.md) guide for a complete list of supported variant representations.
+- Genomic HGVS (`g.` notation) using supported genomic reference sequences, including `NC_`, `NT_` and `NW_` accessions.
+- Pseudo-VCF chromosome-coordinate notation, for example:
+  - `17-50198002-C-A`
+  - `17:50198002:C:A`
+
+Transcript (`c.` and `n.`), RNA (`r.`) and protein (`p.`) HGVS descriptions are **not accepted as VariantFormatter input**.
+
+VariantFormatter operates from a genomic variant and maps that variant to relevant transcript and protein representations.
+
+See the [Supported Input Formats](../reference/supported_inputs.md) guide for further details.
 
 ---
 
 ## Output Format
 
-VariantFormatter returns formatted JSON output.
+VariantFormatter returns structured JSON output.
+
+For each submitted genomic variant, the output can include:
+
+- the formatted genomic HGVS description;
+- a pseudo-VCF representation;
+- transcript HGVS descriptions;
+- predicted protein HGVS descriptions;
+- genomic representations on other genome assemblies when liftover is enabled;
+- warnings and errors associated with genomic or transcript mapping.
 
 Output can be written directly to the terminal or saved to a file using the `--output` option.
 
@@ -111,15 +125,17 @@ A detailed description of the JSON output is provided in the [Output Formats](..
 
 ## Transcript Selection
 
-VariantFormatter supports the same transcript selection strategies as VariantValidator.
+VariantFormatter maps genomic variants to overlapping transcripts.
 
-These include:
+The `--select-transcripts` option controls which transcripts are included in the output.
 
-- MANE Select transcripts
-- MANE Select and Plus Clinical transcripts
-- All transcripts overlapping a genomic variant at their latest version
-- All transcripts overlapping a genomic variant at all versions
-- User-specified transcript lists
+Supported transcript selection strategies include:
+
+- MANE Select transcripts;
+- MANE Select and Plus Clinical transcripts;
+- all transcripts overlapping the genomic variant at their latest version;
+- all transcript versions;
+- user-specified transcript lists.
 
 See the [Transcript Selection](../reference/transcript_selection.md) guide for complete details.
 
@@ -159,63 +175,60 @@ variantformatter \
 
 ---
 
-### Format a transcript variant
+### Format a pseudo-VCF variant
+
+VariantFormatter accepts pseudo-VCF chromosome-coordinate notation.
+
+Hyphen-delimited input can be supplied as:
 
 ```bash
 variantformatter \
-    --variant "NM_000088.4:c.589G>T" \
+    --variant "17-50198002-C-A" \
     --genome GRCh38
 ```
 
----
-
-### Format an Ensembl transcript variant
+Colon-delimited input can also be supplied:
 
 ```bash
 variantformatter \
-    --variant "ENST00000225964.10:c.589G>T" \
-    --genome GRCh38 \
-    --transcript-model ensembl
+    --variant "17:50198002:C:A" \
+    --genome GRCh38
 ```
 
 ---
 
 ### Format multiple variants
 
-VariantFormatter accepts multiple variants using a JSON array.
+Multiple variants can be supplied by repeating the `--variant` argument:
 
 ```bash
 variantformatter \
-    --variant '["NC_000017.11:g.50198002C>A","NM_000088.4:c.589G>T"]' \
+    --variant "NC_000017.11:g.50198002C>A" \
+    --variant "NC_000016.10:g.15738651_15738652inv" \
     --genome GRCh38
 ```
 
-Each variant is formatted independently, and the results are returned in the order in which the variants were supplied.
-
-**Note:** RefSeq and Ensembl variant descriptions must **not** be mixed within the same formatting request. Submit RefSeq and Ensembl variants in separate commands.
-
----
-
-### Using the `--select-transcripts` option
-
-> **Note:** The `--select-transcripts` option only affects genomic variants. It is ignored when formatting transcript variants, as the transcript is already explicitly defined in the input.
-
-For example,
+Multiple variants can also be supplied as a pipe-delimited value:
 
 ```bash
 variantformatter \
-    --variant "NM_000088.3:c.589G>T" \
-    --genome GRCh38 \
-    --select-transcripts mane_select
+    --variant "17-50198002-C-A|16-15738651-GT-AC" \
+    --genome GRCh38
 ```
 
-returns the formatting for `NM_000088.3:c.589G>T`.
+or as a JSON array:
 
-The transcript specified by the input variant is preserved and is **not** replaced by the MANE Select transcript (`NM_000088.4`).
+```bash
+variantformatter \
+    --variant '["NC_000017.11:g.50198002C>A","NC_000016.10:g.15738651_15738652inv"]' \
+    --genome GRCh38
+```
 
-RefSeq and Ensembl transcript identifiers must **not** be mixed when using the `--select-transcripts` option.
+Each variant is processed as part of the formatting request and returned in the JSON output.
 
 ---
+
+## Selecting Transcripts
 
 ### Restrict the output to MANE Select transcripts
 
@@ -228,21 +241,67 @@ variantformatter \
 
 ---
 
-### Restrict the output to a single specified transcript
+### Restrict the output to MANE transcripts
 
 ```bash
 variantformatter \
     --variant "NC_000017.11:g.50198002C>A" \
     --genome GRCh38 \
-    --select-transcripts '["NM_000088.4"]'
+    --select-transcripts mane
 ```
 
-Only the specified transcript is included in the output.
+---
+
+### Return all latest transcript versions
+
+```bash
+variantformatter \
+    --variant "NC_000017.11:g.50198002C>A" \
+    --genome GRCh38 \
+    --select-transcripts all
+```
+
+---
+
+### Return all transcript versions
+
+```bash
+variantformatter \
+    --variant "NC_000017.11:g.50198002C>A" \
+    --genome GRCh38 \
+    --select-transcripts raw
+```
+
+---
+
+### Restrict the output to a single specified transcript
+
+The `--select-transcripts` option can also be supplied with an explicit transcript identifier.
+
+```bash
+variantformatter \
+    --variant "NC_000017.11:g.50198002C>A" \
+    --genome GRCh38 \
+    --select-transcripts "NM_000088.4"
+```
+
+Only the specified transcript is requested for the genomic variant.
 
 ---
 
 ### Restrict the output to multiple specified transcripts
 
+Multiple transcript identifiers can be supplied as a pipe-delimited value:
+
+```bash
+variantformatter \
+    --variant "NC_000017.11:g.50198002C>A" \
+    --genome GRCh38 \
+    --select-transcripts "NM_000088.3|NM_000088.4"
+```
+
+or as a JSON array:
+
 ```bash
 variantformatter \
     --variant "NC_000017.11:g.50198002C>A" \
@@ -250,26 +309,36 @@ variantformatter \
     --select-transcripts '["NM_000088.3","NM_000088.4"]'
 ```
 
-Only the specified transcript versions are included in the output.
+RefSeq and Ensembl transcript identifiers must not be mixed in the same explicit transcript list.
 
 ---
 
-### Restrict the output to multiple user-selected transcripts
+## Transcript Models
 
-The `--select-transcripts` option accepts a JSON array of transcript identifiers.
+The `--transcript-model` option controls which transcript database is used.
+
+Available values are:
+
+| Value | Description |
+|-------|-------------|
+| `refseq` | Use RefSeq transcripts. |
+| `ensembl` | Use Ensembl transcripts. |
+| `all` | Use both RefSeq and Ensembl transcripts. |
+
+For example:
 
 ```bash
 variantformatter \
     --variant "NC_000017.11:g.50198002C>A" \
     --genome GRCh38 \
-    --select-transcripts '["NM_000088.3","NM_000088.4"]'
+    --transcript-model ensembl
 ```
 
 ---
 
-### Validate genomic HGVS syntax only
+## Validate Genomic HGVS Syntax Only
 
-The `--check-only` option validates genomic HGVS syntax without generating transcript or protein representations.
+The `--check-only` option validates the genomic HGVS description without generating transcript or protein representations.
 
 ```bash
 variantformatter \
@@ -278,61 +347,96 @@ variantformatter \
     --check-only
 ```
 
+This can be useful when only validation and genomic formatting are required.
+
 ---
 
-### Generate lifted-over genomic representations
+## Liftover
 
-The `--liftover-level` option includes equivalent genomic representations on alternate genome assemblies.
+VariantFormatter can generate genomic representations on another genome assembly.
+
+The `--liftover-level` option controls this behaviour.
+
+| Value | Description |
+|-------|-------------|
+| `true` | Perform full liftover. |
+| `primary` | Perform liftover while excluding alternative scaffolds. |
+| `false` | Disable liftover. |
+
+Liftover is enabled by default.
+
+For example:
 
 ```bash
 variantformatter \
     --variant "NC_000017.11:g.50198002C>A" \
     --genome GRCh38 \
-    --liftover-level
+    --liftover-level true
 ```
-Usage
 
-| Parameter | Type            | Required | Description |
-|----------|-----------------|----------|-------------|
-| liftover_level | string or bool  | No | Controls genomic liftover. `True` performs full liftover, `primary` excludes alternative scaffolds, and `False` disables liftover. Defaults to `True`. |
-
----
-
-### Format pseudo-VCF notation
-
-VariantFormatter accepts pseudo-VCF chromosome coordinate notation.
+To disable liftover:
 
 ```bash
 variantformatter \
-    --variant "17-50198002-C-A" \
-    --genome GRCh38
-```
-
-or
-
-```bash
-variantformatter \
-    --variant "17:50198002:C:A" \
-    --genome GRCh38
+    --variant "NC_000017.11:g.50198002C>A" \
+    --genome GRCh38 \
+    --liftover-level false
 ```
 
 ---
 
-### Format variants from an input file
+## Format Variants from an Input File
 
-VariantFormatter can format multiple variants from a text file.
+VariantFormatter can read variants from a text or JSON file by prefixing the filename with `@`.
 
-Each line of the input file should contain a single supported variant description.
+### Text file
+
+Each non-empty line should contain one variant description. Lines beginning with `#` are ignored.
+
+For example, `variants.txt` might contain:
+
+```text
+NC_000017.11:g.50198002C>A
+NC_000016.10:g.15738651_15738652inv
+17-50198002-C-A
+```
+
+Run:
 
 ```bash
 variantformatter \
-    --variant variants.txt \
+    --variant @variants.txt \
+    --genome GRCh38
+```
+
+### JSON file
+
+A JSON input file should contain an array of variant description strings.
+
+For example, `variants.json`:
+
+```json
+[
+    "NC_000017.11:g.50198002C>A",
+    "NC_000016.10:g.15738651_15738652inv"
+]
+```
+
+Run:
+
+```bash
+variantformatter \
+    --variant @variants.json \
     --genome GRCh38
 ```
 
 ---
 
-### Write the formatted results to a JSON file
+## Write Results to a JSON File
+
+By default, VariantFormatter writes JSON to standard output.
+
+Use `--output` to write the results to a file:
 
 ```bash
 variantformatter \
@@ -343,7 +447,9 @@ variantformatter \
 
 ---
 
-### Display the command help
+## Display Command Help
+
+To display the complete command-line help:
 
 ```bash
 variantformatter --help
@@ -355,17 +461,20 @@ variantformatter --help
 
 Common problems include:
 
-- Invalid HGVS syntax.
-- Unsupported reference sequences.
-- Missing genome build.
-- Invalid transcript selection.
-- Unable to connect to the VariantValidator databases.
-- Missing or incorrect configuration file.
+- invalid genomic HGVS syntax;
+- unsupported input types;
+- unsupported reference sequences;
+- a reference sequence that does not correspond to the selected genome build;
+- invalid transcript selection;
+- invalid transcript model selection;
+- invalid pseudo-VCF input;
+- an input coordinate outside the reference sequence;
+- inability to connect to the VariantValidator databases;
+- a missing or incorrect VariantValidator configuration file.
 
-Most errors include an explanatory message describing the cause of the problem.
+VariantFormatter returns explanatory warnings or errors where possible.
 
-For a complete description of command-line error messages, exit codes and troubleshooting guidance, see the
-[Errors and Error Codes](../reference/errors_and_error_codes.md) guide.
+For a complete description of command-line error messages, exit codes and troubleshooting guidance, see the [Errors and Error Codes](../reference/errors_and_error_codes.md) guide.
 
 ---
 
@@ -377,5 +486,3 @@ For a complete description of command-line error messages, exit codes and troubl
 - [Output Formats](../reference/output_formats.md)
 - [Transcript Selection](../reference/transcript_selection.md)
 - [Errors and Error Codes](../reference/errors_and_error_codes.md)
-
-

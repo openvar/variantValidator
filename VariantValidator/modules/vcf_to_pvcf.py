@@ -1,5 +1,3 @@
-import re
-
 class VcfConversionError(Exception):
     """Custom exception raised when a VCF line cannot be converted to shorthand."""
     pass
@@ -7,7 +5,8 @@ class VcfConversionError(Exception):
 
 def split_vcf_line(vcf_line):
     """
-    Split a VCF line by detecting delimiter (tab).
+    Split a VCF line by detecting its delimiter.
+
     Raises VcfConversionError if no supported delimiter is found.
     """
     line = vcf_line.strip()
@@ -15,11 +14,13 @@ def split_vcf_line(vcf_line):
     if "\t" in line:
         return line.split("\t")
 
-    elif re.search("\s+", line):
-        return re.split(r"\s+", line.strip())
+    fields = line.split()
+    if len(fields) > 1:
+        return fields
 
     raise VcfConversionError(
-        "Unable to detect delimiter. Expected tab ('\\t') values."
+        "Unable to detect delimiter. Expected tab ('\\t') or "
+        "whitespace-separated values."
     )
 
 
@@ -39,14 +40,16 @@ def vcf_to_shorthand(vcf_line):
     # Skip headers
     if vcf_line.startswith("#"):
         raise VcfConversionError(
-            "Header line cannot be converted. Please provide a variant record line."
+            "Header line cannot be converted. "
+            "Please provide a variant record line."
         )
 
     fields = split_vcf_line(vcf_line)
 
     if len(fields) < 5:
         raise VcfConversionError(
-            f"VCF line has insufficient columns (found {len(fields)}, expected ≥5). "
+            f"VCF line has insufficient columns "
+            f"(found {len(fields)}, expected ≥5). "
             "Ensure the line contains at least CHROM, POS, ID, REF, ALT."
         )
 
@@ -69,7 +72,7 @@ def vcf_to_shorthand(vcf_line):
         for entry in info.split(";"):
             if entry.startswith("END="):
                 try:
-                    end = int(entry.split("=")[1])
+                    end = int(entry.split("=", 1)[1])
                 except ValueError:
                     raise VcfConversionError(
                         f"Invalid END value in INFO field: '{entry}'."
@@ -77,14 +80,16 @@ def vcf_to_shorthand(vcf_line):
 
             elif entry.startswith("SVLEN=") and end is None:
                 try:
-                    end = pos + abs(int(entry.split("=")[1]))
+                    end = pos + abs(
+                        int(entry.split("=", 1)[1])
+                    )
                 except ValueError:
                     raise VcfConversionError(
                         f"Invalid SVLEN value in INFO field: '{entry}'."
                     )
 
             elif entry.startswith("CN="):
-                cn = entry.split("=")[1]
+                cn = entry.split("=", 1)[1]
 
         if end is None:
             raise VcfConversionError(
@@ -92,11 +97,11 @@ def vcf_to_shorthand(vcf_line):
                 "INFO field must contain END= or SVLEN=."
             )
 
-        # Remove angle brackets
-        if ">" in alt:
-            alt_clean = alt[1:-1]
-        else:
-            alt_clean = alt
+        alt_clean = (
+            alt[1:-1]
+            if alt.startswith("<") and alt.endswith(">")
+            else alt
+        )
 
         shorthand = f"{chrom}-{pos}-{end}-{alt_clean}"
 
@@ -112,6 +117,7 @@ def vcf_to_shorthand(vcf_line):
         )
 
     return f"{chrom}-{pos}-{ref}-{alt}"
+
 
 # <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors
