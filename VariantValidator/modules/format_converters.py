@@ -2004,17 +2004,153 @@ def uncertain_pos(variant, validator):
     except Exception:
         return False
 
+def alignment_has_intron(
+        hgvs_transcript,
+        genomic_ac,
+        validator,
+):
+    """
+    Determine whether an intronic transcript position corresponds to genomic
+    intronic sequence on a specific transcript/genomic alignment.
+
+    Returns
+    -------
+    tuple
+        (has_intron, orientation)
+
+        has_intron:
+            True  - boundary exists and has genomic intronic sequence.
+            False - boundary exists but has no genomic intronic sequence, or
+                    the transcript boundary is not valid on this alignment.
+            None  - alignment data could not be obtained/tested.
+
+        orientation:
+            Genomic alignment strand when exon data are available, otherwise
+            None.
+    """
+    aln_method = validator.alt_aln_method
+
+    # Work in n. coordinates so CDS start/end do not affect comparison with
+    # transcript exon coordinates returned by UTA.
+    if hgvs_transcript.type == 'c':
+        hgvs_n = validator.vm.c_to_n(hgvs_transcript)
+    else:
+        hgvs_n = copy.deepcopy(hgvs_transcript)
+
+    if hgvs_position_utils.start_position_is_intronic(hgvs_n):
+        intronic_position = hgvs_n.posedit.pos.start
+    elif hgvs_position_utils.end_position_is_intronic(hgvs_n):
+        intronic_position = hgvs_n.posedit.pos.end
+    else:
+        return False, None
+
+    boundary = intronic_position.base
+    offset = intronic_position.offset
+
+    logger.info(
+        "alignment_has_intron(): HDP call get_tx_exons(%s, %s, %s)",
+        hgvs_transcript.ac,
+        genomic_ac,
+        aln_method,
+    )
+
+    try:
+        exons = validator.hdp.get_tx_exons(
+            hgvs_transcript.ac,
+            genomic_ac,
+            aln_method,
+        )
+    except vvhgvs.exceptions.HGVSError as error:
+        logger.info(
+            "alignment_has_intron(): get_tx_exons failed for %s -> %s: %s",
+            hgvs_transcript.ac,
+            genomic_ac,
+            error,
+        )
+        return None, None
+
+    if not exons:
+        logger.info(
+            "alignment_has_intron(): no exon records returned for %s -> %s",
+            hgvs_transcript.ac,
+            genomic_ac,
+        )
+        return None, None
+
+    orientation = exons[0]['alt_strand']
+
+    # UTA exon coordinates are interbase.
+    #
+    # Positive offset:
+    #     n.518+1
+    # requires an exon ending at transcript boundary 518 and a following exon.
+    #
+    # Negative offset:
+    #     n.519-1
+    # requires an exon beginning at transcript base 519 and a preceding exon.
+    for index, exon in enumerate(exons):
+        tx_start_i = exon['tx_start_i']
+        tx_end_i = exon['tx_end_i']
+
+        if offset > 0:
+            if tx_end_i != boundary:
+                continue
+
+            if index + 1 >= len(exons):
+                return False, orientation
+
+            adjacent_exon = exons[index + 1]
+
+        else:
+            if tx_start_i + 1 != boundary:
+                continue
+
+            if index == 0:
+                return False, orientation
+
+            adjacent_exon = exons[index - 1]
+
+        current_g_start = exon['alt_start_i']
+        current_g_end = exon['alt_end_i']
+        adjacent_g_start = adjacent_exon['alt_start_i']
+        adjacent_g_end = adjacent_exon['alt_end_i']
+
+        if current_g_end <= adjacent_g_start:
+            genomic_gap = adjacent_g_start - current_g_end
+        elif adjacent_g_end <= current_g_start:
+            genomic_gap = current_g_start - adjacent_g_end
+        else:
+            genomic_gap = 0
+
+        logger.info(
+            "alignment_has_intron(): %s boundary n.%s has %s genomic bases "
+            "between adjacent exons",
+            genomic_ac,
+            boundary,
+            genomic_gap,
+        )
+
+        return genomic_gap > 0, orientation
+
+    logger.info(
+        "alignment_has_intron(): transcript boundary n.%s was not found in "
+        "exon structure for %s",
+        boundary,
+        genomic_ac,
+    )
+
+    return False, orientation
+
+
 def map_alt_intron_to_primary(variant, validator):
     """
     Check an intronic transcript variant submitted in an alternate genomic
     context (NW_, NT_ or NG_).
 
     First confirm that the submitted intronic coordinate is valid for the
-    incoming genomic alignment itself. If it is not, report ExonBoundaryError.
-
-    If valid, inspect primary chromosome alignments to determine whether the
-    corresponding transcript exon boundary also has genomic intronic sequence
-    on the selected primary assembly. If not, try the other primary assembly.
+    incoming genomic alignment itself. If valid, inspect primary chromosome
+    alignments to determine whether the corresponding transcript exon boundary
+    also has genomic intronic sequence on the selected primary assembly.
 
     Returns True if validation should stop, otherwise False.
     """
@@ -2028,327 +2164,73 @@ def map_alt_intron_to_primary(variant, validator):
         hgvs_transcript,
         genomic_context_ac,
         variant.primary_assembly,
-        aln_method
+        aln_method,
     )
 
-    # This helper only handles alternate genomic/reference contexts.
     if (
-            genomic_context_ac is None or
-            not genomic_context_ac.startswith(('NW_', 'NT_', 'NG_'))
+            genomic_context_ac is None
+            or not genomic_context_ac.startswith(('NW_', 'NT_', 'NG_'))
     ):
-        logger.info(
-            "map_alt_intron_to_primary(): genomic context %s is not "
-            "NW_/NT_/NG_; skipping",
-            genomic_context_ac
-        )
         return False
 
-    # Only intronic transcript variants need checking.
     if not hgvs_position_utils.either_position_is_intronic(hgvs_transcript):
-        logger.info(
-            "map_alt_intron_to_primary(): %s is not intronic; skipping",
-            hgvs_transcript
-        )
         return False
 
-    # Set mappers (which will be removed on refactor)
+    # These remain required by the downstream validation path for now.
     if variant.no_norm_evm is None:
         variant.no_norm_evm = AssemblyMapper(
-                        validator.hdp,
-                        assembly_name=variant.primary_assembly,
-                        alt_aln_method=validator.alt_aln_method,
-                        normalize=False,
-                        replace_reference=True
-                        )
+            validator.hdp,
+            assembly_name=variant.primary_assembly,
+            alt_aln_method=aln_method,
+            normalize=False,
+            replace_reference=True,
+        )
+
     if variant.evm is None:
         variant.evm = AssemblyMapper(
-                        validator.hdp,
-                        assembly_name=variant.primary_assembly,
-                        alt_aln_method=validator.alt_aln_method,
-                        normalize=True,
-                        replace_reference=True
-                        )
-
-
-    # Work in n. coordinates so CDS start/end do not affect comparison with
-    # transcript exon coordinates returned by UTA.
-    if hgvs_transcript.type == 'c':
-        hgvs_n = validator.vm.c_to_n(hgvs_transcript)
-        logger.info(
-            "map_alt_intron_to_primary(): converted %s to %s for exon "
-            "structure comparison",
-            hgvs_transcript,
-            hgvs_n
+            validator.hdp,
+            assembly_name=variant.primary_assembly,
+            alt_aln_method=aln_method,
+            normalize=True,
+            replace_reference=True,
         )
-    else:
-        hgvs_n = copy.deepcopy(hgvs_transcript)
 
-    start_intronic = hgvs_position_utils.start_position_is_intronic(hgvs_n)
-
-    if start_intronic:
-        intronic_position = hgvs_n.posedit.pos.start
-    else:
-        intronic_position = hgvs_n.posedit.pos.end
-
-    boundary = intronic_position.base
-    offset = intronic_position.offset
-
-    logger.info(
-        "map_alt_intron_to_primary(): intronic position=%s, "
-        "transcript boundary=n.%s, offset=%s",
-        intronic_position,
-        boundary,
-        offset
+    # Validate the submitted alternate genomic context first.
+    submitted_has_intron, orientation = alignment_has_intron(
+        hgvs_transcript,
+        genomic_context_ac,
+        validator,
     )
-
-    # Collect orientation from the submitted genomic alignment.
-    # This is populated during the existing get_tx_exons() call for
-    # genomic_context_ac, avoiding another HDP query.
-    orientation = None
-
-    def alignment_has_intron(genomic_ac):
-        """
-        Determine whether the transcript boundary used by the submitted
-        intronic coordinate has intervening genomic sequence on this specific
-        transcript/genomic alignment.
-
-        Returns:
-            True  - boundary exists and has genomic intronic sequence
-            False - boundary exists but has no genomic intronic sequence,
-                    or the transcript boundary is not valid on this alignment
-            None  - alignment data could not be obtained/tested
-        """
-        nonlocal orientation
-
-        logger.info(
-            "map_alt_intron_to_primary(): HDP call "
-            "get_tx_exons(%s, %s, %s)",
-            hgvs_transcript.ac,
-            genomic_ac,
-            aln_method
-        )
-
-        try:
-            exons = validator.hdp.get_tx_exons(
-                hgvs_transcript.ac,
-                genomic_ac,
-                aln_method
-            )
-        except vvhgvs.exceptions.HGVSError as error:
-            logger.info(
-                "map_alt_intron_to_primary(): get_tx_exons failed for "
-                "%s -> %s: %s",
-                hgvs_transcript.ac,
-                genomic_ac,
-                error
-            )
-            return None
-
-        if not exons:
-            logger.info(
-                "map_alt_intron_to_primary(): no exon records returned for "
-                "%s -> %s",
-                hgvs_transcript.ac,
-                genomic_ac
-            )
-            return None
-
-        logger.info(
-            "map_alt_intron_to_primary(): %s exon records returned for "
-            "%s -> %s",
-            len(exons),
-            hgvs_transcript.ac,
-            genomic_ac
-        )
-
-        # Capture strand only from the submitted alternate genomic context.
-        # All exon records for this alignment should have the same alt_strand.
-        if genomic_ac == genomic_context_ac:
-            orientation = exons[0]['alt_strand']
-
-            logger.info(
-                "map_alt_intron_to_primary(): collected orientation %s "
-                "for submitted alignment %s -> %s",
-                orientation,
-                hgvs_transcript.ac,
-                genomic_context_ac
-            )
-
-        # UTA exon coordinates are interbase. A transcript exon ending at
-        # tx_end_i therefore has its final n. base at tx_end_i.
-        #
-        # For + offsets:
-        #     n.518+1
-        # we need the exon ending at transcript boundary 518 and the following
-        # exon.
-        #
-        # For - offsets:
-        #     n.519-1
-        # we need the exon beginning at transcript base 519 and the preceding
-        # exon.
-        for index, exon in enumerate(exons):
-            tx_start_i = exon['tx_start_i']
-            tx_end_i = exon['tx_end_i']
-
-            if offset > 0:
-                if tx_end_i != boundary:
-                    continue
-
-                if index + 1 >= len(exons):
-                    logger.info(
-                        "map_alt_intron_to_primary(): boundary n.%s is at "
-                        "the final exon for %s",
-                        boundary,
-                        genomic_ac
-                    )
-                    return False
-
-                adjacent_exon = exons[index + 1]
-
-            else:
-                if tx_start_i + 1 != boundary:
-                    continue
-
-                if index == 0:
-                    logger.info(
-                        "map_alt_intron_to_primary(): boundary n.%s is at "
-                        "the first exon for %s",
-                        boundary,
-                        genomic_ac
-                    )
-                    return False
-
-                adjacent_exon = exons[index - 1]
-
-            current_g_start = exon['alt_start_i']
-            current_g_end = exon['alt_end_i']
-            adjacent_g_start = adjacent_exon['alt_start_i']
-            adjacent_g_end = adjacent_exon['alt_end_i']
-
-            logger.info(
-                "map_alt_intron_to_primary(): %s boundary n.%s found; "
-                "current exon tx=%s-%s genomic=%s-%s; "
-                "adjacent exon tx=%s-%s genomic=%s-%s",
-                genomic_ac,
-                boundary,
-                tx_start_i,
-                tx_end_i,
-                current_g_start,
-                current_g_end,
-                adjacent_exon['tx_start_i'],
-                adjacent_exon['tx_end_i'],
-                adjacent_g_start,
-                adjacent_g_end
-            )
-
-            if current_g_end <= adjacent_g_start:
-                genomic_gap = adjacent_g_start - current_g_end
-            elif adjacent_g_end <= current_g_start:
-                genomic_gap = current_g_start - adjacent_g_end
-            else:
-                genomic_gap = 0
-
-            logger.info(
-                "map_alt_intron_to_primary(): %s boundary n.%s has %s "
-                "genomic bases between adjacent exons",
-                genomic_ac,
-                boundary,
-                genomic_gap
-            )
-
-            if genomic_gap > 0:
-                logger.info(
-                    "map_alt_intron_to_primary(): %s contains an intron at "
-                    "transcript boundary n.%s",
-                    genomic_ac,
-                    boundary
-                )
-                return True
-
-            logger.info(
-                "map_alt_intron_to_primary(): %s has adjacent genomic exons "
-                "at transcript boundary n.%s; no intronic sequence exists",
-                genomic_ac,
-                boundary
-            )
-            return False
-
-        logger.info(
-            "map_alt_intron_to_primary(): transcript boundary n.%s was not "
-            "found in exon structure for %s",
-            boundary,
-            genomic_ac
-        )
-        return False
-
-    # ------------------------------------------------------------------
-    # 1. Validate the submitted NW_/NT_/NG_ context itself.
-    # ------------------------------------------------------------------
-
-    logger.info(
-        "map_alt_intron_to_primary(): validating submitted genomic context %s",
-        genomic_context_ac
-    )
-
-    submitted_has_intron = alignment_has_intron(genomic_context_ac)
 
     if submitted_has_intron is False:
-        position = (
-            hgvs_transcript.posedit.pos.start
-            if hgvs_position_utils.start_position_is_intronic(hgvs_transcript)
-            else hgvs_transcript.posedit.pos.end
-        )
+        if hgvs_position_utils.start_position_is_intronic(hgvs_transcript):
+            position = hgvs_transcript.posedit.pos.start
+        else:
+            position = hgvs_transcript.posedit.pos.end
 
         warning = (
             f'ExonBoundaryError: Position c.{position} does not correspond '
-            f'with an exon boundary for transcript reference {hgvs_transcript.ac} and genomic reference '
-            f'{genomic_context_ac}'
+            f'with an exon boundary for transcript reference '
+            f'{hgvs_transcript.ac} and genomic reference {genomic_context_ac}'
         )
 
         variant.warnings.append(warning)
-
-        logger.info(
-            "map_alt_intron_to_primary(): submitted genomic context %s "
-            "does not contain the required intron: %s",
-            genomic_context_ac,
-            warning
-        )
-
+        logger.info(warning)
         raise AltPrimaryIntronError(warning)
 
     if submitted_has_intron is None:
-        logger.info(
-            "map_alt_intron_to_primary(): unable to establish exon structure "
-            "for submitted genomic context %s",
-            genomic_context_ac
-        )
-
         variant.coding = hgvs_transcript
 
         warning = (
             f"AlignmentDataError: Unable to establish the exon structure for "
             f"{hgvs_transcript.ac} aligned to {genomic_context_ac} using "
-            f"{validator.alt_aln_method}; the submitted intronic variant "
-            f"cannot be validated"
+            f"{aln_method}; the submitted intronic variant cannot be validated"
         )
 
-        logger.info(
-            "map_alt_intron_to_primary(): %s",
-            warning
-        )
-
+        logger.info(warning)
         raise AltPrimaryIntronError(warning)
 
-    logger.info(
-        "map_alt_intron_to_primary(): submitted genomic context %s contains "
-        "the required intron; submitted intronic coordinates are valid",
-        genomic_context_ac
-    )
-
-    # ------------------------------------------------------------------
-    # 2. Find primary chromosome alignments.
-    # ------------------------------------------------------------------
-
+    # Identify primary chromosome alignments on both assemblies.
     if variant.primary_assembly.lower() in ('grch38', 'hg38'):
         current_assembly = 'GRCh38'
         other_assembly = 'GRCh37'
@@ -2356,20 +2238,8 @@ def map_alt_intron_to_primary(variant, validator):
         current_assembly = 'GRCh37'
         other_assembly = 'GRCh38'
 
-    logger.info(
-        "map_alt_intron_to_primary(): HDP call "
-        "get_tx_mapping_options(%s)",
-        hgvs_transcript.ac
-    )
-
     mapping_options = validator.hdp.get_tx_mapping_options(
         hgvs_transcript.ac
-    )
-
-    logger.info(
-        "map_alt_intron_to_primary(): mapping options for %s: %s",
-        hgvs_transcript.ac,
-        mapping_options
     )
 
     current_ac = None
@@ -2387,231 +2257,153 @@ def map_alt_intron_to_primary(variant, validator):
 
         if seq_data.supported_for_mapping(
                 genomic_ac,
-                current_assembly
+                current_assembly,
         ):
             current_ac = genomic_ac
-            logger.info(
-                "map_alt_intron_to_primary(): selected %s primary "
-                "chromosome alignment %s",
-                current_assembly,
-                current_ac
-            )
 
         elif seq_data.supported_for_mapping(
                 genomic_ac,
-                other_assembly
+                other_assembly,
         ):
             other_ac = genomic_ac
-            logger.info(
-                "map_alt_intron_to_primary(): selected %s primary "
-                "chromosome alignment %s",
-                other_assembly,
-                other_ac
-            )
 
-    # ------------------------------------------------------------------
-    # 3. Does the selected primary assembly contain the same intron?
-    # ------------------------------------------------------------------
-
-    current_has_intron = None
-
+    # Prefer the selected primary assembly.
     if current_ac is not None:
-        current_has_intron = alignment_has_intron(current_ac)
-
-    if current_has_intron:
-        logger.info(
-            "map_alt_intron_to_primary(): %s contains the corresponding "
-            "intron on %s; continuing on selected primary assembly",
+        current_has_intron, _ = alignment_has_intron(
+            hgvs_transcript,
             current_ac,
-            current_assembly
+            validator,
         )
 
-        try:
-            variant.hgvs_genomic = validator.vm.t_to_g(
-                hgvs_transcript,
-                current_ac,
-                alt_aln_method=aln_method
-            )
+        if current_has_intron:
+            try:
+                variant.hgvs_genomic = validator.vm.t_to_g(
+                    hgvs_transcript,
+                    current_ac,
+                    alt_aln_method=aln_method,
+                )
+            except vvhgvs.exceptions.HGVSError as error:
+                logger.info(
+                    "map_alt_intron_to_primary(): mapping to %s failed "
+                    "despite compatible exon structure: %s",
+                    current_ac,
+                    error,
+                )
 
-            logger.info(
-                "map_alt_intron_to_primary(): mapped %s to %s",
-                hgvs_transcript,
-                variant.hgvs_genomic
-            )
-        except vvhgvs.exceptions.HGVSError as error:
-            logger.info(
-                "map_alt_intron_to_primary(): mapping to %s failed despite "
-                "compatible exon structure: %s",
-                current_ac,
-                error
-            )
+            return False
 
-        return False
-
-    logger.info(
-        "map_alt_intron_to_primary(): selected assembly %s does not provide "
-        "a usable corresponding intron for %s",
-        current_assembly,
-        hgvs_transcript
-    )
-
-    # ------------------------------------------------------------------
-    # 4. Try the other primary assembly.
-    # ------------------------------------------------------------------
-
-    other_has_intron = None
-
+    # Fall back to the other primary assembly if its alignment represents
+    # the submitted intron.
     if other_ac is not None:
-        other_has_intron = alignment_has_intron(other_ac)
-
-    if other_has_intron:
-        logger.info(
-            "map_alt_intron_to_primary(): corresponding intron exists on "
-            "%s (%s); switching primary assembly",
+        other_has_intron, _ = alignment_has_intron(
+            hgvs_transcript,
             other_ac,
-            other_assembly
+            validator,
         )
 
-        variant.primary_assembly = other_assembly
+        if other_has_intron:
+            variant.primary_assembly = other_assembly
 
-        try:
-            variant.hgvs_genomic = validator.vm.t_to_g(
-                hgvs_transcript,
-                other_ac,
-                alt_aln_method=aln_method
-            )
+            try:
+                variant.hgvs_genomic = validator.vm.t_to_g(
+                    hgvs_transcript,
+                    other_ac,
+                    alt_aln_method=aln_method,
+                )
+            except vvhgvs.exceptions.HGVSError as error:
+                logger.info(
+                    "map_alt_intron_to_primary(): mapping to %s failed "
+                    "despite compatible exon structure: %s",
+                    other_ac,
+                    error,
+                )
 
-            logger.info(
-                "map_alt_intron_to_primary(): mapped %s to %s after "
-                "switching primary assembly to %s",
-                hgvs_transcript,
-                variant.hgvs_genomic,
-                other_assembly
-            )
-        except vvhgvs.exceptions.HGVSError as error:
-            logger.info(
-                "map_alt_intron_to_primary(): mapping to %s failed despite "
-                "compatible exon structure: %s",
-                other_ac,
-                error
-            )
+            return False
 
-        return False
-
-    # ------------------------------------------------------------------
-    # 5. Valid in submitted context, but no primary chromosome carries
-    #    the corresponding intron.
-    # ------------------------------------------------------------------
-
-    logger.info(
-        "map_alt_intron_to_primary(): %s is valid in submitted context %s, "
-        "but no usable primary chromosome alignment contains the corresponding "
-        "intron; stopping primary-assembly validation",
-        hgvs_transcript,
-        genomic_context_ac
-    )
-
-    # Set final object variables
+    # The submitted alternate context is valid, but neither primary assembly
+    # contains the corresponding intron.
     variant.output_type_flag = "gene"
 
-    hgvs_genomic = validator.vm.t_to_g(hgvs_transcript, genomic_context_ac)
+    hgvs_genomic = validator.vm.t_to_g(
+        hgvs_transcript,
+        genomic_context_ac,
+    )
 
     if hgvs_transcript.posedit.edit.type == "identity":
         hgvs_genomic.posedit.edit.alt = hgvs_genomic.posedit.edit.ref
-
-    logger.info(f"{hgvs_transcript.ac} orientation with {hgvs_genomic.ac} is {orientation}")
-
-    logger.info(f"hgvs_genomic: {hgvs_genomic}")
 
     if orientation == 1:
         hgvs_genomic = variant.hn.normalize(hgvs_genomic)
     else:
         hgvs_genomic = variant.reverse_normalizer.normalize(hgvs_genomic)
 
-    logger.info(f"Normalized hgvs_genomic: {hgvs_genomic}")
-
     if "N" in hgvs_genomic.posedit.edit.ref:
-        warning = ("UndefinedSequenceError: Submitted variant description cannot be fully validated "
-                                "because it spans "
-                                "a region of the reference sequence represented by base 'N' and not bases 'GATC'")
+        warning = (
+            "UndefinedSequenceError: Submitted variant description cannot be "
+            "fully validated because it spans a region of the reference "
+            "sequence represented by base 'N' and not bases 'GATC'"
+        )
+
         variant.warnings.append(warning)
-        logger.info(warning)
         variant.output_type_flag = "warning"
+        logger.info(warning)
         raise AltPrimaryMappingError(warning)
 
-
-    hgvs_transcript = validator.vm.g_to_t(hgvs_genomic, hgvs_transcript.ac)
-    logger.info(f"Map {hgvs_genomic} to hgvs_transcript: {hgvs_transcript}")
+    hgvs_transcript = validator.vm.g_to_t(
+        hgvs_genomic,
+        hgvs_transcript.ac,
+    )
 
     if hgvs_transcript.posedit.edit.type == "identity":
         if len(hgvs_transcript.posedit.edit.ref) > 1:
             hgvs_transcript.posedit.edit.ref = ""
             hgvs_transcript.posedit.edit.alt = ""
+
         variant.coding = hgvs_transcript
     else:
         variant.coding = unset_hgvs_obj_ref(hgvs_transcript)
 
-    logger.info(f"Set variant.coding to {variant.coding}")
-
     if genomic_context_ac.startswith("NG_"):
-        variant.refseqgene_context_intronic_sequence = (f"{genomic_context_ac}({hgvs_transcript.ac}):"
-                                                f"{hgvs_transcript.type}.{hgvs_transcript.posedit}")
+        variant.refseqgene_context_intronic_sequence = (
+            f"{genomic_context_ac}({hgvs_transcript.ac}):"
+            f"{hgvs_transcript.type}.{hgvs_transcript.posedit}"
+        )
     else:
-        variant.genome_context_intronic_sequence = (f"{genomic_context_ac}({hgvs_transcript.ac}):"
-                                                    f"{hgvs_transcript.type}.{hgvs_transcript.posedit}")
-
-
-    try:
-        logger.info(
-            "map_alt_intron_to_primary(): HDP call "
-            "get_tx_identity_info(%s)",
-            hgvs_transcript.ac
+        variant.genome_context_intronic_sequence = (
+            f"{genomic_context_ac}({hgvs_transcript.ac}):"
+            f"{hgvs_transcript.type}.{hgvs_transcript.posedit}"
         )
 
+    try:
         tx_info = validator.hdp.get_tx_identity_info(
             hgvs_transcript.ac
         )
-
         variant.gene_symbol = tx_info['hgnc']
 
     except vvhgvs.exceptions.HGVSDataNotAvailableError:
         logger.info(
             "map_alt_intron_to_primary(): no transcript identity information "
             "available for %s",
-            hgvs_transcript.ac
+            hgvs_transcript.ac,
         )
 
     try:
-        logger.info(
-            "map_alt_intron_to_primary(): HDP call "
-            "get_pro_ac_for_tx_ac(%s)",
+        protein_ac = validator.hdp.get_pro_ac_for_tx_ac(
             hgvs_transcript.ac
         )
 
-        protein_data = validator.hdp.get_pro_ac_for_tx_ac(
-            hgvs_transcript.ac
-        )
-
-        if protein_data:
-            protein_ac = protein_data
-
+        if protein_ac:
             variant.protein = vvhgvs.sequencevariant.SequenceVariant(
                 ac=protein_ac,
                 type='p',
-                posedit='?'
-            )
-
-            logger.info(
-                "map_alt_intron_to_primary(): assigned unknown protein "
-                "consequence %s:p.?",
-                protein_ac
+                posedit='?',
             )
 
     except vvhgvs.exceptions.HGVSDataNotAvailableError:
         logger.info(
             "map_alt_intron_to_primary(): no protein accession available "
             "for %s",
-            hgvs_transcript.ac
+            hgvs_transcript.ac,
         )
 
     warning = (
@@ -2620,11 +2412,7 @@ def map_alt_intron_to_primary(variant, validator):
         f"on {genomic_context_ac}"
     )
 
-    logger.info(
-        "map_alt_intron_to_primary(): %s",
-        warning
-    )
-
+    logger.info(warning)
     raise AltPrimaryMappingError(warning)
 
 
