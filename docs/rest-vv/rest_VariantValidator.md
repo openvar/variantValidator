@@ -2,7 +2,7 @@
 
 REST VariantValidator is the original REST API implementation for VariantValidator. It provides programmatic access to VariantValidator, VariantFormatter, Gene2Transcripts and associated tools through a REST interface, allowing integration into automated bioinformatics workflows, laboratory information management systems (LIMS) and external software applications.
 
-The REST API exposes VariantValidator functionality through standard HTTP endpoints and provides the same validation engine used by the VariantValidator Web Interface (VVweb) and the VariantValidator Python API.
+The REST API exposes VariantValidator functionality through standard HTTP endpoints and uses the same VariantValidator validation and formatting infrastructure available through the other VariantValidator interfaces.
 
 ---
 
@@ -16,7 +16,7 @@ To request access:
 
 1. Follow the account request process described in the REST VariantValidator access guide:
 
-   [https://github.com/openvar/rest_variantValidator/blob/master/docs/Account.md](https://github.com/openvar/rest_variantValidator/blob/master/docs/Account.md)
+   https://github.com/openvar/rest_variantValidator/blob/master/docs/Account.md
 
 2. Once your request has been submitted, email **admin@variantvalidator.org** so that your account can be reviewed and activated.
 
@@ -26,7 +26,7 @@ Once your account has been approved, you will receive the credentials required t
 
 # Interactive API documentation
 
-REST VariantValidator provides an interactive Swagger interface describing all available endpoints, required parameters and example requests.
+REST VariantValidator provides an interactive Swagger interface describing the available endpoints, required parameters and example requests.
 
 The Swagger interface also reports the currently deployed software versions together with the transcript annotation and sequence repository releases used by the service.
 
@@ -34,7 +34,7 @@ The Swagger interface also reports the currently deployed software versions toge
 
 # VariantValidator endpoints
 
-The VariantValidator endpoints provide access to variant validation, transcript retrieval and reference sequence utilities.
+The VariantValidator endpoints provide programmatic access to variant validation, transcript retrieval and reference sequence utilities.
 
 Available endpoints include:
 
@@ -43,7 +43,7 @@ Available endpoints include:
 - `GET /VariantValidator/tools/gene2transcripts_v2/{gene_query}/{limit_transcripts}/{transcript_set}/{genome_build}`
 - `GET /VariantValidator/tools/hgvs2reference/{hgvs_description}`
 
-These endpoints provide programmatic access to the same functionality available through the VariantValidator web interface.
+These endpoints provide programmatic access to VariantValidator validation, transcript retrieval and reference sequence functionality.
 
 See also:
 
@@ -63,13 +63,17 @@ Available endpoint:
 
 - `GET /VariantFormatter/variantformatter/{genome_build}/{variant_description}/{transcript_model}/{select_transcripts}/{checkonly}`
 
-This endpoint provides programmatic access to VariantFormatter, allowing automated formatting and conversion of sequence variant descriptions.
+This endpoint provides programmatic access to VariantFormatter, allowing automated formatting of genomic variant descriptions and mapping to corresponding transcript and protein representations.
+
+VariantFormatter accepts the same supported genomic input formats as VariantValidator. However, VariantFormatter processing begins with a genomic variant and does not accept transcript, RNA or protein descriptions as starting inputs.
 
 See also:
 
 - [VariantFormatter CLI](../user-manual/cli/variantformatter_cli.md)
 - [VariantFormatter Python API](../user-manual/python-api/variantformatter_python.md)
 - [Supported Input Formats](../user-manual/reference/supported_inputs.md)
+- [Transcript Selection](../user-manual/reference/transcript_selection.md)
+- [Output Formats](../user-manual/reference/output_formats.md)
 
 ---
 
@@ -83,29 +87,33 @@ Available endpoint:
 
 The endpoint is particularly useful for automated workflows that require explicit control over transcript models, validation behaviour and liftover operations.
 
+As with VariantFormatter, processing begins with a genomic variant. Supported genomic inputs are interpreted by the underlying VariantValidator and VariantFormatter infrastructure before transcript and protein representations are generated.
+
 See also:
 
 - [VariantFormatter CLI](../user-manual/cli/variantformatter_cli.md)
 - [VariantFormatter Python API](../user-manual/python-api/variantformatter_python.md)
 - [Supported Input Formats](../user-manual/reference/supported_inputs.md)
+- [Transcript Selection](../user-manual/reference/transcript_selection.md)
+- [Output Formats](../user-manual/reference/output_formats.md)
 
 ---
 
 # Service monitoring endpoints
 
-The following endpoints are available for monitoring and testing the service.
+The following endpoints are available for monitoring and testing the service:
 
 - `GET /hello/`
 - `GET /hello/limit`
 - `GET /hello/trigger_error/{error_code}`
 
-These endpoints allow administrators and automated workflows to verify that the service is operational and report the currently deployed software and database versions.
+These endpoints allow administrators and automated workflows to verify that the service is operational and inspect information reported by the deployed service.
 
 ---
 
 # Reference documentation
 
-The following documentation may also be useful when developing applications that use the REST API:
+The following documentation may also be useful when developing applications that use REST VariantValidator:
 
 - [Validator](../vvweb/validator.md)
 - [Gene2Transcripts](../vvweb/gene2transcripts.md)

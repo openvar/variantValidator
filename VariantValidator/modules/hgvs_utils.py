@@ -163,27 +163,82 @@ def vcfcp_to_hgvs_obj(vcf_dict, start_hgvs):
                 )
             )
 
-def unset_hgvs_obj_ref(hgvs):
+def unset_hgvs_obj_ref(hgvs, vf_mode=False):
     """
-    Remove/unset ref bases from hgvs object, in the manner needed for output,
-    but without re-parsing from text.
+    Remove/unset ref bases from an HGVS object where appropriate for output,
+    without re-parsing from text.
     """
     edit = hgvs.posedit.edit
-    if edit.type in ['inv', 'dup']:
-        edit.ref = ''
+
+    # Nothing to alter for unknown/empty protein edits.
+    if hgvs.type == "p" and vf_mode:
+        if edit == "?":
+            return hgvs
+
+        if (
+            getattr(edit, "ref", None) is None
+            and getattr(edit, "alt", None) is None
+        ):
+            return hgvs
+
+    logger.info(
+        "unset_hgvs_obj_ref ENTER: hgvs=%s, edit_type=%s, ref=%r, alt=%r",
+        hgvs,
+        edit.type,
+        getattr(edit, "ref", None),
+        getattr(edit, "alt", None),
+    )
+
+    # Identity variants must remain identities. In VariantFormatter mode,
+    # multi-base identities should be rendered without explicit sequence.
+    if edit.type == "identity":
+        if vf_mode and len(edit.ref) > 1:
+            logger.info(
+                "unset_hgvs_obj_ref IDENTITY: hgvs=%s, ref=%r, alt=%r",
+                hgvs,
+                edit.ref,
+                edit.alt,
+            )
+
+            edit.ref = ""
+            edit.alt = ""
+            hgvs.posedit.edit = edit
+
+            logger.info(
+                "unset_hgvs_obj_ref EXIT: hgvs=%s, edit_type=%s, ref=%r, alt=%r",
+                hgvs,
+                edit.type,
+                edit.ref,
+                edit.alt,
+            )
+
+        return hgvs
+
+    if edit.type in ["inv", "dup"]:
+        edit.ref = ""
+
     elif edit.ref is not None and edit.alt is not None:
-       #if #edit.alt != edit.ref and \
         if len(edit.alt) == 1 and len(edit.ref) == 1:
-            pass
-        elif edit.alt == edit.ref and len(edit.ref):
-            pass # edit.ref = ''
-        elif 'N' in edit.ref:
-            pass
-        else:
-            edit.ref = ''
+            return hgvs
+
+        if "N" in edit.ref:
+            return hgvs
+
+        edit.ref = ""
+
     elif edit.ref is not None:
-        edit.ref = ''
+        edit.ref = ""
+
     hgvs.posedit.edit = edit
+
+    logger.info(
+        "unset_hgvs_obj_ref EXIT: hgvs=%s, edit_type=%s, ref=%r, alt=%r",
+        hgvs,
+        edit.type,
+        getattr(edit, "ref", None),
+        getattr(edit, "alt", None),
+    )
+
     return hgvs
 
 def hgvs_dup_to_delins(hgvs_dup):

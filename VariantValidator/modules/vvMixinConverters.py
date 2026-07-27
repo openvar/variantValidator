@@ -2718,11 +2718,16 @@ class Mixin(vvMixinInit.Mixin):
                 except Exception:
                     pass
 
+                logger.info("merge_hgvs_3pr before t_to_g: %s", hgvs_v)
+
                 hgvs_v = self.vm.t_to_g(
                     hgvs_v,
                     genomic_reference,
                     alt_aln_method=self.alt_aln_method
                 )
+
+                logger.info("merge_hgvs_3pr after t_to_g: %s", hgvs_v)
+
                 mapped_list.append(hgvs_v)
 
             h_list = mapped_list

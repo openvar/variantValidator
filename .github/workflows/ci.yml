@@ -160,13 +160,13 @@ jobs:
       - name: Run VariantValidator
         run: |
           docker run -d \
-              --name variantvalidator \
-              --network ${DOCKER_NETWORK} \
-              --volumes-from vv-seqrepo:ro \
-              variantvalidator
+            --name variantvalidator \
+            --network ${DOCKER_NETWORK} \
+            --volumes-from vv-seqrepo:ro \
+            variantvalidator
 
       ##################################################################
-      # Run tests
+      # Run all tests and collect VV + VF coverage
       ##################################################################
 
       - name: Run pytest
