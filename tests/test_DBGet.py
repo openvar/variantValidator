@@ -471,6 +471,70 @@ def test_cached_getter_queries_again_when_cache_disabled(
 
     assert db.execute.call_count == 2
 
+def test_execute_write_success():
+    db = make_db()
+
+    conn = MagicMock()
+    cursor = MagicMock()
+
+    db.get_conn = MagicMock(return_value=conn)
+    db.get_cursor = MagicMock(return_value=cursor)
+
+    db.execute_write(
+        "ALTER TABLE transcript_info DROP INDEX refSeqID_index"
+    )
+
+    cursor.execute.assert_called_once_with(
+        "ALTER TABLE transcript_info DROP INDEX refSeqID_index"
+    )
+    conn.commit.assert_called_once()
+    cursor.close.assert_called_once()
+    conn.close.assert_called_once()
+
+
+def test_execute_write_with_parameters():
+    db = make_db()
+
+    conn = MagicMock()
+    cursor = MagicMock()
+
+    db.get_conn = MagicMock(return_value=conn)
+    db.get_cursor = MagicMock(return_value=cursor)
+
+    db.execute_write(
+        "UPDATE transcript_info SET hgncSymbol = %s WHERE refSeqID = %s",
+        ("GENE1", "NM_000001.1"),
+    )
+
+    cursor.execute.assert_called_once_with(
+        "UPDATE transcript_info SET hgncSymbol = %s WHERE refSeqID = %s",
+        ("GENE1", "NM_000001.1"),
+    )
+    conn.commit.assert_called_once()
+    cursor.close.assert_called_once()
+    conn.close.assert_called_once()
+
+
+def test_execute_write_failure_closes_connection():
+    db = make_db()
+
+    conn = MagicMock()
+    cursor = MagicMock()
+
+    db.get_conn = MagicMock(return_value=conn)
+    db.get_cursor = MagicMock(return_value=cursor)
+
+    cursor.execute.side_effect = Exception("boom")
+
+    with pytest.raises(Exception, match="boom"):
+        db.execute_write(
+            "ALTER TABLE transcript_info DROP INDEX refSeqID_index"
+        )
+
+    conn.commit.assert_not_called()
+    cursor.close.assert_called_once()
+    conn.close.assert_called_once()
+
 
 # <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors

@@ -99,6 +99,21 @@ class Mixin(vvDBInit.Mixin):
                     pass
 
     @handleCursor
+    def execute_write(self, *query_args):
+        conn = self.get_conn()
+        cursor = self.get_cursor(conn)
+
+        try:
+            cursor.execute(*query_args)
+            conn.commit()
+        finally:
+            try:
+                cursor.close()
+                conn.close()
+            except Exception:
+                pass
+
+    @handleCursor
     def execute_all(self, *query_args):
         attempts = 3
 

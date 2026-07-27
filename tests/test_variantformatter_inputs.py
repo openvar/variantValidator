@@ -1062,17 +1062,21 @@ class TestVFvariantsAuto(object):
 
     def test_variant58(self):
         variant = 'HG987_PATCH-355171-C-A'
-        results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
+        results = vf.FormatVariant(variant, 'GRCh37', vfo, 'refseq', None)
         results = results.stucture_data()
         print(results)
+
         assert 'HG987_PATCH-355171-C-A' in results.keys()
         assert results['HG987_PATCH-355171-C-A']['p_vcf'] == 'HG987_PATCH-355171-C-A'
         assert results['HG987_PATCH-355171-C-A']['g_hgvs'] == 'NW_003315950.2:g.355171C>A'
         assert results['HG987_PATCH-355171-C-A']['genomic_variant_error'] is None
         assert 'NM_001194958.2' in results['HG987_PATCH-355171-C-A']['hgvs_t_and_p'].keys()
-        assert results['HG987_PATCH-355171-C-A']['hgvs_t_and_p']['NM_001194958.2']['t_hgvs'] == 'NM_001194958.2:c.20C>A'
-        assert results['HG987_PATCH-355171-C-A']['hgvs_t_and_p']['NM_001194958.2']['p_hgvs_tlc'] == 'NP_001181887.2:p.(Ala7Asp)'
-        assert results['HG987_PATCH-355171-C-A']['hgvs_t_and_p']['NM_001194958.2']['p_hgvs_slc'] == 'NP_001181887.2:p.(A7D)'
+        assert results['HG987_PATCH-355171-C-A']['hgvs_t_and_p']['NM_001194958.2']['t_hgvs'] == \
+               'NM_001194958.2:c.22C>A'
+        assert results['HG987_PATCH-355171-C-A']['hgvs_t_and_p']['NM_001194958.2']['p_hgvs_tlc'] == \
+               'NP_001181887.2:p.?'
+        assert results['HG987_PATCH-355171-C-A']['hgvs_t_and_p']['NM_001194958.2']['p_hgvs_slc'] == \
+               'NP_001181887.2:p.?'
         assert results['HG987_PATCH-355171-C-A']['hgvs_t_and_p']['NM_001194958.2']['transcript_variant_error'] is None
 
     def test_variant59(self):

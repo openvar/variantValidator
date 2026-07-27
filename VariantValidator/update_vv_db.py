@@ -47,11 +47,11 @@ def drop_core_indexes(db):
 
     for table, index in index_list:
         try:
-            db.execute(f"ALTER TABLE {table} DROP INDEX {index}")
+            db.execute_write(f"ALTER TABLE {table} DROP INDEX {index}")
             print(f"Dropped index {index} on {table}")
         except Exception:
-            # Index may not exist yet — safe to ignore
             print(f"Index {index} not present on {table}, skipping")
+
 
 def rebuild_core_indexes(db):
     """
@@ -69,7 +69,7 @@ def rebuild_core_indexes(db):
 
     for table, definition in index_defs:
         try:
-            db.execute(f"ALTER TABLE {table} ADD INDEX {definition}")
+            db.execute_write(f"ALTER TABLE {table} ADD INDEX {definition}")
             print(f"Added index {definition} on {table}")
         except Exception as e:
             print(f"Failed to add index {definition} on {table}: {e}")

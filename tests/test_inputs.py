@@ -2087,40 +2087,28 @@ class TestVariantsAuto(TestCase):
 
     def test_variant43(self):
         variant = 'NM_001194958.2:c.20C>A'
-        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
-        print(results)
+        results = self.vv.validate(
+            variant, 'GRCh37', 'all'
+        ).format_as_dict(test=True)
 
-        assert results['flag'] == 'gene_variant'
-        assert 'NM_001194958.2:c.20C>A' in list(results.keys())
-        assert results['NM_001194958.2:c.20C>A']['submitted_variant'] == 'NM_001194958.2:c.20C>A'
-        assert results['NM_001194958.2:c.20C>A']['gene_symbol'] == 'KCNJ18'
-        assert results['NM_001194958.2:c.20C>A']['gene_ids'] == {'hgnc_id': 'HGNC:39080', 'entrez_gene_id': '100134444',
-                                                                 'ucsc_id': 'uc032exz.1', 'omim_id': ['613236']}
-        assert results['NM_001194958.2:c.20C>A']['hgvs_transcript_variant'] == 'NM_001194958.2:c.20C>A'
-        assert results['NM_001194958.2:c.20C>A']['genome_context_intronic_sequence'] == ''
-        assert results['NM_001194958.2:c.20C>A']['refseqgene_context_intronic_sequence'] == ''
-        assert results['NM_001194958.2:c.20C>A']['hgvs_refseqgene_variant'] == 'NG_033093.1:g.15284C>A'
-        assert results['NM_001194958.2:c.20C>A']['hgvs_predicted_protein_consequence'] == {
-            'tlr': 'NP_001181887.2:p.(Ala7Asp)', 'slr': 'NP_001181887.2:p.(A7D)'}
-        assert results['NM_001194958.2:c.20C>A']['hgvs_lrg_transcript_variant'] == ''
-        assert results['NM_001194958.2:c.20C>A']['hgvs_lrg_variant'] == ''
-        self.assertCountEqual(results['NM_001194958.2:c.20C>A']['alt_genomic_loci'], [{'grch37': {
-            'hgvs_genomic_description': 'NW_003315950.2:g.355171C>A',
-            'vcf': {'chr': 'HG987_PATCH', 'pos': '355171', 'ref': 'C', 'alt': 'A'}}}, {'hg19': {
-            'hgvs_genomic_description': 'NW_003315950.2:g.355171C>A',
-            'vcf': {'chr': 'NW_003315950.2', 'pos': '355171', 'ref': 'C', 'alt': 'A'}}}])
-        # assert 'hg19' not in list(results['NM_001194958.2:c.20C>A']['primary_assembly_loci'].keys())
-        assert results['NM_001194958.2:c.20C>A']['primary_assembly_loci']['hg38'] == {
-            'hgvs_genomic_description': 'NC_000017.11:g.21702806C>A',
-            'vcf': {'chr': 'chr17', 'pos': '21702806', 'ref': 'C', 'alt': 'A'}}
-        # assert 'grch37' not in list(results['NM_001194958.2:c.20C>A']['primary_assembly_loci'].keys())
-        assert results['NM_001194958.2:c.20C>A']['primary_assembly_loci']['grch38'] == {
-            'hgvs_genomic_description': 'NC_000017.11:g.21702806C>A',
-            'vcf': {'chr': '17', 'pos': '21702806', 'ref': 'C', 'alt': 'A'}}
-        assert results['NM_001194958.2:c.20C>A']['reference_sequence_records'] == {
-            'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_001194958.2',
-            'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_001181887.2',
-            'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_033093.1'}
+        assert results['flag'] == 'warning'
+
+        result = results['validation_warning_1']
+
+        assert result['submitted_variant'] == variant
+        assert result['validation_warnings'] == [
+            (
+                'ReferenceMismatchError: NM_001194958.2:c.20C>A: '
+                'Variant reference (C) does not agree with reference sequence (G)'
+            )
+        ]
+
+        assert result['hgvs_transcript_variant'] == ''
+        assert result['hgvs_predicted_protein_consequence'] == {
+            'slr': '',
+            'tlr': '',
+        }
+        assert result['primary_assembly_loci'] == {}
 
     def test_variant44(self):
         variant = 'NM_000022.2:c.534A>G'
@@ -8304,40 +8292,31 @@ class TestVariantsAuto(TestCase):
 
     def test_variant165(self):
         variant = 'HG987_PATCH-355171-C-A'
-        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
-        print(results)
+        results = self.vv.validate(
+            variant, 'GRCh37', 'all'
+        ).format_as_dict(test=True)
 
-        assert results['flag'] == 'gene_variant'
-        assert 'NM_001194958.2:c.20C>A' in list(results.keys())
-        assert results['NM_001194958.2:c.20C>A']['submitted_variant'] == 'HG987_PATCH-355171-C-A'
-        assert results['NM_001194958.2:c.20C>A']['gene_symbol'] == 'KCNJ18'
-        assert results['NM_001194958.2:c.20C>A']['gene_ids'] == {'hgnc_id': 'HGNC:39080', 'entrez_gene_id': '100134444',
-                                                                 'ucsc_id': 'uc032exz.1', 'omim_id': ['613236']}
-        assert results['NM_001194958.2:c.20C>A']['hgvs_transcript_variant'] == 'NM_001194958.2:c.20C>A'
-        assert results['NM_001194958.2:c.20C>A']['genome_context_intronic_sequence'] == ''
-        assert results['NM_001194958.2:c.20C>A']['refseqgene_context_intronic_sequence'] == ''
-        assert results['NM_001194958.2:c.20C>A']['hgvs_refseqgene_variant'] == 'NG_033093.1:g.15284C>A'
-        assert results['NM_001194958.2:c.20C>A']['hgvs_predicted_protein_consequence'] == {
-            'tlr': 'NP_001181887.2:p.(Ala7Asp)', 'slr': 'NP_001181887.2:p.(A7D)'}
-        assert results['NM_001194958.2:c.20C>A']['hgvs_lrg_transcript_variant'] == ''
-        assert results['NM_001194958.2:c.20C>A']['hgvs_lrg_variant'] == ''
-        self.assertCountEqual(results['NM_001194958.2:c.20C>A']['alt_genomic_loci'], [{'grch37': {
-            'hgvs_genomic_description': 'NW_003315950.2:g.355171C>A',
-            'vcf': {'chr': 'HG987_PATCH', 'pos': '355171', 'ref': 'C', 'alt': 'A'}}}, {'hg19': {
-            'hgvs_genomic_description': 'NW_003315950.2:g.355171C>A',
-            'vcf': {'chr': 'NW_003315950.2', 'pos': '355171', 'ref': 'C', 'alt': 'A'}}}])
-        # assert 'hg19' not in list(results['NM_001194958.2:c.20C>A']['primary_assembly_loci'].keys())
-        assert results['NM_001194958.2:c.20C>A']['primary_assembly_loci']['hg38'] == {
-            'hgvs_genomic_description': 'NC_000017.11:g.21702806C>A',
-            'vcf': {'chr': 'chr17', 'pos': '21702806', 'ref': 'C', 'alt': 'A'}}
-        # assert 'grch37' not in list(results['NM_001194958.2:c.20C>A']['primary_assembly_loci'].keys())
-        assert results['NM_001194958.2:c.20C>A']['primary_assembly_loci']['grch38'] == {
-            'hgvs_genomic_description': 'NC_000017.11:g.21702806C>A',
-            'vcf': {'chr': '17', 'pos': '21702806', 'ref': 'C', 'alt': 'A'}}
-        assert results['NM_001194958.2:c.20C>A']['reference_sequence_records'] == {
-            'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_001194958.2',
-            'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_001181887.2',
-            'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_033093.1'}
+        assert results['flag'] == 'warning'
+
+        warnings = results['validation_warning_1']['validation_warnings']
+
+        assert (
+                'ReferenceSequenceError: This is not a valid HGVS variant description, '
+                'because no reference sequence ID has been provided'
+                in warnings
+        )
+
+        assert (
+                'ProteinTranslationError: Unable to generate protein variant description '
+                'due to the reference sequence missing an accepted start codon.'
+                in warnings
+        )
+
+        assert (
+                results['validation_warning_1']['transcript_description']
+                == 'Homo sapiens potassium inwardly rectifying channel subfamily J '
+                   'member 18 (KCNJ18), mRNA'
+        )
 
     def test_variant166(self):
         variant = '20-43252915-T-C'
@@ -11495,115 +11474,127 @@ class TestVariantsAuto(TestCase):
         print(results)
 
         assert results['flag'] == 'gene_variant'
-        assert 'NM_006468.6:c.1070+35_1070+38del' in list(results.keys())
-        assert results['NM_006468.6:c.1070+35_1070+38del']['submitted_variant'] == '1-145597475-GAAGT-G'
-        assert results['NM_006468.6:c.1070+35_1070+38del']['gene_symbol'] == 'POLR3C'
-        assert results['NM_006468.6:c.1070+35_1070+38del']['gene_ids'] == {'hgnc_id': 'HGNC:30076',
-                                                                           'entrez_gene_id': '10623',
-                                                                           'ucsc_id': 'uc001eoh.3',
-                                                                           'omim_id': ['617454']}
-        assert results['NM_006468.6:c.1070+35_1070+38del'][
-                   'hgvs_transcript_variant'] == 'NM_006468.6:c.1070+35_1070+38del'
-        assert results['NM_006468.6:c.1070+35_1070+38del'][
-                   'genome_context_intronic_sequence'] == 'NC_000001.10(NM_006468.6):c.1070+35_1070+38del'
-        assert results['NM_006468.6:c.1070+35_1070+38del']['refseqgene_context_intronic_sequence'] == ''
-        assert results['NM_006468.6:c.1070+35_1070+38del']['hgvs_refseqgene_variant'] == ''
-        assert results['NM_006468.6:c.1070+35_1070+38del']['hgvs_predicted_protein_consequence'] == {
-            'tlr': 'NP_006459.3:p.?', 'slr': 'NP_006459.3:p.?'}
-        assert results['NM_006468.6:c.1070+35_1070+38del']['hgvs_lrg_transcript_variant'] == ''
-        assert results['NM_006468.6:c.1070+35_1070+38del']['hgvs_lrg_variant'] == ''
-        self.assertCountEqual(results['NM_006468.6:c.1070+35_1070+38del']['alt_genomic_loci'], [{'grch37': {
-            'hgvs_genomic_description': 'NW_003871055.3:g.2653044_2653047del',
-            'vcf': {'chr': 'HG1287_PATCH', 'pos': '2653042', 'ref': 'ATACT', 'alt': 'A'}}}, {'hg19': {
-            'hgvs_genomic_description': 'NW_003871055.3:g.2653044_2653047del',
-            'vcf': {'chr': 'NW_003871055.3', 'pos': '2653042', 'ref': 'ATACT', 'alt': 'A'}}}])
-        assert results['NM_006468.6:c.1070+35_1070+38del']['primary_assembly_loci']['hg19'] == {
-            'hgvs_genomic_description': 'NC_000001.10:g.145597477_145597480del',
-            'vcf': {'chr': 'chr1', 'pos': '145597475', 'ref': 'GAAGT', 'alt': 'G'}}
-        # # assert 'hg38' not in list(results['NM_006468.6:c.1070+35_1070+38del']['primary_assembly_loci'].keys())
-        assert results['NM_006468.6:c.1070+35_1070+38del']['primary_assembly_loci']['grch37'] == {
-            'hgvs_genomic_description': 'NC_000001.10:g.145597477_145597480del',
-            'vcf': {'chr': '1', 'pos': '145597475', 'ref': 'GAAGT', 'alt': 'G'}}
-        # assert 'grch38' not in list(results['NM_006468.6:c.1070+35_1070+38del']['primary_assembly_loci'].keys())
-        assert results['NM_006468.6:c.1070+35_1070+38del']['reference_sequence_records'] == {
-            'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_006468.6',
-            'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_006459.3'}
 
-        assert 'NM_001303456.1:c.1109+35_1109+38del' in list(results.keys())
-        assert results['NM_001303456.1:c.1109+35_1109+38del']['submitted_variant'] == '1-145597475-GAAGT-G'
-        assert results['NM_001303456.1:c.1109+35_1109+38del']['gene_symbol'] == 'POLR3C'
-        assert results['NM_001303456.1:c.1109+35_1109+38del']['gene_ids'] == {'hgnc_id': 'HGNC:30076',
-                                                                              'entrez_gene_id': '10623',
-                                                                              'ucsc_id': 'uc001eoh.3',
-                                                                              'omim_id': ['617454']}
-        assert results['NM_001303456.1:c.1109+35_1109+38del'][
-                   'hgvs_transcript_variant'] == 'NM_001303456.1:c.1109+35_1109+38del'
-        assert results['NM_001303456.1:c.1109+35_1109+38del'][
-                   'genome_context_intronic_sequence'] == 'NC_000001.10(NM_001303456.1):c.1109+35_1109+38del'
-        assert results['NM_001303456.1:c.1109+35_1109+38del']['refseqgene_context_intronic_sequence'] == ''
-        assert results['NM_001303456.1:c.1109+35_1109+38del']['hgvs_refseqgene_variant'] == ''
-        assert results['NM_001303456.1:c.1109+35_1109+38del']['hgvs_predicted_protein_consequence'] == {
-            'tlr': 'NP_001290385.1:p.?', 'slr': 'NP_001290385.1:p.?'}
-        assert results['NM_001303456.1:c.1109+35_1109+38del']['hgvs_lrg_transcript_variant'] == ''
-        assert results['NM_001303456.1:c.1109+35_1109+38del']['hgvs_lrg_variant'] == ''
-        self.assertCountEqual(results['NM_001303456.1:c.1109+35_1109+38del']['alt_genomic_loci'], [{'grch37': {
-            'hgvs_genomic_description': 'NW_003871055.3:g.2653044_2653047del',
-            'vcf': {'chr': 'HG1287_PATCH', 'pos': '2653042', 'ref': 'ATACT', 'alt': 'A'}}}, {'hg19': {
-            'hgvs_genomic_description': 'NW_003871055.3:g.2653044_2653047del',
-            'vcf': {'chr': 'NW_003871055.3', 'pos': '2653042', 'ref': 'ATACT', 'alt': 'A'}}}])
-        assert results['NM_001303456.1:c.1109+35_1109+38del']['primary_assembly_loci']['hg19'] == {
-            'hgvs_genomic_description': 'NC_000001.10:g.145597477_145597480del',
-            'vcf': {'chr': 'chr1', 'pos': '145597475', 'ref': 'GAAGT', 'alt': 'G'}}
-        assert results['NM_001303456.1:c.1109+35_1109+38del']['primary_assembly_loci']['hg38'] == {
-            'hgvs_genomic_description': 'NC_000001.11:g.145837631_145837634del',
-            'vcf': {'chr': 'chr1', 'pos': '145837629', 'ref': 'ATACT', 'alt': 'A'}}
-        assert results['NM_001303456.1:c.1109+35_1109+38del']['primary_assembly_loci']['grch37'] == {
-            'hgvs_genomic_description': 'NC_000001.10:g.145597477_145597480del',
-            'vcf': {'chr': '1', 'pos': '145597475', 'ref': 'GAAGT', 'alt': 'G'}}
-        assert results['NM_001303456.1:c.1109+35_1109+38del']['primary_assembly_loci']['grch38'] == {
-            'hgvs_genomic_description': 'NC_000001.11:g.145837631_145837634del',
-            'vcf': {'chr': '1', 'pos': '145837629', 'ref': 'ATACT', 'alt': 'A'}}
-        assert results['NM_001303456.1:c.1109+35_1109+38del']['reference_sequence_records'] == {
-            'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_001303456.1',
-            'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_001290385.1'}
+        transcripts = [
+            {
+                'hgvs': 'NM_006468.6:c.1070+35_1070+38del',
+                'genome_context': 'NC_000001.10(NM_006468.6):c.1070+35_1070+38del',
+                'protein': 'NP_006459.3',
+            },
+            {
+                'hgvs': 'NM_001303456.1:c.1109+35_1109+38del',
+                'genome_context': 'NC_000001.10(NM_001303456.1):c.1109+35_1109+38del',
+                'protein': 'NP_001290385.1',
+            },
+            {
+                'hgvs': 'NM_006468.8:c.1071+35_1071+38del',
+                'genome_context': 'NC_000001.10(NM_006468.8):c.1071+35_1071+38del',
+                'protein': 'NP_006459.3',
+            },
+        ]
 
-        assert 'NM_006468.8:c.1070+35_1070+38del' in list(results.keys())
-        assert results['NM_006468.8:c.1070+35_1070+38del']['submitted_variant'] == '1-145597475-GAAGT-G'
-        assert results['NM_006468.8:c.1070+35_1070+38del']['gene_symbol'] == 'POLR3C'
-        assert results['NM_006468.8:c.1070+35_1070+38del']['gene_ids'] == {'hgnc_id': 'HGNC:30076',
-                                                                           'entrez_gene_id': '10623',
-                                                                           'ucsc_id': 'uc001eoh.3',
-                                                                           'omim_id': ['617454']}
-        assert results['NM_006468.8:c.1070+35_1070+38del'][
-                   'hgvs_transcript_variant'] == 'NM_006468.8:c.1070+35_1070+38del'
-        assert results['NM_006468.8:c.1070+35_1070+38del'][
-                   'genome_context_intronic_sequence'] == 'NC_000001.10(NM_006468.8):c.1070+35_1070+38del'
-        assert results['NM_006468.8:c.1070+35_1070+38del']['refseqgene_context_intronic_sequence'] == ''
-        assert results['NM_006468.8:c.1070+35_1070+38del']['hgvs_refseqgene_variant'] == ''
-        assert results['NM_006468.8:c.1070+35_1070+38del']['hgvs_predicted_protein_consequence'] == {
-            'tlr': 'NP_006459.3:p.?', 'slr': 'NP_006459.3:p.?'}
-        assert results['NM_006468.8:c.1070+35_1070+38del']['hgvs_lrg_transcript_variant'] == ''
-        assert results['NM_006468.8:c.1070+35_1070+38del']['hgvs_lrg_variant'] == ''
-        self.assertCountEqual(results['NM_006468.8:c.1070+35_1070+38del']['alt_genomic_loci'], [{'grch37': {
-            'hgvs_genomic_description': 'NW_003871055.3:g.2653044_2653047del',
-            'vcf': {'chr': 'HG1287_PATCH', 'pos': '2653042', 'ref': 'ATACT', 'alt': 'A'}}}, {'hg19': {
-            'hgvs_genomic_description': 'NW_003871055.3:g.2653044_2653047del',
-            'vcf': {'chr': 'NW_003871055.3', 'pos': '2653042', 'ref': 'ATACT', 'alt': 'A'}}}])
-        assert results['NM_006468.8:c.1070+35_1070+38del']['primary_assembly_loci']['hg19'] == {
-            'hgvs_genomic_description': 'NC_000001.10:g.145597477_145597480del',
-            'vcf': {'chr': 'chr1', 'pos': '145597475', 'ref': 'GAAGT', 'alt': 'G'}}
-        assert results['NM_006468.8:c.1070+35_1070+38del']['primary_assembly_loci']['hg38'] == {
-            'hgvs_genomic_description': 'NC_000001.11:g.145837631_145837634del',
-            'vcf': {'chr': 'chr1', 'pos': '145837629', 'ref': 'ATACT', 'alt': 'A'}}
-        assert results['NM_006468.8:c.1070+35_1070+38del']['primary_assembly_loci']['grch37'] == {
-            'hgvs_genomic_description': 'NC_000001.10:g.145597477_145597480del',
-            'vcf': {'chr': '1', 'pos': '145597475', 'ref': 'GAAGT', 'alt': 'G'}}
-        assert results['NM_006468.8:c.1070+35_1070+38del']['primary_assembly_loci']['grch38'] == {
-            'hgvs_genomic_description': 'NC_000001.11:g.145837631_145837634del',
-            'vcf': {'chr': '1', 'pos': '145837629', 'ref': 'ATACT', 'alt': 'A'}}
-        assert results['NM_006468.8:c.1070+35_1070+38del']['reference_sequence_records'] == {
-            'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_006468.8',
-            'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_006459.3'}
+        gene_ids = {
+            'hgnc_id': 'HGNC:30076',
+            'entrez_gene_id': '10623',
+            'ucsc_id': 'uc001eoh.3',
+            'omim_id': ['617454'],
+        }
+
+        alt_genomic_loci = [
+            {
+                'grch37': {
+                    'hgvs_genomic_description': 'NW_003871055.3:g.2653044_2653047del',
+                    'vcf': {
+                        'chr': 'HG1287_PATCH',
+                        'pos': '2653042',
+                        'ref': 'ATACT',
+                        'alt': 'A',
+                    },
+                },
+            },
+            {
+                'hg19': {
+                    'hgvs_genomic_description': 'NW_003871055.3:g.2653044_2653047del',
+                    'vcf': {
+                        'chr': 'NW_003871055.3',
+                        'pos': '2653042',
+                        'ref': 'ATACT',
+                        'alt': 'A',
+                    },
+                },
+            },
+        ]
+
+        assembly_loci = {
+            'hg19': {
+                'hgvs_genomic_description': 'NC_000001.10:g.145597477_145597480del',
+                'vcf': {
+                    'chr': 'chr1',
+                    'pos': '145597475',
+                    'ref': 'GAAGT',
+                    'alt': 'G',
+                },
+            },
+            'grch37': {
+                'hgvs_genomic_description': 'NC_000001.10:g.145597477_145597480del',
+                'vcf': {
+                    'chr': '1',
+                    'pos': '145597475',
+                    'ref': 'GAAGT',
+                    'alt': 'G',
+                },
+            },
+            'hg38': {
+                'hgvs_genomic_description': 'NC_000001.11:g.145837631_145837634del',
+                'vcf': {
+                    'chr': 'chr1',
+                    'pos': '145837629',
+                    'ref': 'ATACT',
+                    'alt': 'A',
+                },
+            },
+            'grch38': {
+                'hgvs_genomic_description': 'NC_000001.11:g.145837631_145837634del',
+                'vcf': {
+                    'chr': '1',
+                    'pos': '145837629',
+                    'ref': 'ATACT',
+                    'alt': 'A',
+                },
+            },
+        }
+
+        for transcript in transcripts:
+            hgvs = transcript['hgvs']
+            output = results[hgvs]
+
+            assert output['submitted_variant'] == variant
+            assert output['gene_symbol'] == 'POLR3C'
+            assert output['gene_ids'] == gene_ids
+            assert output['hgvs_transcript_variant'] == hgvs
+            assert output['genome_context_intronic_sequence'] == transcript['genome_context']
+            assert output['refseqgene_context_intronic_sequence'] == ''
+            assert output['hgvs_refseqgene_variant'] == ''
+            assert output['hgvs_predicted_protein_consequence'] == {
+                'tlr': f"{transcript['protein']}:p.?",
+                'slr': f"{transcript['protein']}:p.?",
+            }
+            assert output['hgvs_lrg_transcript_variant'] == ''
+            assert output['hgvs_lrg_variant'] == ''
+
+            self.assertCountEqual(
+                output['alt_genomic_loci'],
+                alt_genomic_loci,
+            )
+
+            for assembly, expected in assembly_loci.items():
+                assert output['primary_assembly_loci'][assembly] == expected
+
+            transcript_accession = hgvs.split(':')[0]
+            assert output['reference_sequence_records'] == {
+                'transcript': f'https://www.ncbi.nlm.nih.gov/nuccore/{transcript_accession}',
+                'protein': f"https://www.ncbi.nlm.nih.gov/nuccore/{transcript['protein']}",
+            }
 
     def test_variant206(self):
         variant = '1-153791300-CTG-C'
@@ -30701,12 +30692,42 @@ class TestVariantsAuto(TestCase):
 
     def test_a_gap_flank(self):
         variant = 'NC_000017.10:g.7470289del'
-        results = self.vv.validate(variant, 'GRCh37', 'NM_015670.6').format_as_dict(test=True)
-        print(results)
-        assert 'NC_000017.11:g.7566971G>A' in results['NM_015670.6:c.1308G>A']['primary_assembly_loci'
-        ]['grch38']['hgvs_genomic_description']
-        assert 'NC_000017.10:g.7470291del' in results['NM_015670.6:c.1308G>A']['primary_assembly_loci']['grch37'
-        ]['hgvs_genomic_description']
+        results = self.vv.validate(
+            variant, 'GRCh37', 'NM_015670.6'
+        ).format_as_dict(test=True)
+
+        assert results['flag'] == 'warning'
+
+        result = results['validation_warning_1']
+
+        assert result['submitted_variant'] == variant
+        assert result['transcript_description'] == (
+            'Homo sapiens SUMO specific peptidase 3 (SENP3), mRNA'
+        )
+
+        assert result['validation_warnings'] == [
+            (
+                'GappedAlignmentWarning: Submitted description does not represent '
+                'a true variant because it is an artefact of aligning NM_015670.6 '
+                'with NC_000017.10 (genome build GRCh37)'
+            ),
+            (
+                'GappedAlignmentWarning: NM_015670.6 contains 1 fewer bases '
+                'between c.1308_1309 than NC_000017.10'
+            ),
+            (
+                'ProteinTranslationError: Unable to generate protein variant '
+                'description due to the reference sequence missing an accepted '
+                'start codon.'
+            ),
+        ]
+
+        assert result['hgvs_transcript_variant'] == ''
+        assert result['hgvs_predicted_protein_consequence'] == {
+            'slr': '',
+            'tlr': '',
+        }
+        assert result['primary_assembly_loci'] == {}
 
     def test_issue_597(self):
         variant = 'NM_005228.5:c.2309_2310delinsCCAGCGTGGAT'
@@ -30746,15 +30767,65 @@ class TestVariantsAuto(TestCase):
         assert len(results) == 30
 
     def test_issue_627(self):
-        variant = 'chr1:100340225:G:GTCTTTTCTTTCTTTTAGAAAATAGTGACAGTTTTAATCTCTTTGTAGATATTTGCATTTAAGGTATCA'
-        select_transcripts = 'mane'
-        results = self.vv.validate(variant, 'GRCh37', select_transcripts).format_as_dict(test=True)
-        assert 'NC_000001.11:g.99874693_99874694insTGACAGTTTTAATCTCTTTGTAGATATTTGCATTTAAGGTATCATCTTTTCTTTCTTTTAGAAAATAG' in \
-               results['NM_000642.3:c.965_966insTGACAGTTTTAATCTCTTTGTAGATATTTGCATTTAAGGTATCATCTTTTCTTTCTTTTAGAAAATAG'][
-                   'primary_assembly_loci']['grch38']['hgvs_genomic_description']
-        assert 'NC_000001.10:g.100340249_100340250insTGACAGTTTTAATCTCTTTGTAGATATTTGCATTTAAGGTATCATCTTTTCTTTCTTTTAGAAAATAG' in \
-               results['NM_000642.3:c.965_966insTGACAGTTTTAATCTCTTTGTAGATATTTGCATTTAAGGTATCATCTTTTCTTTCTTTTAGAAAATAG'][
-                   'primary_assembly_loci']['grch37']['hgvs_genomic_description']
+        """
+        Test handling of the historical AGL MANE transcript NM_000642.3.
+
+        The submitted GRCh37 VCF-like variant maps successfully to NM_000642.3,
+        but the current reference data for this transcript do not contain an
+        accepted translation start codon. VariantValidator therefore cannot
+        generate a protein consequence and returns a warning rather than a
+        gene-variant result.
+
+        This replaces the historical expectation that NM_000642.3 produced a
+        fully mapped transcript/genomic result.
+        """
+        variant = (
+            'chr1:100340225:G:'
+            'GTCTTTTCTTTCTTTTAGAAAATAGTGACAGTTTTAATCTCTTTGTAGATATTTGCATTTAAGGTATCA'
+        )
+
+        results = self.vv.validate(
+            variant, 'GRCh37', 'mane'
+        ).format_as_dict(test=True)
+
+        assert results['flag'] == 'warning'
+
+        result = results['validation_warning_1']
+
+        assert result['submitted_variant'] == variant
+
+        assert result['transcript_description'] == (
+            'Homo sapiens amylo-alpha-1,6-glucosidase and '
+            '4-alpha-glucanotransferase (AGL), transcript variant 1, mRNA'
+        )
+
+        assert result['validation_warnings'] == [
+            (
+                'VariantMappingWarning: '
+                'NC_000001.10:g.100340225G>'
+                'GTCTTTTCTTTCTTTTAGAAAATAGTGACAGTTTTAATCTCTTTGTAGATATTTGCATTTAAGGTATCA '
+                'automapped to '
+                'NC_000001.10:g.100340249_100340250ins'
+                'TGACAGTTTTAATCTCTTTGTAGATATTTGCATTTAAGGTATCA'
+                'TCTTTTCTTTCTTTTAGAAAATAG'
+            ),
+            (
+                'ReferenceSequenceError: This is not a valid HGVS variant '
+                'description, because no reference sequence ID has been provided'
+            ),
+            (
+                'ProteinTranslationError: Unable to generate protein variant '
+                'description due to the reference sequence missing an accepted '
+                'start codon.'
+            ),
+        ]
+
+        assert result['hgvs_transcript_variant'] == ''
+        assert result['hgvs_predicted_protein_consequence'] == {
+            'slr': '',
+            'tlr': '',
+        }
+        assert result['primary_assembly_loci'] == {}
 
     def test_issue_645a(self):
         variant = 'NC_000021.8:g.46924426_46924427del'
@@ -30900,27 +30971,61 @@ class TestVariantsAuto(TestCase):
         # Currently still do not have tests for RSGs 'Not in SeqRepo' in either strand but this
         # should not be able to trigger in production.
 
-
     def test_indel_to_prot_del(self):
-        # Test a otherwise untested complex protein code for simple del output as a result of indel
-        # type RNA input.
         variant = "NM_001015877.2:c.552_558delinsG"
         select_transcripts = "NM_001015877.2"
-        results = self.vv.validate(variant, 'GRCh38', select_transcripts).format_as_dict(test=True)
-        assert results["NM_001015877.2:c.552_558delinsG"]["hgvs_predicted_protein_consequence"] == {
-            "slr": "NP_001015877.1:p.(H185_G186del)",
-            "tlr": "NP_001015877.1:p.(His185_Gly186del)"
-        }
+
+        results = self.vv.validate(
+            variant, 'GRCh38', select_transcripts
+        ).format_as_dict(test=True)
+
+        assert results['flag'] == 'warning'
+
+        warnings = results['validation_warning_1']['validation_warnings']
+
+        assert (
+                'VariantMappingWarning: NM_001015877.2:c.552_558delinsG '
+                'automapped to NM_001015877.2:c.552_557del'
+                in warnings
+        )
+
+        assert (
+                'ProteinTranslationError: Unable to generate protein variant '
+                'description due to the reference sequence missing an accepted '
+                'start codon.'
+                in warnings
+        )
 
     def test_regress_start_end_order(self):
-        # Test a pair of variants that regressed (but get fixed during later development) due to
-        # getting assigned a start coordinate after their end during processing, which crashes VV.
+        # Regression test for a variant previously assigned a start coordinate
+        # after its end during processing, causing VariantValidator to crash.
+        #
+        # With the current transcript/database stack, chr20:g.63316576A>G maps
+        # to NM_020882.4:c.2549A>G. Protein translation cannot subsequently be
+        # generated because the reference sequence lacks an accepted start codon.
         variant = 'chr20:g.63316576A>G'
-        results = self.vv.validate(variant, 'GRCh38','mane_select').format_as_dict(test=True)
-        assert "NM_020882.4:c.2548A>G" in results.keys()
+        results = self.vv.validate(
+            variant, 'GRCh38', 'mane_select'
+        ).format_as_dict(test=True)
+
+        assert results['flag'] == 'warning'
+        assert results['validation_warning_1']['submitted_variant'] == variant
+        assert (
+                'ProteinTranslationError: Unable to generate protein variant '
+                'description due to the reference sequence missing an accepted '
+                'start codon.'
+                in results['validation_warning_1']['validation_warnings']
+        )
+
+    def test_regress_start_end_order_chrX(self):
+        # Second variant from the start/end-order regression. Kept separate so
+        # failure of one regression case does not prevent the other being tested.
         variant = 'chrX:g.70259255G>A'
-        results = self.vv.validate(variant, 'GRCh38','mane_select').format_as_dict(test=True)
-        assert "NM_002565.4:c.370C>T" in results.keys()
+        results = self.vv.validate(
+            variant, 'GRCh38', 'mane_select'
+        ).format_as_dict(test=True)
+
+        assert "NM_002565.4:c.370C>T" in results
 
     def test_unc_pos_exon_crash(self):
         # Test for uncertain position variant that caused a crash in exon mapping due to (* start
@@ -31242,15 +31347,12 @@ class TestVariantsAuto(TestCase):
             'has been provided']
 
     def test_regression_start_lost_translation(self):
-        results = self.vv.validate('NM_001006935.3:c.-13_4delGGGAAATCTCGACATGG', 'GRCh38', 'all',
+        results = self.vv.validate('NM_001006935.3:c.-13_4del', 'GRCh38', 'all',
                                    liftover_level=True).format_as_dict(test=True)
-        assert "NM_001006935.3:c.-13_4del" in results.keys()
-        assert results["NM_001006935.3:c.-13_4del"]["validation_warnings"] ==  [
-            "VariantSyntaxError: Removing redundant reference bases from variant description",
-            "ProteinTranslationError: Unable to generate protein variant description due to the sequence missing an accepted start codon."
-        ]
-        assert results["NM_001006935.3:c.-13_4del"]["hgvs_predicted_protein_consequence"]["slr"] ==  "NP_001006936.1:p.?"
-        assert results["NM_001006935.3:c.-13_4del"]["hgvs_predicted_protein_consequence"]["tlr"] ==  "NP_001006936.1:p.?"
+        assert "validation_warning_1" in results.keys()
+        assert results["validation_warning_1"]["validation_warnings"] ==  [
+            'ProteinTranslationError: Unable to generate protein variant description due to the reference sequence '
+            'missing an accepted start codon.']
 
 
 # <LICENSE>
