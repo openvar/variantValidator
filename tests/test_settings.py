@@ -1,5 +1,7 @@
+import importlib
 import os
 from unittest import TestCase
+from unittest.mock import patch
 
 from VariantValidator import settings
 from VariantValidator.settings import (
@@ -78,23 +80,58 @@ class TestSettings(TestCase):
         assert isinstance(vvDB_GET_CACHE_SIZE, int)
         assert vvDB_GET_CACHE_SIZE > 0
 
-    def test_vvdb_get_cache_true_environment_values(self):
-        for value in ("true", "TRUE", "1", "yes", "YES"):
-            result = value.lower() in (
-                "true",
-                "1",
-                "yes",
-            )
-            assert result is True
+    def test_vvdb_get_cache_environment_true(self):
+        values = (
+            "true",
+            "TRUE",
+            "1",
+            "yes",
+            "YES",
+        )
 
-    def test_vvdb_get_cache_false_environment_values(self):
-        for value in ("false", "FALSE", "0", "no", "NO"):
-            result = value.lower() in (
-                "true",
-                "1",
-                "yes",
-            )
-            assert result is False
+        for value in values:
+            with self.subTest(value=value):
+                with patch.dict(
+                    os.environ,
+                    {"VV_DB_GET_CACHE": value},
+                    clear=False,
+                ):
+                    importlib.reload(settings)
+                    assert settings.vvDB_GET_CACHE is True
+
+                importlib.reload(settings)
+
+    def test_vvdb_get_cache_environment_false(self):
+        values = (
+            "false",
+            "FALSE",
+            "0",
+            "no",
+            "NO",
+        )
+
+        for value in values:
+            with self.subTest(value=value):
+                with patch.dict(
+                    os.environ,
+                    {"VV_DB_GET_CACHE": value},
+                    clear=False,
+                ):
+                    importlib.reload(settings)
+                    assert settings.vvDB_GET_CACHE is False
+
+                importlib.reload(settings)
+
+    def test_vvdb_get_cache_size_environment(self):
+        with patch.dict(
+            os.environ,
+            {"VV_DB_GET_CACHE_SIZE": "12345"},
+            clear=False,
+        ):
+            importlib.reload(settings)
+            assert settings.vvDB_GET_CACHE_SIZE == 12345
+
+        importlib.reload(settings)
 
 
 # <LICENSE>
