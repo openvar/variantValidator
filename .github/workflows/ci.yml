@@ -166,6 +166,21 @@ jobs:
             variantvalidator
 
       ##################################################################
+      # Verify package installation
+      ##################################################################
+
+      - name: Verify VariantValidator and VariantFormatter installation
+        run: |
+          docker exec variantvalidator \
+            python -c "import VariantValidator; import VariantFormatter"
+
+          docker exec variantvalidator \
+            python -m pip show VariantValidator
+
+          docker exec variantvalidator \
+            python -m pip show VariantFormatter
+
+      ##################################################################
       # Run all tests and collect VV + VF coverage
       ##################################################################
 
@@ -251,8 +266,16 @@ jobs:
       - name: Cleanup
         if: always()
         run: |
-          docker stop variantvalidator vv-seqrepo vv-vdb vv-vvta || true
+          docker stop \
+            variantvalidator \
+            vv-seqrepo \
+            vv-vdb \
+            vv-vvta || true
 
-          docker rm variantvalidator vv-seqrepo vv-vdb vv-vvta || true
+          docker rm \
+            variantvalidator \
+            vv-seqrepo \
+            vv-vdb \
+            vv-vvta || true
 
           docker network rm ${DOCKER_NETWORK} || true

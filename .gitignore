@@ -10,8 +10,7 @@ __pycache__/
 # Build artefacts
 build/
 dist/
-variantValidator.egg-info/
-VariantValidator.egg-info/
+*.egg-info/
 .eggs/
 
 # IDEs
@@ -40,3 +39,8 @@ Users/
 *.sql
 validator_2021-07-21.sql
 VVTA_2021_2_noseq.psql.gz
+
+# LOVD HGVS Syntax Checker runtime files
+VariantValidator/php/
+# LOVD HGVS Syntax Checker runtime files
+VariantValidator/php/

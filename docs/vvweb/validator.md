@@ -150,12 +150,6 @@ The following documentation may also be useful:
 
 ---
 
-# How to cite VariantValidator
-
-If you use VariantValidator in your research, please [cite the appropriate VariantValidator publication(s)](https://github.com/openvar/VariantValidator#cite-us).
-
----
-
 ## Acknowledgements
 
 **VariantValidator was originally developed at the University of Leicester (2016–2019). It is now maintained and developed by the University of Manchester, with continued hosting and development contributions from the University of Leicester.**

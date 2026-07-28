@@ -1,3 +1,5 @@
+<img src="../static/img/logos/VV_logo.png" width="20%" />
+
 # REST VariantValidator2 (SHAIP)
 
 REST VariantValidator2 (SHAIP) is the current-generation REST API for VariantValidator.
@@ -61,12 +63,6 @@ The following VariantValidator documentation may also be useful:
 - [Transcript Selection](../user-manual/reference/transcript_selection.md)
 - [Output Formats](../user-manual/reference/output_formats.md)
 - [Errors and Error Codes](../user-manual/reference/errors_and_error_codes.md)
-
----
-
-# How to cite VariantValidator
-
-If you use VariantValidator in your research, please [cite the appropriate VariantValidator publication(s)](https://github.com/openvar/VariantValidator#cite-us).
 
 ---
 

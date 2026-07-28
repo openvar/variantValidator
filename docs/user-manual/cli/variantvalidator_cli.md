@@ -1,8 +1,8 @@
+<img src="../../static/img/logos/VV_logo.png" width="20%" />
+
 # VariantValidator Command Line Interface
 
-The VariantValidator Command Line Interface (CLI) provides a simple way to validate and normalise genetic variant
-descriptions directly from the command line. It is suitable for validating individual variants, processing batches of
-variants, and generating structured output for downstream analysis.
+The VariantValidator Command Line Interface (CLI) provides a simple way to validate and normalise genetic variant descriptions directly from the command line. It is suitable for validating individual variants, processing batches of variants and generating structured output for downstream analysis.
 
 The CLI is intended for users who wish to use VariantValidator without writing Python code.
 
@@ -11,9 +11,17 @@ For users who are not familiar with command-line tools or Python programming:
 - The [VariantValidator website](https://variantvalidator.org) provides a user-friendly alternative for validating variant descriptions.
 - The [VariantValidator REST API](https://rest.variantvalidator.org) allows programmatic access to the validation services without requiring local installation.
 
+## See also
+
+- [VariantValidator Python API](../python-api/variantvalidator_python.md) — Access VariantValidator directly from Python.
+- [Supported Input Formats](../reference/supported_inputs.md) — Supported variant description formats.
+- [Output Formats](../reference/output_formats.md) — Available output formats and returned data.
+- [Transcript Selection](../reference/transcript_selection.md) — Available transcript selection strategies.
+- [Errors and Error Codes](../reference/errors_and_error_codes.md) — Error messages and troubleshooting guidance.
+
 ---
 
-## Basic Usage
+# Basic Usage
 
 The simplest way to validate a variant is to provide the variant description and the genome assembly.
 
@@ -27,7 +35,7 @@ VariantValidator validates the supplied variant, performs normalisation where ap
 
 ---
 
-## Command Syntax
+# Command Syntax
 
 ```text
 variantvalidator [OPTIONS]
@@ -41,69 +49,69 @@ variantvalidator --help
 
 ---
 
-## Required Arguments
+# Required Arguments
 
 The following argument is always required:
 
 | Argument | Description |
-|----------|-------------|
+| --- | --- |
 | `-v`, `--variant` | The variant description(s) to validate. |
 
 ---
 
-## Common Options
+# Common Options
 
 Commonly used command-line options include:
 
-| Option                       | Description |
-|------------------------------|-------------|
-| `-g`, `--genome`             | Specify the reference genome assembly (e.g. `GRCh37` or `GRCh38`). |
+| Option | Description |
+| --- | --- |
+| `-g`, `--genome` | Specify the reference genome assembly (e.g. `GRCh37` or `GRCh38`). |
 | `-t`, `--select-transcripts` | Restrict the output to selected transcripts. |
-| `--transcript-set`           | Select a predefined transcript set. |
-| `-f`, `--output-format`      | Specify the output format. |
-| `-l`, `--liftover-level`      | Generate equivalent genomic representations on alternate genome assemblies. |
-| `-o`, `--output`             | Write the results to a file. |
-| `-m`, `--meta`               | Include metadata in the output. |
-| `--help`                     | Display the command help message. |
+| `--transcript-set` | Select a predefined transcript set. |
+| `-f`, `--output-format` | Specify the output format. |
+| `-l`, `--liftover-level` | Generate equivalent genomic representations on alternate genome assemblies. |
+| `-o`, `--output` | Write the results to a file. |
+| `-m`, `--meta` | Include metadata in the output. |
+| `--help` | Display the command help message. |
 
 ---
 
-## Default Behaviour
+# Default Behaviour
 
 Unless otherwise specified, VariantValidator uses the following defaults:
 
-| Setting              | Default                    |
-|----------------------|----------------------------|
-| Genome assembly      | `GRCh38`                   |
-| Transcript selection | `mane_select`              |
-| Transcript database  | `refseq`                   |
-| Liftover             | Enabled                    |
-| LOVD syntax checker  | Enabled                    |
-| Output format        | JSON                       |
-| Output destination   | Standard output (`stdout`) |
-| Metadata             | Disabled                   |
+| Setting | Default |
+| --- | --- |
+| Genome assembly | `GRCh38` |
+| Transcript selection | `mane_select` |
+| Transcript database | `refseq` |
+| Liftover | Enabled |
+| LOVD syntax checker | Enabled |
+| Output format | JSON |
+| Output destination | Standard output (`stdout`) |
+| Metadata | Disabled |
 
 These defaults can be overridden using the appropriate command-line options described above and demonstrated in the examples below.
 
 ---
 
-## Supported Input Formats
+# Supported Input Formats
 
 VariantValidator accepts a range of commonly used variant descriptions, including:
 
-- Genomic HGVS (g. notation)
-- Coding HGVS (c. notation)
-- Non-coding HGVS (n. notation)
-- RNA HGVS (r. notation)
-- Protein HGVS (p. notation, including single-letter and three-letter amino acid codes - basic validation, not recommended)
-- Pseudo-VCF/Chromosome coordinate notation (e.g. `17-50198002-C-A` or `17:50198002:C:A`)
+- Genomic HGVS (`g.` notation)
+- Coding HGVS (`c.` notation)
+- Non-coding HGVS (`n.` notation)
+- RNA HGVS (`r.` notation)
+- Protein HGVS (`p.` notation, including single-letter and three-letter amino acid codes — basic validation, not recommended)
+- Pseudo-VCF/chromosome coordinate notation (e.g. `17-50198002-C-A` or `17:50198002:C:A`)
 - VCF notation (i.e. full VCF lines with chromosome, position, reference and alternate alleles)
 
 See the [Supported Input Formats](../reference/supported_inputs.md) guide for a complete list of supported variant representations.
 
 ---
 
-## Output Formats
+# Output Formats
 
 VariantValidator supports two output formats suitable for interactive use and downstream processing.
 
@@ -114,12 +122,11 @@ Available output formats include:
 
 Output can be written directly to the terminal or saved to a file using the `--output` option.
 
-A detailed description of each output format, including the JSON schema and tabular output columns, is provided in the
-[Output Formats](../reference/output_formats.md) guide.
+A detailed description of each output format, including the JSON schema and tabular output columns, is provided in the [Output Formats](../reference/output_formats.md) guide.
 
 ---
 
-## Transcript Selection
+# Transcript Selection
 
 VariantValidator supports multiple transcript selection strategies.
 
@@ -135,9 +142,9 @@ See the [Transcript Selection](../reference/transcript_selection.md) guide for d
 
 ---
 
-## Examples
+# Examples
 
-### Validate a genomic variant
+## Validate a genomic variant
 
 ```bash
 variantvalidator \
@@ -147,7 +154,7 @@ variantvalidator \
 
 ---
 
-### Validate a genomic variant using the Ensembl transcript set
+## Validate a genomic variant using the Ensembl transcript set
 
 ```bash
 variantvalidator \
@@ -158,7 +165,7 @@ variantvalidator \
 
 ---
 
-### Validate a transcript variant
+## Validate a transcript variant
 
 ```bash
 variantvalidator \
@@ -168,7 +175,7 @@ variantvalidator \
 
 ---
 
-### Validate an Ensembl transcript variant
+## Validate an Ensembl transcript variant
 
 ```bash
 variantvalidator \
@@ -179,7 +186,7 @@ variantvalidator \
 
 ---
 
-### Validate multiple variants
+## Validate multiple variants
 
 VariantValidator accepts multiple variants using a JSON array.
 
@@ -195,11 +202,11 @@ Each variant is validated independently, and the results are returned in the ord
 
 ---
 
-### Using the `--select-transcripts` option
+## Using the `--select-transcripts` option
 
 > **Note:** The `--select-transcripts` option only affects genomic variants. It is ignored when validating transcript variants, as the transcript is already explicitly defined in the input.
 
-For example,
+For example:
 
 ```bash
 variantvalidator \
@@ -216,7 +223,7 @@ RefSeq and Ensembl transcript identifiers must **not** be mixed when using the `
 
 ---
 
-### Restrict the output to MANE Select transcripts
+## Restrict the output to MANE Select transcripts
 
 ```bash
 variantvalidator \
@@ -227,7 +234,7 @@ variantvalidator \
 
 ---
 
-### Restrict the output to a single specified transcript
+## Restrict the output to a single specified transcript
 
 ```bash
 variantvalidator \
@@ -240,7 +247,7 @@ Only the specified transcript is included in the output.
 
 ---
 
-### Restrict the output to multiple specified transcripts
+## Restrict the output to multiple specified transcripts
 
 ```bash
 variantvalidator \
@@ -253,37 +260,39 @@ Only the specified transcript versions are included in the output.
 
 ---
 
-### Restrict the output to multiple user-selected transcripts
+# Liftover
 
-The `--select-transcripts` option accepts a JSON array of transcript identifiers.
+The `--liftover-level` option controls the generation of equivalent genomic representations on alternate genome assemblies.
+
+| Value | Description |
+| --- | --- |
+| `true` | Perform full liftover. |
+| `primary` | Perform liftover while excluding alternative scaffolds. |
+| `false` | Disable liftover. |
+
+Liftover is enabled by default.
+
+For example:
 
 ```bash
 variantvalidator \
     --variant "NC_000017.11:g.50198002C>A" \
     --genome GRCh38 \
-    --select-transcripts '["NM_000088.3","NM_000088.4"]'
+    --liftover-level true
 ```
 
----
-
-### Generate lifted-over genomic representations
-
-The `--liftover-level` option includes equivalent genomic representations on alternate genome assemblies.
+To disable liftover:
 
 ```bash
-variantformatter \
+variantvalidator \
     --variant "NC_000017.11:g.50198002C>A" \
     --genome GRCh38 \
-    --liftover-level
+    --liftover-level false
 ```
-
-| Parameter | Type            | Required | Description |
-|----------|-----------------|----------|-------------|
-| liftover_level | string or bool  | No | Controls genomic liftover. `True` performs full liftover, `primary` excludes alternative scaffolds, and `False` disables liftover. Defaults to `True`. |
 
 ---
 
-### Write the results to a JSON file
+# Write the Results to a JSON File
 
 ```bash
 variantvalidator \
@@ -295,7 +304,7 @@ variantvalidator \
 
 ---
 
-### Display the results as a table
+# Display the Results as a Table
 
 ```bash
 variantvalidator \
@@ -308,7 +317,7 @@ See the [Output Formats](../reference/output_formats.md) guide for a detailed de
 
 ---
 
-### Write the results as a table
+# Write the Results as a Table
 
 ```bash
 variantvalidator \
@@ -320,7 +329,7 @@ variantvalidator \
 
 ---
 
-### Validate variants from an input file
+# Validate Variants from an Input File
 
 VariantValidator can validate multiple variants from a text file.
 
@@ -334,7 +343,7 @@ variantvalidator \
 
 ---
 
-### Validate variants from an input file and write the results to a JSON file
+# Validate Variants from an Input File and Write the Results to a JSON File
 
 ```bash
 variantvalidator \
@@ -346,7 +355,7 @@ variantvalidator \
 
 ---
 
-### Display the command help
+# Display the Command Help
 
 ```bash
 variantvalidator --help
@@ -354,7 +363,7 @@ variantvalidator --help
 
 ---
 
-## Common Errors
+# Common Errors
 
 Common problems include:
 
@@ -366,15 +375,32 @@ Common problems include:
 
 Most errors include an explanatory message describing the cause of the problem.
 
-For a complete description of command-line error messages, exit codes and troubleshooting guidance, see the
-[Errors and Error Codes](../reference/errors_and_error_codes.md) guide.
+For a complete description of command-line error messages, exit codes and troubleshooting guidance, see the [Errors and Error Codes](../reference/errors_and_error_codes.md) guide.
 
 ---
 
-## Related Documentation
+# Getting help
+
+VariantValidator has been developed to support a wide range of users, from those new to HGVS nomenclature to experienced clinical scientists and bioinformaticians. If you encounter difficulties using the VariantValidator command-line interface or interpreting validation results, we encourage you to seek assistance.
+
+Before contacting the development team, you may find the following documentation helpful:
 
 - [VariantValidator Python API](../python-api/variantvalidator_python.md)
 - [Supported Input Formats](../reference/supported_inputs.md)
 - [Output Formats](../reference/output_formats.md)
 - [Transcript Selection](../reference/transcript_selection.md)
 - [Errors and Error Codes](../reference/errors_and_error_codes.md)
+
+If you still require assistance, you can contact the VariantValidator team using our [contact form](https://variantvalidator.org/help/contact/).
+
+Software bugs and feature requests can be reported through the [VariantValidator GitHub issue tracker](https://github.com/openvar/VariantValidator/issues).
+
+---
+
+## Acknowledgements
+
+**VariantValidator was originally developed at the University of Leicester (2016–2019). It is now maintained and developed by the University of Manchester, with continued hosting and development contributions from the University of Leicester.**
+
+<img src="../../static/img/logos/Manchester_logo.png" width="40%" align="left"/>
+<img src="../../static/img/logos/uniofleicesterlogo.png" width="40%" align="right" />
+<br clear="both"/>

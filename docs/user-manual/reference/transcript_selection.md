@@ -1,3 +1,5 @@
+<img src="../../static/img/logos/VV_logo.png" width="20%" />
+
 # Transcript Selection
 
 Many genes produce multiple transcript isoforms, each with a different transcript reference sequence. Unless a transcript is explicitly specified in the submitted variant description, the VariantValidator software suite must determine which transcript(s) should be used during validation, formatting or annotation.
@@ -6,9 +8,17 @@ Transcript selection controls which transcript reference sequences are considere
 
 This guide describes the transcript selection strategies shared throughout the VariantValidator software suite.
 
+## See also
+
+- [Supported Input Formats](supported_inputs.md) — Input formats accepted by VariantValidator and related tools.
+- [Output Formats](output_formats.md) — Results returned by the VariantValidator software suite.
+- [Errors and Error Codes](errors_and_error_codes.md) — Validation errors, warnings and informational messages.
+- [VariantValidator Python API](../python-api/variantvalidator_python.md) — Validate variants directly from Python.
+- [VariantFormatter Python API](../python-api/variantformatter_python.md) — Format genomic variants directly from Python.
+
 ---
 
-# Why transcript selection matters
+# Why Transcript Selection Matters
 
 A single genomic variant may overlap multiple transcripts. Consequently, different transcript reference sequences may produce different HGVS transcript descriptions, protein consequences, exon numbering and coding positions.
 
@@ -25,7 +35,7 @@ Transcript selection determines which of these transcript reference sequences ar
 
 ---
 
-# Specifying an explicit transcript
+# Specifying an Explicit Transcript
 
 The most precise method is to specify the desired transcript reference sequence directly.
 
@@ -47,7 +57,7 @@ When an explicit transcript accession is supplied, only that transcript is proce
 
 ---
 
-# Transcript selection terms
+# Transcript Selection Terms
 
 Instead of specifying an individual transcript accession, VariantValidator provides several predefined transcript selection strategies.
 
@@ -95,7 +105,7 @@ This option is primarily intended for advanced users and downstream software.
 
 ---
 
-# RefSeq and Ensembl transcript collections
+# RefSeq and Ensembl Transcript Collections
 
 The transcript identifiers returned depend upon the selected transcript alignment method.
 
@@ -116,7 +126,7 @@ The selected transcript alignment method therefore determines both the available
 
 ---
 
-# Gene symbol input
+# Gene Symbol Input
 
 Transcript selection is particularly important when a gene symbol is supplied instead of a transcript reference sequence.
 
@@ -143,3 +153,31 @@ When reproducing published work or validating a known transcript variant, the tr
 Use `all` when comprehensive transcript annotation is required.
 
 Use `raw` only when unfiltered transcript mappings are required for downstream processing.
+
+---
+
+# Getting help
+
+VariantValidator has been developed to support a wide range of users, from those new to HGVS nomenclature to experienced clinical scientists and bioinformaticians. If you encounter difficulties selecting an appropriate transcript or determining which transcript selection strategy should be used, we encourage you to seek assistance.
+
+Before contacting the development team, you may find the following documentation helpful:
+
+- [Supported Input Formats](supported_inputs.md)
+- [Output Formats](output_formats.md)
+- [Errors and Error Codes](errors_and_error_codes.md)
+- [VariantValidator Python API](../python-api/variantvalidator_python.md)
+- [VariantFormatter Python API](../python-api/variantformatter_python.md)
+
+If you still require assistance, you can contact the VariantValidator team using our [contact form](https://variantvalidator.org/help/contact/).
+
+Software bugs and feature requests can be reported through the [VariantValidator GitHub issue tracker](https://github.com/openvar/VariantValidator/issues).
+
+---
+
+## Acknowledgements
+
+**VariantValidator was originally developed at the University of Leicester (2016–2019). It is now maintained and developed by the University of Manchester, with continued hosting and development contributions from the University of Leicester.**
+
+<img src="../../static/img/logos/Manchester_logo.png" width="40%" align="left"/>
+<img src="../../static/img/logos/uniofleicesterlogo.png" width="40%" align="right" />
+<br clear="both"/>

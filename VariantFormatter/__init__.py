@@ -2,7 +2,7 @@ import importlib.metadata
 import re
 
 
-__version__ = importlib.metadata.version("VariantValidator")
+__version__ = importlib.metadata.version("VariantFormatter")
 _is_released_version = re.fullmatch(r"\d+\.\d+\.\d+", __version__) is not None
 
 

@@ -1,11 +1,10 @@
+<img src="../../static/img/logos/VV_logo.png" width="20%" />
+
 # Gene2Transcripts Python API
 
-The Gene2Transcripts Python API provides direct access to the Gene2Transcripts engine from within Python. It is suitable
-for integrating transcript retrieval into bioinformatics pipelines, analysis workflows, web applications and custom
-software.
+The Gene2Transcripts Python API provides direct access to the Gene2Transcripts engine from within Python. It is suitable for integrating transcript retrieval into bioinformatics pipelines, analysis workflows, web applications and custom software.
 
-The Python API offers access to the same functionality as the Gene2Transcripts command-line interface while providing a
-programmatic interface for automated processing and downstream analysis.
+The Python API offers access to the same functionality as the Gene2Transcripts command-line interface while providing a programmatic interface for automated processing and downstream analysis.
 
 For users who prefer not to write Python code:
 
@@ -13,24 +12,29 @@ For users who prefer not to write Python code:
 - The [VariantValidator REST API](https://rest.variantvalidator.org) allows programmatic access without requiring local installation.
 - The [Gene2Transcripts Command Line Interface](../cli/gene2transcripts_cli.md) provides a command-line interface for retrieving transcript information locally.
 
+## See also
+
+- [Gene2Transcripts Command Line Interface](../cli/gene2transcripts_cli.md) — Retrieve transcript information from the command line.
+- [Supported Input Formats](../reference/supported_inputs.md) — Supported Gene2Transcripts query formats.
+- [Output Formats](../reference/output_formats.md) — Description of returned data.
+- [Transcript Selection](../reference/transcript_selection.md) — Available transcript selection strategies.
+- [Errors and Error Codes](../reference/errors_and_error_codes.md) — Error messages and troubleshooting guidance.
+
 ---
 
-## Basic Usage
+# Basic Usage
 
 Begin by importing the VariantValidator package and creating a `Validator` object.
 
 ```python
-import json
 import VariantValidator
 
 vval = VariantValidator.Validator()
 ```
 
-The `Validator` object manages access to the Gene2Transcripts engine and can be reused for multiple queries within the
-same Python session.
+The `Validator` object manages access to the Gene2Transcripts engine and can be reused for multiple queries within the same Python session.
 
-Once a `Validator` object has been created, transcript information can be retrieved using the `gene2transcripts()`
-method.
+Once a `Validator` object has been created, transcript information can be retrieved using the `gene2transcripts()` method.
 
 ```python
 import json
@@ -45,12 +49,11 @@ results = vval.gene2transcripts(
 print(json.dumps(results, indent=4, sort_keys=True))
 ```
 
-This retrieves transcript information for the supplied query and returns the results as a Python dictionary, which can
-then be processed directly or converted to JSON.
+This retrieves transcript information for the supplied query and returns the results as a Python dictionary, which can then be processed directly or converted to JSON.
 
 ---
 
-## Method Signature
+# Method Signature
 
 Transcript information is retrieved using the `gene2transcripts()` method of the `Validator` object.
 
@@ -69,37 +72,37 @@ gene2transcripts(
 
 ---
 
-## Required Arguments
+# Required Arguments
 
 The following argument is required when calling the `gene2transcripts()` method.
 
 | Argument | Description |
-|----------|-------------|
+| --- | --- |
 | `query` | A gene symbol, transcript accession, HGNC identifier, multiple queries, or an input file. |
 
 ---
 
-## Optional Arguments
+# Optional Arguments
 
 The following optional arguments control transcript retrieval behaviour.
 
-| Argument | Default | Description                                                              |
-|----------|---------|--------------------------------------------------------------------------|
-| `bypass_web_searches` | `False` | Disable HGNC web lookups.                                                |
-| `select_transcripts` | `"all"` | Transcript selection strategy or JSON array of transcript identifiers.   |
-| `transcript_set` | `"refseq"` | Transcript database (`refseq` or `ensembl`).                             |
-| `genome_build` | `"GRCh38"` | Return transcripts for a specific genome build.                          |
-| `bypass_genomic_spans` | `False` | Omit genomic span and alignment information.                             |
-| `lovd_syntax_check` | `False` | Enable LOVD HGVS syntax checking.                                        |
+| Argument | Default | Description |
+| --- | --- | --- |
+| `bypass_web_searches` | `False` | Disable HGNC web lookups. |
+| `select_transcripts` | `"all"` | Transcript selection strategy or JSON array of transcript identifiers. |
+| `transcript_set` | `"refseq"` | Transcript database (`refseq` or `ensembl`). |
+| `genome_build` | `"GRCh38"` | Return transcripts for a specific genome build. |
+| `bypass_genomic_spans` | `False` | Omit genomic span and alignment information. |
+| `lovd_syntax_check` | `False` | Enable LOVD HGVS syntax checking. |
 
 ---
 
-## Default Behaviour
+# Default Behaviour
 
 Unless otherwise specified, the Gene2Transcripts Python API uses the following defaults.
 
 | Setting | Default |
-|---------|---------|
+| --- | --- |
 | Genome assembly | `GRCh38` |
 | Transcript database | `refseq` |
 | Transcript selection | `all` (all transcripts) |
@@ -110,7 +113,7 @@ Unless otherwise specified, the Gene2Transcripts Python API uses the following d
 
 ---
 
-## Supported Query Types
+# Supported Query Types
 
 The Gene2Transcripts Python API accepts the same query types as the command-line interface.
 
@@ -128,7 +131,7 @@ See the [Supported Input Formats](../reference/supported_inputs.md) guide for a 
 
 ---
 
-## Transcript Selection
+# Transcript Selection
 
 Gene2Transcripts supports the same transcript selection strategies as VariantValidator.
 
@@ -144,9 +147,9 @@ See the [Transcript Selection](../reference/transcript_selection.md) guide for c
 
 ---
 
-## Examples
+# Examples
 
-### Retrieve transcripts for a gene symbol
+## Retrieve transcripts for a gene symbol
 
 ```python
 import json
@@ -161,7 +164,7 @@ print(json.dumps(results, indent=4, sort_keys=True))
 
 ---
 
-### Retrieve transcripts using the Ensembl transcript database
+## Retrieve transcripts using the Ensembl transcript database
 
 ```python
 import json
@@ -179,7 +182,7 @@ print(json.dumps(results, indent=4, sort_keys=True))
 
 ---
 
-### Query a RefSeq transcript accession
+## Query a RefSeq transcript accession
 
 ```python
 import json
@@ -194,7 +197,7 @@ print(json.dumps(results, indent=4, sort_keys=True))
 
 ---
 
-### Query an Ensembl transcript accession
+## Query an Ensembl transcript accession
 
 ```python
 import json
@@ -212,7 +215,7 @@ print(json.dumps(results, indent=4, sort_keys=True))
 
 ---
 
-### Query an HGNC identifier
+## Query an HGNC identifier
 
 ```python
 import json
@@ -227,7 +230,7 @@ print(json.dumps(results, indent=4, sort_keys=True))
 
 ---
 
-### Query multiple entries
+## Query multiple entries
 
 Gene2Transcripts accepts multiple queries using a JSON array.
 
@@ -250,7 +253,7 @@ Each query is processed independently and returned in the order supplied.
 
 ---
 
-### Using `select_transcripts`
+## Using `select_transcripts`
 
 The `select_transcripts` argument restricts the transcripts returned for a query.
 
@@ -258,7 +261,7 @@ RefSeq and Ensembl transcript identifiers must **not** be mixed when using `sele
 
 ---
 
-### Restrict the output to MANE Select transcripts
+## Restrict the output to MANE Select transcripts
 
 ```python
 import json
@@ -276,7 +279,7 @@ print(json.dumps(results, indent=4, sort_keys=True))
 
 ---
 
-### Restrict the output to a single specified transcript
+## Restrict the output to a single specified transcript
 
 ```python
 import json
@@ -294,7 +297,7 @@ print(json.dumps(results, indent=4, sort_keys=True))
 
 ---
 
-### Restrict the output to multiple specified transcripts
+## Restrict the output to multiple specified transcripts
 
 ```python
 import json
@@ -312,7 +315,7 @@ print(json.dumps(results, indent=4, sort_keys=True))
 
 ---
 
-### Specify the genome assembly
+## Specify the genome assembly
 
 ```python
 import json
@@ -330,7 +333,7 @@ print(json.dumps(results, indent=4, sort_keys=True))
 
 ---
 
-### Disable HGNC web lookups
+## Disable HGNC web lookups
 
 ```python
 import json
@@ -348,7 +351,7 @@ print(json.dumps(results, indent=4, sort_keys=True))
 
 ---
 
-### Omit genomic span information
+## Omit genomic span information
 
 ```python
 import json
@@ -366,7 +369,7 @@ print(json.dumps(results, indent=4, sort_keys=True))
 
 ---
 
-### Enable LOVD syntax checking
+## Enable LOVD syntax checking
 
 ```python
 import json
@@ -384,7 +387,7 @@ print(json.dumps(results, indent=4, sort_keys=True))
 
 ---
 
-### Query from an input file
+## Query from an input file
 
 Each line of the input file should contain a single supported query.
 
@@ -401,7 +404,7 @@ print(json.dumps(results, indent=4, sort_keys=True))
 
 ---
 
-### Write the results to a JSON file
+## Write the results to a JSON file
 
 ```python
 import json
@@ -417,7 +420,7 @@ with open("results.json", "w") as fh:
 
 ---
 
-## Common Errors
+# Common Errors
 
 Common problems include:
 
@@ -429,15 +432,33 @@ Common problems include:
 
 Most errors include an explanatory message describing the cause of the problem.
 
-For a complete description of command-line error messages, exit codes and troubleshooting guidance, see the
-[Errors and Error Codes](../reference/errors_and_error_codes.md) guide.
+For a complete description of errors and troubleshooting guidance, see the [Errors and Error Codes](../reference/errors_and_error_codes.md) guide.
 
 ---
 
-## Related Documentation
+# Getting help
+
+VariantValidator has been developed to support a wide range of users, from those new to HGVS nomenclature to experienced clinical scientists and bioinformaticians. If you encounter difficulties using the Gene2Transcripts Python API or interpreting the returned transcript information, we encourage you to seek assistance.
+
+Before contacting the development team, you may find the following documentation helpful:
 
 - [Gene2Transcripts Command Line Interface](../cli/gene2transcripts_cli.md)
 - [Supported Input Formats](../reference/supported_inputs.md)
 - [Output Formats](../reference/output_formats.md)
 - [Transcript Selection](../reference/transcript_selection.md)
 - [Errors and Error Codes](../reference/errors_and_error_codes.md)
+
+If you still require assistance, you can contact the VariantValidator team using our [contact form](https://variantvalidator.org/help/contact/).
+
+Software bugs and feature requests can be reported through the [VariantValidator GitHub issue tracker](https://github.com/openvar/VariantValidator/issues).
+
+---
+
+## Acknowledgements
+
+**VariantValidator was originally developed at the University of Leicester (2016–2019). It is now maintained and developed by the University of Manchester, with continued hosting and development contributions from the University of Leicester.**
+
+<img src="../../static/img/logos/Manchester_logo.png" width="40%" align="left"/>
+<img src="../../static/img/logos/uniofleicesterlogo.png" width="40%" align="right" />
+<br clear="both"/>
+

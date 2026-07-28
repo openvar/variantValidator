@@ -4,17 +4,15 @@ FROM python:3.12.11
 # Create the WorkDir
 WORKDIR /app
 
-# Copy the current directory contents into the container's /app directory
+# Copy the repository into the container
 COPY . /app
 
 # Create logging directory
-RUN mkdir /usr/local/share/logs
+RUN mkdir -p /usr/local/share/logs
 
-# Update apt-get
-RUN apt update
-
-# Install apt managed sofware
-RUN apt -y install git \
+# Update apt-get and install system dependencies
+RUN apt update && apt -y install \
+    git \
     postgresql-client \
     sqlite3 \
     php
@@ -22,17 +20,20 @@ RUN apt -y install git \
 # Upgrade pip
 RUN pip install --upgrade pip
 
-# Install the app
-RUN pip install -e .
+# Install VariantValidator
+RUN pip install ./packaging/variantvalidator
+
+# Install VariantFormatter
+RUN pip install ./packaging/variantformatter
 
 # Copy the config file into the container home directory
 COPY configuration/docker.ini /root/.variantvalidator
 
-# Setup the LOVD Syntax checker
+# Set up the LOVD HGVS Syntax Checker
 RUN python -m VariantValidator.bin.setup_lovd_syntax_checker
 
 # Set entrypoint
 ENTRYPOINT []
 
-# Set command
+# Keep the container running
 CMD ["tail", "-f", "/dev/null"]

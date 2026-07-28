@@ -1,8 +1,8 @@
+<img src="../../static/img/logos/VV_logo.png" width="20%" />
+
 # Gene2Transcripts Command Line Interface
 
-The Gene2Transcripts Command Line Interface (CLI) provides a simple way to retrieve transcript information for genes,
-transcript accessions and HGNC identifiers directly from the command line. It is suitable for interactive queries,
-batch processing and integration into bioinformatics workflows.
+The Gene2Transcripts Command Line Interface (CLI) provides a simple way to retrieve transcript information for genes, transcript accessions and HGNC identifiers directly from the command line. It is suitable for interactive queries, batch processing and integration into bioinformatics workflows.
 
 The CLI is intended for users who wish to use Gene2Transcripts without writing Python code.
 
@@ -11,22 +11,30 @@ For users who are not familiar with command-line tools or Python programming:
 - The [VariantValidator website](https://variantvalidator.org) provides a user-friendly interface for exploring transcript information.
 - The [VariantValidator REST API](https://rest.variantvalidator.org) allows programmatic access without requiring local installation.
 
+## See also
+
+- [Gene2Transcripts Python API](../python-api/gene2transcripts_python.md) — Access Gene2Transcripts directly from Python.
+- [Supported Input Formats](../reference/supported_inputs.md) — Supported Gene2Transcripts query formats.
+- [Output Formats](../reference/output_formats.md) — Description of returned data.
+- [Transcript Selection](../reference/transcript_selection.md) — Available transcript selection strategies.
+- [Errors and Error Codes](../reference/errors_and_error_codes.md) — Error messages and troubleshooting guidance.
+
 ---
 
-## Basic Usage
+# Basic Usage
 
 The simplest way to retrieve transcript information is to provide a gene symbol.
 
 ```bash
 gene2transcripts \
-    --gene COL1A1
+    --query COL1A1
 ```
 
 Gene2Transcripts retrieves transcript information associated with the supplied query and returns the results as JSON.
 
 ---
 
-## Command Syntax
+# Command Syntax
 
 ```text
 gene2transcripts [OPTIONS]
@@ -40,22 +48,22 @@ gene2transcripts --help
 
 ---
 
-## Required Arguments
+# Required Arguments
 
 The following argument is always required.
 
 | Argument | Description |
-|----------|-------------|
+| --- | --- |
 | `-q`, `--query` | A gene symbol, transcript accession, HGNC identifier, multiple queries, or an input file. |
 
 ---
 
-## Common Options
+# Common Options
 
 Commonly used command-line options include:
 
 | Option | Description |
-|---------|-------------|
+| --- | --- |
 | `-g`, `--genome` | Specify the reference genome assembly (`GRCh37` or `GRCh38`). |
 | `-t`, `--select-transcripts` | Restrict the returned transcript set. |
 | `--transcript-model` | Select the transcript database (`refseq` or `ensembl`). |
@@ -67,26 +75,26 @@ Commonly used command-line options include:
 
 ---
 
-## Default Behaviour
+# Default Behaviour
 
 Unless otherwise specified, Gene2Transcripts uses the following defaults.
 
-| Setting | Default                   |
-|---------|---------------------------|
-| Genome assembly | `GRCh38`                  |
-| Transcript database | `refseq`                  |
-| Transcript selection | All transcripts `all`      |         
-| HGNC web lookups | Enabled                   |
-| Genomic spans | Included                  |
-| LOVD syntax checker | Disabled                  |
-| Output format | JSON                      |
+| Setting | Default |
+| --- | --- |
+| Genome assembly | `GRCh38` |
+| Transcript database | `refseq` |
+| Transcript selection | All transcripts (`all`) |
+| HGNC web lookups | Enabled |
+| Genomic spans | Included |
+| LOVD syntax checker | Disabled |
+| Output format | JSON |
 | Output destination | Standard output (`stdout`) |
 
 These defaults can be overridden using the command-line options described above and demonstrated in the examples below.
 
 ---
 
-## Supported Query Types
+# Supported Query Types
 
 Gene2Transcripts accepts several different query types, including:
 
@@ -102,18 +110,17 @@ See the [Supported Input Formats](../reference/supported_inputs.md) guide for ad
 
 ---
 
-## Output Formats
+# Output Formats
 
 Gene2Transcripts returns JSON output.
 
 Output can be written directly to the terminal or saved to a file using the `--output` option.
 
-A detailed description of the output format is provided in the
-[Output Formats](../reference/output_formats.md) guide.
+A detailed description of the output format is provided in the [Output Formats](../reference/output_formats.md) guide.
 
 ---
 
-## Transcript Selection
+# Transcript Selection
 
 Gene2Transcripts supports the same transcript selection strategies as VariantValidator.
 
@@ -129,9 +136,9 @@ See the [Transcript Selection](../reference/transcript_selection.md) guide for c
 
 ---
 
-## Examples
+# Examples
 
-### Retrieve transcripts for a gene symbol
+## Retrieve transcripts for a gene symbol
 
 ```bash
 gene2transcripts \
@@ -140,7 +147,7 @@ gene2transcripts \
 
 ---
 
-### Retrieve transcripts using the Ensembl transcript database
+## Retrieve transcripts using the Ensembl transcript database
 
 ```bash
 gene2transcripts \
@@ -150,7 +157,7 @@ gene2transcripts \
 
 ---
 
-### Query a RefSeq transcript accession
+## Query a RefSeq transcript accession
 
 ```bash
 gene2transcripts \
@@ -159,7 +166,7 @@ gene2transcripts \
 
 ---
 
-### Query an Ensembl transcript accession
+## Query an Ensembl transcript accession
 
 ```bash
 gene2transcripts \
@@ -169,7 +176,7 @@ gene2transcripts \
 
 ---
 
-### Query an HGNC identifier
+## Query an HGNC identifier
 
 ```bash
 gene2transcripts \
@@ -178,7 +185,7 @@ gene2transcripts \
 
 ---
 
-### Query multiple entries using a JSON array
+## Query multiple entries using a JSON array
 
 ```bash
 gene2transcripts \
@@ -191,7 +198,7 @@ Each query is processed independently and returned in the order supplied.
 
 ---
 
-### Query multiple entries using a pipe-delimited list
+## Query multiple entries using a pipe-delimited list
 
 ```bash
 gene2transcripts \
@@ -200,7 +207,7 @@ gene2transcripts \
 
 ---
 
-### Restrict the output to MANE Select transcripts
+## Restrict the output to MANE Select transcripts
 
 ```bash
 gene2transcripts \
@@ -210,7 +217,7 @@ gene2transcripts \
 
 ---
 
-### Restrict the output to a single specified transcript
+## Restrict the output to a single specified transcript
 
 ```bash
 gene2transcripts \
@@ -220,7 +227,7 @@ gene2transcripts \
 
 ---
 
-### Restrict the output to multiple specified transcripts
+## Restrict the output to multiple specified transcripts
 
 ```bash
 gene2transcripts \
@@ -232,7 +239,7 @@ RefSeq and Ensembl transcript identifiers must **not** be mixed when using `--se
 
 ---
 
-### Specify the genome assembly
+## Specify the genome assembly
 
 ```bash
 gene2transcripts \
@@ -242,7 +249,7 @@ gene2transcripts \
 
 ---
 
-### Disable HGNC web lookups
+## Disable HGNC web lookups
 
 ```bash
 gene2transcripts \
@@ -252,7 +259,7 @@ gene2transcripts \
 
 ---
 
-### Omit genomic span information
+## Omit genomic span information
 
 ```bash
 gene2transcripts \
@@ -262,7 +269,7 @@ gene2transcripts \
 
 ---
 
-### Enable LOVD syntax checking
+## Enable LOVD syntax checking
 
 ```bash
 gene2transcripts \
@@ -272,7 +279,7 @@ gene2transcripts \
 
 ---
 
-### Write the results to a JSON file
+## Write the results to a JSON file
 
 ```bash
 gene2transcripts \
@@ -282,7 +289,7 @@ gene2transcripts \
 
 ---
 
-### Query from an input file
+## Query from an input file
 
 Each line of the input file should contain a single supported query.
 
@@ -293,7 +300,7 @@ gene2transcripts \
 
 ---
 
-### Query from an input file and write the results to a JSON file
+## Query from an input file and write the results to a JSON file
 
 ```bash
 gene2transcripts \
@@ -303,7 +310,7 @@ gene2transcripts \
 
 ---
 
-### Display the command help
+## Display the command help
 
 ```bash
 gene2transcripts --help
@@ -311,7 +318,7 @@ gene2transcripts --help
 
 ---
 
-## Common Errors
+# Common Errors
 
 Common problems include:
 
@@ -323,15 +330,31 @@ Common problems include:
 
 Most errors include an explanatory message describing the cause of the problem.
 
-For a complete description of command-line error messages, exit codes and troubleshooting guidance, see the
-[Errors and Error Codes](../reference/errors_and_error_codes.md) guide.
+For a complete description of command-line error messages, exit codes and troubleshooting guidance, see the [Errors and Error Codes](../reference/errors_and_error_codes.md) guide.
 
 ---
 
-## Related Documentation
+# Getting help
+
+VariantValidator has been developed to support a wide range of users, from those new to HGVS nomenclature to experienced clinical scientists and bioinformaticians. If you encounter difficulties using the Gene2Transcripts command-line interface or interpreting the returned transcript information, we encourage you to seek assistance.
+
+Before contacting the development team, you may find the following documentation helpful:
 
 - [Gene2Transcripts Python API](../python-api/gene2transcripts_python.md)
 - [Supported Input Formats](../reference/supported_inputs.md)
-- [Output Formats](../reference/output_formats.md)
 - [Transcript Selection](../reference/transcript_selection.md)
 - [Errors and Error Codes](../reference/errors_and_error_codes.md)
+
+If you still require assistance, you can contact the VariantValidator team using our [contact form](https://variantvalidator.org/help/contact/).
+
+Software bugs and feature requests can be reported through the [VariantValidator GitHub issue tracker](https://github.com/openvar/VariantValidator/issues).
+
+---
+
+## Acknowledgements
+
+**VariantValidator was originally developed at the University of Leicester (2016–2019). It is now maintained and developed by the University of Manchester, with continued hosting and development contributions from the University of Leicester.**
+
+<img src="../../static/img/logos/Manchester_logo.png" width="40%" align="left"/>
+<img src="../../static/img/logos/uniofleicesterlogo.png" width="40%" align="right" />
+<br clear="both"/>

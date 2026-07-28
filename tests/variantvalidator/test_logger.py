@@ -14,9 +14,17 @@ from VariantValidator.logger import configure_logging
 @pytest.fixture(autouse=True)
 def reset_logging_config():
     """
-    Restore the original logging configuration after every test.
+    Run each test with the default logging levels and restore
+    the incoming logging configuration afterwards.
     """
     original = copy.deepcopy(settings.LOGGING_CONFIG)
+
+    settings.LOGGING_CONFIG["handlers"]["console"]["level"] = (
+        settings.CONSOLE_LEVEL
+    )
+    settings.LOGGING_CONFIG["handlers"]["file"]["level"] = (
+        settings.FILE_LEVEL
+    )
 
     yield
 

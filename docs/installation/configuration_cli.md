@@ -1,17 +1,32 @@
+<img src="../static/img/logos/VV_logo.png" width="20%" />
+
 # Configuration
 
 Before VariantValidator can be used, it must be configured so that it can locate the required databases and reference sequence repository.
 
 Configuration is performed using the interactive configuration utility installed with VariantValidator.
 
+## See also
+
+- [Installation Guide](installation.md) — Install VariantValidator and its required databases.
+- [Docker Installation](docker.md) — Recommended installation using Docker-hosted databases.
+- [Configuration Troubleshooting](configuration_troubleshooting.md) — Resolve common configuration problems.
+- [Windows Installation](installation_windows.md) — Installation and configuration under Windows.
+
 ---
 
 # Running the configuration utility
 
+Ensure that the VariantValidator conda environment is active:
+
+```bash
+conda activate vvenv
+```
+
 Launch the configuration utility by running:
 
 ```bash
-variantvalidator_configure
+variantvalidator-configure
 ```
 
 If no user configuration file exists, a new configuration file is created automatically using the default settings supplied with VariantValidator.
@@ -58,7 +73,7 @@ Rather than editing the entire configuration, individual sections may be configu
 The available sections are:
 
 | Section | Purpose |
-|---------|---------|
+| --- | --- |
 | `mysql` | Validator MySQL database. |
 | `postgres` | VVTA PostgreSQL database. |
 | `seqrepo` | Local SeqRepo installation. |
@@ -68,19 +83,19 @@ The available sections are:
 For example, to configure only the MySQL settings:
 
 ```bash
-variantvalidator_configure --section mysql
+variantvalidator-configure --section mysql
 ```
 
-or
+or:
 
 ```bash
-variantvalidator_configure -s mysql
+variantvalidator-configure -s mysql
 ```
 
 Similarly, to configure only the SeqRepo settings:
 
 ```bash
-variantvalidator_configure --section seqrepo
+variantvalidator-configure --section seqrepo
 ```
 
 ---
@@ -149,11 +164,48 @@ The configuration utility may be run as many times as required.
 
 Existing values are displayed as defaults, allowing individual settings to be updated without modifying the remainder of the configuration.
 
+Ensure that the VariantValidator conda environment is active before running the utility:
+
+```bash
+conda activate vvenv
+```
+
+Then run:
+
+```bash
+variantvalidator-configure
+```
+
 ---
 
 # Verifying the configuration
 
 After configuration has been completed, verify that VariantValidator can connect to the configured databases by running the test suite as described in the [Installation Guide](installation.md).
 
-If any configuration problems are encountered, refer to the [Configuration Troubleshooting Guide](configuration_troubleshooting.md).
+If configuration problems are encountered, refer to the [Configuration Troubleshooting Guide](configuration_troubleshooting.md).
 
+---
+
+# Getting help
+
+VariantValidator has been developed to support a wide range of users, from those new to HGVS nomenclature to experienced clinical scientists and bioinformaticians. If you encounter difficulties configuring VariantValidator, we encourage you to seek assistance.
+
+Before contacting the development team, you may find the following documentation helpful:
+
+- [Installation Guide](installation.md)
+- [Docker Installation](docker.md)
+- [Configuration Troubleshooting](configuration_troubleshooting.md)
+
+If you still require assistance, you can contact the VariantValidator team using our [contact form](https://variantvalidator.org/help/contact/).
+
+Software bugs and feature requests can be reported through the [VariantValidator GitHub issue tracker](https://github.com/openvar/VariantValidator/issues).
+
+---
+
+## Acknowledgements
+
+**VariantValidator was originally developed at the University of Leicester (2016–2019). It is now maintained and developed by the University of Manchester, with continued hosting and development contributions from the University of Leicester.**
+
+<img src="../static/img/logos/Manchester_logo.png" width="40%" align="left"/>
+<img src="../static/img/logos/uniofleicesterlogo.png" width="40%" align="right" />
+<br clear="both"/>

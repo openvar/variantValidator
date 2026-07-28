@@ -1,3 +1,5 @@
+<img src="../../static/img/logos/VV_logo.png" width="20%" />
+
 # VariantFormatter Python API
 
 The VariantFormatter Python API provides direct access to the VariantFormatter formatting engine from within Python. It is suitable for integrating genomic variant formatting into bioinformatics pipelines, analysis workflows, web applications and custom software.
@@ -10,9 +12,18 @@ For users who prefer not to write Python code:
 - The [VariantValidator REST API](https://rest.variantvalidator.org) allows programmatic access to VariantValidator services without requiring local installation.
 - The [VariantFormatter Command Line Interface](../cli/variantformatter_cli.md) provides a command-line interface for formatting variants locally.
 
+## See also
+
+- [VariantFormatter Command Line Interface](../cli/variantformatter_cli.md) — Format genomic variants from the command line.
+- [VariantValidator Python API](variantvalidator_python.md) — Validate variant descriptions directly from Python.
+- [Supported Input Formats](../reference/supported_inputs.md) — Supported VariantFormatter input formats.
+- [Output Formats](../reference/output_formats.md) — Description of returned data.
+- [Transcript Selection](../reference/transcript_selection.md) — Available transcript selection strategies.
+- [Errors and Error Codes](../reference/errors_and_error_codes.md) — Error messages and troubleshooting guidance.
+
 ---
 
-## Basic Usage
+# Basic Usage
 
 Begin by importing VariantFormatter and creating a `SimpleVariantFormatter` object.
 
@@ -41,7 +52,7 @@ The returned Python dictionary can be processed directly or converted to JSON.
 
 ---
 
-## Method Signature
+# Method Signature
 
 Variant formatting is performed using the `format()` method.
 
@@ -59,19 +70,19 @@ format(
 
 ---
 
-## Required Arguments
+# Required Arguments
 
 | Argument | Description |
-|----------|-------------|
+| --- | --- |
 | `variant` | A genomic variant description or multiple genomic variants supplied in a supported batch format. |
 | `genome` | Reference genome assembly: `GRCh37`, `GRCh38`, `hg19` or `hg38`. |
 
 ---
 
-## Optional Arguments
+# Optional Arguments
 
 | Argument | Default | Description |
-|----------|---------|-------------|
+| --- | --- | --- |
 | `transcript_model` | `refseq` | Transcript database to use: `refseq`, `ensembl` or `all`. |
 | `select_transcripts` | `mane_select` | Controls which transcript representations are returned. |
 | `checkOnly` | `False` | Validate and format the genomic variant without transcript or protein mapping. |
@@ -80,12 +91,12 @@ format(
 
 ---
 
-## Default Behaviour
+# Default Behaviour
 
 Unless otherwise specified, VariantFormatter uses the following behaviour:
 
 | Setting | Default |
-|---------|---------|
+| --- | --- |
 | Genome assembly | User supplied |
 | Transcript selection | MANE Select |
 | Transcript database | RefSeq |
@@ -107,7 +118,7 @@ A detailed description of the returned data is provided in the [Output Formats](
 
 ---
 
-## Supported Input Formats
+# Supported Input Formats
 
 VariantFormatter accepts **genomic variants as input**.
 
@@ -126,7 +137,7 @@ See the [Supported Input Formats](../reference/supported_inputs.md) guide for fu
 
 ---
 
-## Transcript Selection
+# Transcript Selection
 
 VariantFormatter maps genomic variants to overlapping transcripts.
 
@@ -144,9 +155,9 @@ See the [Transcript Selection](../reference/transcript_selection.md) guide for f
 
 ---
 
-## Examples
+# Examples
 
-### Format a genomic variant
+## Format a genomic variant
 
 ```python
 import json
@@ -164,7 +175,7 @@ print(json.dumps(results, indent=4, sort_keys=True))
 
 ---
 
-### Format a genomic variant using Ensembl transcripts
+## Format a genomic variant using Ensembl transcripts
 
 ```python
 results = formatter.format(
@@ -176,7 +187,7 @@ results = formatter.format(
 
 ---
 
-### Format a genomic variant using RefSeq and Ensembl transcripts
+## Format a genomic variant using RefSeq and Ensembl transcripts
 
 ```python
 results = formatter.format(
@@ -188,7 +199,7 @@ results = formatter.format(
 
 ---
 
-### Format pseudo-VCF notation
+## Format pseudo-VCF notation
 
 Hyphen-delimited pseudo-VCF input:
 
@@ -210,7 +221,7 @@ results = formatter.format(
 
 ---
 
-## Format Multiple Variants
+# Format Multiple Variants
 
 Multiple variants can be supplied as a JSON array.
 
@@ -228,9 +239,9 @@ Each genomic variant is processed independently and returned in the result dicti
 
 ---
 
-## Selecting Transcripts
+# Selecting Transcripts
 
-### Restrict output to MANE Select transcripts
+## Restrict output to MANE Select transcripts
 
 ```python
 results = formatter.format(
@@ -242,7 +253,7 @@ results = formatter.format(
 
 ---
 
-### Return MANE Select and MANE Plus Clinical transcripts
+## Return MANE Select and MANE Plus Clinical transcripts
 
 ```python
 results = formatter.format(
@@ -254,7 +265,7 @@ results = formatter.format(
 
 ---
 
-### Return all latest transcript versions
+## Return all latest transcript versions
 
 ```python
 results = formatter.format(
@@ -266,7 +277,7 @@ results = formatter.format(
 
 ---
 
-### Return all transcript versions
+## Return all transcript versions
 
 ```python
 results = formatter.format(
@@ -278,7 +289,7 @@ results = formatter.format(
 
 ---
 
-### Restrict output to a single specified transcript
+## Restrict output to a single specified transcript
 
 ```python
 results = formatter.format(
@@ -290,7 +301,7 @@ results = formatter.format(
 
 ---
 
-### Restrict output to multiple specified transcripts
+## Restrict output to multiple specified transcripts
 
 ```python
 results = formatter.format(
@@ -304,7 +315,7 @@ RefSeq and Ensembl transcript identifiers must not be mixed in the same explicit
 
 ---
 
-## Validate Genomic HGVS Only
+# Validate Genomic HGVS Only
 
 The `checkOnly` argument validates and formats the genomic variant without generating transcript or protein mappings.
 
@@ -318,14 +329,14 @@ results = formatter.format(
 
 ---
 
-## Liftover
+# Liftover
 
 VariantFormatter can generate equivalent genomic representations on another genome assembly.
 
 The `liftover_level` argument controls this behaviour.
 
 | Value | Description |
-|-------|-------------|
+| --- | --- |
 | `True` | Perform full liftover. |
 | `"primary"` | Perform liftover while excluding alternative scaffolds. |
 | `False` | Disable liftover. |
@@ -352,7 +363,7 @@ results = formatter.format(
 
 ---
 
-## Genomic Loci Output Structure
+# Genomic Loci Output Structure
 
 VariantFormatter historically uses a genomic loci structure in which each genome build contains an additional accession-keyed level.
 
@@ -385,7 +396,7 @@ For example, `primary_assembly_loci` has the form:
 }
 ```
 
-### VariantValidator genomic structure
+## VariantValidator genomic structure
 
 Set `legacy_genomic_structure=False` to return genomic loci using the VariantValidator structure:
 
@@ -418,7 +429,7 @@ This option affects the structure used to return genomic loci; it does not chang
 
 ---
 
-## Write Results to a JSON File
+# Write Results to a JSON File
 
 The returned dictionary can be written directly to JSON.
 
@@ -441,7 +452,7 @@ with open("results.json", "w") as fh:
 
 ---
 
-## Reusing the Formatter
+# Reusing the Formatter
 
 A `SimpleVariantFormatter` instance can be reused for multiple formatting requests.
 
@@ -463,7 +474,7 @@ Reusing the formatter avoids unnecessarily recreating the VariantFormatter envir
 
 ---
 
-## Common Errors
+# Common Errors
 
 Common problems include:
 
@@ -484,7 +495,11 @@ For further information, see the [Errors and Error Codes](../reference/errors_an
 
 ---
 
-## Related Documentation
+# Getting help
+
+VariantValidator has been developed to support a wide range of users, from those new to HGVS nomenclature to experienced clinical scientists and bioinformaticians. If you encounter difficulties using the VariantFormatter Python API or interpreting the returned results, we encourage you to seek assistance.
+
+Before contacting the development team, you may find the following documentation helpful:
 
 - [VariantFormatter Command Line Interface](../cli/variantformatter_cli.md)
 - [VariantValidator Python API](variantvalidator_python.md)
@@ -492,3 +507,17 @@ For further information, see the [Errors and Error Codes](../reference/errors_an
 - [Output Formats](../reference/output_formats.md)
 - [Transcript Selection](../reference/transcript_selection.md)
 - [Errors and Error Codes](../reference/errors_and_error_codes.md)
+
+If you still require assistance, you can contact the VariantValidator team using our [contact form](https://variantvalidator.org/help/contact/).
+
+Software bugs and feature requests can be reported through the [VariantValidator GitHub issue tracker](https://github.com/openvar/VariantValidator/issues).
+
+---
+
+## Acknowledgements
+
+**VariantValidator was originally developed at the University of Leicester (2016–2019). It is now maintained and developed by the University of Manchester, with continued hosting and development contributions from the University of Leicester.**
+
+<img src="../../static/img/logos/Manchester_logo.png" width="40%" align="left"/>
+<img src="../../static/img/logos/uniofleicesterlogo.png" width="40%" align="right" />
+<br clear="both"/>

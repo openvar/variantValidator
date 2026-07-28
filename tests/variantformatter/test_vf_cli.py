@@ -8,7 +8,7 @@ import argparse
 
 import pytest
 
-from VariantValidator.bin import variantformatter
+from VariantFormatter.bin import variantformatter
 
 
 class FakeFormatter:

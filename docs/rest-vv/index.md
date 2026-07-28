@@ -1,3 +1,5 @@
+<img src="../static/img/logos/VV_logo.png" width="20%" />
+
 # REST VariantValidator
 
 The REST VariantValidator documentation describes the REST API interfaces available for integrating VariantValidator into external applications, automated pipelines and bioinformatics workflows.
@@ -23,7 +25,6 @@ REST VariantValidator is the original Flask-based REST implementation for Varian
 
 It provides HTTP access to the VariantValidator framework and remains available to support existing deployments and workflows.
 
-The repository is **not publicly accessible**. Access may be requested by contacting the VariantValidator development team through our [support page](https://variantvalidator.org/help/contact/).
 
 See:
 

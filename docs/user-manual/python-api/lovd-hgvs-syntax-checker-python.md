@@ -1,3 +1,5 @@
+<img src="../../static/img/logos/VV_logo.png" width="20%" />
+
 # LOVD HGVS Syntax Checker Python API
 
 The LOVD HGVS Syntax Checker Python API provides convenient access to the **LOVD HGVS Syntax Checker** from within Python applications.
@@ -27,7 +29,7 @@ conda activate vvenv
 Install VariantValidator into the environment.
 
 ```bash
-pip install .
+pip install ./packaging/variantvalidator
 ```
 
 The LOVD HGVS Syntax Checker itself must then be downloaded and configured locally.
@@ -179,3 +181,13 @@ VariantValidator documentation:
 - [VariantValidator Python API](variantvalidator_python.md)
 - [Supported Input Formats](../reference/supported_inputs.md)
 - [Errors and Error Codes](../reference/errors_and_error_codes.md)
+
+---
+
+## Acknowledgements
+
+**VariantValidator was originally developed at the University of Leicester (2016–2019). It is now maintained and developed by the University of Manchester, with continued hosting and development contributions from the University of Leicester.**
+
+<img src="../static/img/logos/Manchester_logo.png" width="40%" align="left"/>
+<img src="../static/img/logos/uniofleicesterlogo.png" width="40%" align="right" />
+<br clear="both"/>

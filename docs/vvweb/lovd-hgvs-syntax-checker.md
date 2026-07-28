@@ -63,11 +63,7 @@ If the LOVD HGVS Syntax Checker contributes to your research or publication, ple
 
 > Fokkema IF, Kroon M, López Hernández JA, Asscheman D, Lugtenburg I, Hoogenboom J, den Dunnen JT. **The LOVD3 platform: efficient genome-wide sharing of genetic variants.** *European Journal of Human Genetics* (2021). https://doi.org/10.1038/s41431-021-00959-x. :contentReference[oaicite:0]{index=0}
 
-# How to cite VariantValidator
-
-If you use VariantValidator in your research, please [cite the appropriate VariantValidator publication(s)](https://github.com/openvar/VariantValidator#cite-us).
-
-## Acknowledgements
+---
 
 ## Acknowledgements
 

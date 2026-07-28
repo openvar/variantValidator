@@ -1,3 +1,5 @@
+<img src="../../static/img/logos/VV_logo.png" width="20%" />
+
 # Supported Input Formats
 
 This guide describes the input formats accepted by tools within the VariantValidator software suite.
@@ -15,15 +17,17 @@ VariantFormatter uses the same genomic input processing infrastructure and there
 
 Where a particular tool imposes additional restrictions, these are described in the relevant section below.
 
-!!! tip "Related documentation"
+## See also
 
-    - See the [Transcript Selection](transcript_selection.md) guide for information on transcript selection strategies such as `mane_select`, `mane`, `select` and `all`.
-    - See the [Output Formats](output_formats.md) guide to understand the results returned by each tool.
-    - See the [Errors and Error Codes](errors_and_error_codes.md) reference for explanations of validation errors and warnings.
+- [Transcript Selection](transcript_selection.md) — Transcript selection strategies such as `mane_select`, `mane`, `select` and `all`.
+- [Output Formats](output_formats.md) — Results returned by each tool.
+- [Errors and Error Codes](errors_and_error_codes.md) — Validation errors, warnings and informational messages.
+- [VariantValidator Python API](../python-api/variantvalidator_python.md) — Validate variants directly from Python.
+- [VariantFormatter Python API](../python-api/variantformatter_python.md) — Format genomic variants directly from Python.
 
 ---
 
-## Scope of supported input formats
+# Scope of Supported Input Formats
 
 The examples described in this guide are representative rather than exhaustive.
 
@@ -427,7 +431,7 @@ Multi-allelic representations can be decomposed into individual variants and pro
 
 ---
 
-## Additional supported formats
+## Additional Supported Formats
 
 The examples presented above illustrate commonly encountered HGVS and non-HGVS input formats accepted by VariantValidator. They are **not** intended to be an exhaustive list of every supported syntax.
 
@@ -458,7 +462,7 @@ Transcript (`c.` and `n.`), RNA (`r.`) and protein (`p.`) descriptions are there
 
 ---
 
-## HGVS genomic sequence variants
+## HGVS Genomic Sequence Variants
 
 Genomic HGVS (`g.`) descriptions are accepted using supported genomic reference sequences.
 
@@ -480,7 +484,7 @@ Accepted genomic descriptions are validated and normalised before being mapped t
 
 ---
 
-## Pseudo-VCF chromosome notation
+## Pseudo-VCF Chromosome Notation
 
 VariantFormatter accepts the same supported genomic pseudo-VCF representations as VariantValidator.
 
@@ -506,7 +510,7 @@ These descriptions are converted into genomic HGVS before transcript mapping.
 
 ---
 
-## Genome assembly prefixes
+## Genome Assembly Prefixes
 
 Genomic pseudo-VCF descriptions may include an assembly identifier.
 
@@ -532,7 +536,7 @@ The assembly information is interpreted during genomic input processing.
 
 ---
 
-## Genomic VCF/HGVS hybrid formats
+## Genomic VCF/HGVS Hybrid Formats
 
 VariantFormatter accepts the genomic hybrid representations recognised by VariantValidator.
 
@@ -574,7 +578,7 @@ These descriptions are resolved to an appropriate genomic reference sequence and
 
 ---
 
-## Multiple alternate alleles
+## Multiple Alternate Alleles
 
 Genomic pseudo-VCF input containing multiple alternate alleles is recognised.
 
@@ -592,7 +596,7 @@ Each alternate allele is processed as an independent genomic variant.
 
 ---
 
-## Variant Call Format representations
+## Variant Call Format Representations
 
 VariantFormatter accepts supported genomic VCF representations processed by the shared VariantValidator genomic input conversion pipeline.
 
@@ -606,7 +610,7 @@ Where multiple alternate alleles are supplied, they can be decomposed into indiv
 
 ---
 
-## Invalid VariantFormatter starting types
+## Invalid VariantFormatter Starting Types
 
 VariantFormatter is not a general HGVS-to-HGVS converter.
 
@@ -704,7 +708,7 @@ ENST00000357654.9
 
 # hgvs2reference
 
-`hgvs2reference` accepts supported HGVS sequence variant descriptions and returns the corresponding reference sequence.
+`hgvs2reference` accepts genomic (`g.`) and coding DNA (`c.`) HGVS sequence variant descriptions and returns the corresponding reference sequence.
 
 ---
 
@@ -716,6 +720,8 @@ Example:
 NC_000017.11:g.50198002C>A
 ```
 
+Genomic variants are resolved directly against the specified genomic reference sequence.
+
 ---
 
 ### Coding DNA variants (`c.`)
@@ -726,17 +732,25 @@ Example:
 NM_000088.4:c.589G>T
 ```
 
-Coding variants are automatically converted to their corresponding non-coding transcript coordinates before the reference sequence is retrieved.
+Coding DNA variants are resolved against the specified transcript reference sequence.
 
----
+Coding DNA descriptions may also specify intronic positions. For intronic `c.` variants, the genomic reference sequence used for the transcript alignment must be explicitly specified using the HGVS compound reference sequence format.
 
-### Non-coding transcript variants (`n.`)
-
-Example:
+For example:
 
 ```text
-NR_023343.1:n.245G>A
+NC_000017.11(NM_000088.4):c.589+1G>T
 ```
+
+The genomic `NC_` reference sequence explicitly identifies the genomic sequence against which the transcript is aligned. This allows `hgvs2reference` to resolve the intronic coordinate and retrieve the corresponding reference sequence.
+
+An intronic coding DNA description containing only the transcript reference sequence, for example:
+
+```text
+NM_000088.4:c.589+1G>T
+```
+
+does not explicitly identify the genomic reference sequence used for the transcript alignment and therefore cannot be resolved by `hgvs2reference`.
 
 ---
 
@@ -744,8 +758,37 @@ NR_023343.1:n.245G>A
 
 The current implementation does not support:
 
+- Non-coding transcript variants (`n.`)
 - RNA variants (`r.`)
 - Protein variants (`p.`)
 - Mitochondrial variants (`m.`)
-- Compound genomic/transcript reference sequence descriptions, for example `NG_(NM_):c.` or `NC_(NM_):c.`
-- Fully intronic transcript variants; a warning is returned requesting the use of a genomic reference sequence instead
+
+Intronic `c.` variants are supported when the genomic reference sequence is explicitly specified using the compound `NC_(NM)` HGVS format.
+
+---
+
+# Getting help
+
+VariantValidator has been developed to support a wide range of users, from those new to HGVS nomenclature to experienced clinical scientists and bioinformaticians. If you encounter difficulties preparing a supported input or determining which input format should be used, we encourage you to seek assistance.
+
+Before contacting the development team, you may find the following documentation helpful:
+
+- [Transcript Selection](transcript_selection.md)
+- [Output Formats](output_formats.md)
+- [Errors and Error Codes](errors_and_error_codes.md)
+- [VariantValidator Python API](../python-api/variantvalidator_python.md)
+- [VariantFormatter Python API](../python-api/variantformatter_python.md)
+
+If you still require assistance, you can contact the VariantValidator team using our [contact form](https://variantvalidator.org/help/contact/).
+
+Software bugs and feature requests can be reported through the [VariantValidator GitHub issue tracker](https://github.com/openvar/VariantValidator/issues).
+
+---
+
+## Acknowledgements
+
+**VariantValidator was originally developed at the University of Leicester (2016–2019). It is now maintained and developed by the University of Manchester, with continued hosting and development contributions from the University of Leicester.**
+
+<img src="../../static/img/logos/Manchester_logo.png" width="40%" align="left"/>
+<img src="../../static/img/logos/uniofleicesterlogo.png" width="40%" align="right" />
+<br clear="both"/>

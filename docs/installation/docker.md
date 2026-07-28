@@ -1,17 +1,26 @@
+<img src="../static/img/logos/VV_logo.png" width="20%" />
+
 # Docker Installation
 
 VariantValidator supports two Docker-based installation methods.
 
-| Method                       | VariantValidator | Supporting Services |
-| ---------------------------- | ---------------- | ------------------- |
-| **Docker Quick Start**       | Runs locally     | Runs in Docker      |
-| **Full Docker Installation** | Runs in Docker   | Runs in Docker      |
+| Method | VariantValidator and VariantFormatter | Supporting Services |
+| --- | --- | --- |
+| **Docker Quick Start** | Run locally | Run in Docker |
+| **Full Docker Installation** | Run in Docker | Run in Docker |
 
-The **Docker Quick Start** runs the required backend services (Validator database, VVTA, and SeqRepo) in Docker while VariantValidator itself is installed and executed locally within a Conda environment. This is the recommended installation method for users who wish to run VariantValidator directly on their local machine while Docker manages the supporting infrastructure.
+The **Docker Quick Start** runs the required backend services (Validator database, VVTA and SeqRepo) in Docker while VariantValidator and VariantFormatter are installed and executed locally within the VariantValidator conda environment. This is the recommended installation method for users and developers who wish to run VariantValidator directly on their local machine while Docker manages the supporting infrastructure.
 
-The **Full Docker Installation** runs both VariantValidator and all supporting services inside Docker, providing a completely containerised environment suitable for isolated deployments, reproducible testing, and continuous integration.
+The **Full Docker Installation** runs VariantValidator, VariantFormatter and all supporting services inside Docker, providing a completely containerised environment suitable for isolated deployments, reproducible testing and continuous integration.
 
-> **Note:** Docker images are only built during the initial installation. Once created, the containers can be started and stopped without rebuilding or reinstalling VariantValidator.
+> **Note:** Docker images are only built during the initial installation. Once created, the containers can be started and stopped without rebuilding the images or reinstalling VariantValidator.
+
+## See also
+
+- [Installation Guide](installation.md) — Native installation on Linux and macOS.
+- [Windows Installation](installation_windows.md) — Installation using WSL2 or Docker Desktop.
+- [Configuration Guide](configuration_cli.md) — Configure VariantValidator after installation.
+- [Configuration Troubleshooting](configuration_troubleshooting.md) — Resolve common installation and configuration problems.
 
 ---
 
@@ -23,7 +32,7 @@ The Quick Start installation runs the required backend services in Docker:
 * VVTA PostgreSQL database
 * SeqRepo
 
-VariantValidator itself is installed and executed locally within a Conda environment.
+VariantValidator and VariantFormatter are installed and executed locally within the VariantValidator conda environment.
 
 ## Requirements
 
@@ -119,7 +128,7 @@ Wait until the database containers have completed their initialisation before co
 
 ### Wait for MySQL
 
-Run this command until you see the message "MySQL ready."
+Run this command until you see the message `MySQL ready.`
 
 ```bash
 until docker exec vv-vdb \
@@ -136,7 +145,7 @@ echo "MySQL ready."
 
 ### Wait for VVTA
 
-Run this command until you see the message "VVTA ready."
+Run this command until you see the message `VVTA ready.`
 
 ```bash
 until docker logs vv-vvta 2>&1 | \
@@ -148,13 +157,15 @@ done
 echo "VVTA ready."
 ```
 
-## Create the Conda environment
+## Create the VariantValidator conda environment
+
+Create the conda environment defined by the repository `environment.yml` file:
 
 ```bash
 conda env create -f environment.yml
 ```
 
-## Activate the environment
+Activate the environment:
 
 ```bash
 conda activate vvenv
@@ -166,11 +177,18 @@ conda activate vvenv
 cp configuration/docker-local.ini ~/.variantvalidator
 ```
 
-## Install VariantValidator
+## Install VariantValidator and VariantFormatter
+
+VariantValidator and VariantFormatter are packaged as separate Python distributions within the same repository.
+
+Install both distributions in editable mode:
 
 ```bash
-pip install .
+pip install -e ./packaging/variantvalidator
+pip install -e ./packaging/variantformatter
 ```
+
+VariantFormatter declares VariantValidator as a dependency, while VariantValidator can be installed independently of VariantFormatter.
 
 ## Install the LOVD syntax checker
 
@@ -178,7 +196,7 @@ pip install .
 python -m VariantValidator.bin.setup_lovd_syntax_checker
 ```
 
-VariantValidator is now installed and ready to use.
+VariantValidator and VariantFormatter are now installed and ready to use.
 
 ## Test the installation
 
@@ -194,7 +212,7 @@ pytest \
 
 # Full Docker Installation
 
-The Full Docker Installation runs both VariantValidator and its supporting services entirely within Docker.
+The Full Docker Installation runs VariantValidator, VariantFormatter and the supporting services entirely within Docker.
 
 ## Build and start the supporting services
 
@@ -203,7 +221,7 @@ Complete the following sections from the **Docker Quick Start**:
 * Create a Docker network
 * Build and start the VVTA PostgreSQL database
 * Build and start the Validator MySQL database
-* Build and start SeqRepo
+* Build and extract SeqRepo
 * Wait for the databases to initialise
 
 ## Build the VariantValidator image
@@ -264,13 +282,13 @@ Start the supporting services:
 docker start vv-vvta vv-vdb vv-seqrepo
 ```
 
-Wait a few moments for the database services to initialise, then activate the Conda environment:
+Wait a few moments for the database services to initialise, then activate the VariantValidator conda environment:
 
 ```bash
 conda activate vvenv
 ```
 
-VariantValidator is now ready to use.
+VariantValidator and VariantFormatter are now ready to use.
 
 ## Full Docker Installation
 
@@ -282,7 +300,7 @@ docker start vv-vvta vv-vdb vv-seqrepo variantvalidator
 
 Wait a few moments for the services to initialise.
 
-VariantValidator is now ready to use.
+VariantValidator and VariantFormatter are now ready to use.
 
 ---
 
@@ -314,8 +332,37 @@ docker rm variantvalidator vv-seqrepo vv-vdb vv-vvta || true
 docker network rm variantvalidator-network || true
 ```
 
-The Docker images are retained and can be reused the next time you start VariantValidator. To completely remove the installation, including the Docker images, run:
+The Docker images are retained and can be reused the next time you install or deploy VariantValidator.
+
+To completely remove the installation, including the Docker images, run:
 
 ```bash
 docker rmi variantvalidator seqrepo-validator mysql-validator postgres-vvta
 ```
+
+---
+
+# Getting help
+
+VariantValidator has been developed to support a wide range of users, from those new to HGVS nomenclature to experienced clinical scientists and bioinformaticians. If you encounter difficulties installing, configuring or running VariantValidator using Docker, we encourage you to seek assistance.
+
+Before contacting the development team, you may find the following documentation helpful:
+
+- [Installation Guide](installation.md)
+- [Windows Installation](installation_windows.md)
+- [Configuration Guide](configuration_cli.md)
+- [Configuration Troubleshooting](configuration_troubleshooting.md)
+
+If you still require assistance, you can contact the VariantValidator team using our [contact form](https://variantvalidator.org/help/contact/).
+
+Software bugs and feature requests can be reported through the [VariantValidator GitHub issue tracker](https://github.com/openvar/VariantValidator/issues).
+
+---
+
+## Acknowledgements
+
+**VariantValidator was originally developed at the University of Leicester (2016–2019). It is now maintained and developed by the University of Manchester, with continued hosting and development contributions from the University of Leicester.**
+
+<img src="../static/img/logos/Manchester_logo.png" width="40%" align="left"/>
+<img src="../static/img/logos/uniofleicesterlogo.png" width="40%" align="right" />
+<br clear="both"/>

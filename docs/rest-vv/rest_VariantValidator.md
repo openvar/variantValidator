@@ -1,3 +1,5 @@
+<img src="../static/img/logos/VV_logo.png" width="20%" />
+
 # REST VariantValidator
 
 REST VariantValidator is the original REST API implementation for VariantValidator. It provides programmatic access to VariantValidator, VariantFormatter, Gene2Transcripts and associated tools through a REST interface, allowing integration into automated bioinformatics workflows, laboratory information management systems (LIMS) and external software applications.
@@ -123,12 +125,6 @@ The following documentation may also be useful when developing applications that
 - [Transcript Selection](../user-manual/reference/transcript_selection.md)
 - [Output Formats](../user-manual/reference/output_formats.md)
 - [Errors and Error Codes](../user-manual/reference/errors_and_error_codes.md)
-
----
-
-# How to cite VariantValidator
-
-If you use VariantValidator in your research, please [cite the appropriate VariantValidator publication(s)](https://github.com/openvar/VariantValidator#cite-us).
 
 ---
 

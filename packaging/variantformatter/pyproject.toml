@@ -1,10 +1,13 @@
 [project]
-name = "VariantValidator"
+name = "VariantFormatter"
 dynamic = ["version"]
-description = "API for accurate, mapping and formatting of sequence variants using HGVS nomenclature"
+description = "Formatting of sequence variants using VariantValidator and HGVS nomenclature"
 license = {file = "LICENSE.txt"}
-authors = [{name = "VariantValidator Contributors", email = "admin@variantvalidator.org"}]
+authors = [
+    {name = "VariantValidator Contributors", email = "admin@variantvalidator.org"}
+]
 readme = "README.md"
+
 keywords = [
     "bioinformatics",
     "computational biology",
@@ -15,37 +18,23 @@ keywords = [
     "genomics",
     "hgvs",
     "HGVS",
-    "sequencevariants"
+    "sequence variants",
+    "variant formatting"
 ]
 
-requires-python = ">=3.6"
+requires-python = ">=3.12"
 
 dependencies = [
-    "biocommons.seqrepo>=0.6.7",
-    "httplib2>=0.22.0",
-    "pyliftover>=0.4.1",
-    "biotools>=0.3.0",
-    "bioutils>=0.5.8.post1",
-    "mysql-connector-python==9.3.0",
-    "requests>=2.32.3",
-    "biopython>=1.85",
-    "pytest>=7.4.4",
-    "pytest-cov==4.1.0",
-    "pytest-xdist>=3.5.0",
-    "codecov>=2.1.13",
-    "numpy",
-    "configparser>=7.2.0",
-    "protobuf>=4.23.4",
-    "lxml>=4.9.3",
-    "pysam",
-    "vvhgvs@git+https://github.com/openvar/vv_hgvs@master"
+    "VariantValidator"
 ]
 
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
-    "Topic :: Software Development :: Build Tools",
-    "License :: OSI Approved :: AGPL-3.0",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+    "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
+    "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.6",
     "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
@@ -53,31 +42,35 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13"
+    "Programming Language :: Python :: 3.13",
+    "Operating System :: OS Independent"
 ]
 
 [project.urls]
 "Homepage" = "https://variantvalidator.org/"
+"Documentation" = "https://openvar.github.io/variantValidator/"
 "Source" = "https://github.com/openvar/variantValidator"
 "Bug Reports" = "https://github.com/openvar/variantValidator/issues"
+"Terms of Use" = "https://github.com/openvar/variantValidator#terms-and-conditions-of-use"
 "Say Thanks!" = "https://www.buymeacoffee.com/VariantValidatr"
 
 [project.scripts]
-variantvalidator-configure = "VariantValidator.bin.vv_configure:main"
-variantvalidator = "VariantValidator.bin.variantvalidator:main"
-variantformatter = "VariantValidator.bin.variantformatter:main"
-gene2transcripts = "VariantValidator.bin.gene2transcripts:main"
-lovd-hgvs-syntax-checker = "VariantValidator.bin.lovd_hgvs_syntax_checker:main"
+variantformatter = "VariantFormatter.bin.variantformatter:main"
 
 [tool.setuptools_scm]
+root = "../.."
 
 [tool.setuptools.packages.find]
-where = ["."]
-include = ["VariantValidator*", "VariantFormatter*"]
+where = ["../.."]
+include = ["VariantFormatter*"]
 exclude = ["batch"]
 
 [build-system]
-requires = ["setuptools>=45", "setuptools_scm[toml]>=6.2", "wheel"]
+requires = [
+    "setuptools>=45",
+    "setuptools_scm[toml]>=6.2",
+    "wheel"
+]
 build-backend = "setuptools.build_meta"
 
 

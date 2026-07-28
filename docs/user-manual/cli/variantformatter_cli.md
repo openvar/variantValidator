@@ -1,3 +1,5 @@
+<img src="../../static/img/logos/VV_logo.png" width="20%" />
+
 # VariantFormatter Command Line Interface
 
 The VariantFormatter Command Line Interface (CLI) provides a simple way to format genomic variant descriptions and generate corresponding genomic, transcript and protein representations directly from the command line.
@@ -11,9 +13,18 @@ For users who are not familiar with command-line tools or Python programming:
 - The [VariantValidator website](https://variantvalidator.org) provides a user-friendly interface for formatting and validating variant descriptions.
 - The [VariantValidator REST API](https://rest.variantvalidator.org) allows programmatic access to the formatting services without requiring local installation.
 
+## See also
+
+- [VariantFormatter Python API](../python-api/variantformatter_python.md) — Access VariantFormatter directly from Python.
+- [VariantValidator Command Line Interface](variantvalidator_cli.md) — Validate variants from the command line.
+- [Supported Input Formats](../reference/supported_inputs.md) — Supported VariantFormatter input formats.
+- [Output Formats](../reference/output_formats.md) — Description of returned data.
+- [Transcript Selection](../reference/transcript_selection.md) — Available transcript selection strategies.
+- [Errors and Error Codes](../reference/errors_and_error_codes.md) — Error messages and troubleshooting guidance.
+
 ---
 
-## Basic Usage
+# Basic Usage
 
 The simplest way to format a variant is to provide a genomic variant description and the genome assembly.
 
@@ -27,7 +38,7 @@ VariantFormatter validates and formats the supplied genomic variant, maps it to 
 
 ---
 
-## Command Syntax
+# Command Syntax
 
 ```text
 variantformatter [OPTIONS]
@@ -41,22 +52,22 @@ variantformatter --help
 
 ---
 
-## Required Arguments
+# Required Arguments
 
 The following argument is always required.
 
 | Argument | Description |
-|----------|-------------|
+| --- | --- |
 | `-v`, `--variant` | The genomic variant description(s) to format. |
 
 ---
 
-## Common Options
+# Common Options
 
 Commonly used command-line options include:
 
 | Option | Description |
-|--------|-------------|
+| --- | --- |
 | `-g`, `--genome` | Specify the reference genome assembly (e.g. `GRCh37` or `GRCh38`). |
 | `-t`, `--select-transcripts` | Restrict the returned transcript representations. |
 | `--transcript-model` | Select the transcript database (`refseq`, `ensembl` or `all`). |
@@ -67,12 +78,12 @@ Commonly used command-line options include:
 
 ---
 
-## Default Behaviour
+# Default Behaviour
 
 Unless otherwise specified, VariantFormatter uses the following defaults.
 
 | Setting | Default |
-|---------|---------|
+| --- | --- |
 | Genome assembly | `GRCh38` |
 | Transcript selection | `mane_select` |
 | Transcript database | `refseq` |
@@ -85,7 +96,7 @@ These defaults can be overridden using the appropriate command-line options desc
 
 ---
 
-## Supported Input Formats
+# Supported Input Formats
 
 VariantFormatter accepts **genomic variant descriptions** as input and generates corresponding transcript and protein descriptions where appropriate.
 
@@ -104,7 +115,7 @@ See the [Supported Input Formats](../reference/supported_inputs.md) guide for fu
 
 ---
 
-## Output Format
+# Output Format
 
 VariantFormatter returns structured JSON output.
 
@@ -123,7 +134,7 @@ A detailed description of the JSON output is provided in the [Output Formats](..
 
 ---
 
-## Transcript Selection
+# Transcript Selection
 
 VariantFormatter maps genomic variants to overlapping transcripts.
 
@@ -141,9 +152,9 @@ See the [Transcript Selection](../reference/transcript_selection.md) guide for c
 
 ---
 
-## Examples
+# Examples
 
-### Format a genomic variant
+## Format a genomic variant
 
 ```bash
 variantformatter \
@@ -153,7 +164,7 @@ variantformatter \
 
 ---
 
-### Format a genomic variant using the Ensembl transcript database
+## Format a genomic variant using the Ensembl transcript database
 
 ```bash
 variantformatter \
@@ -164,7 +175,7 @@ variantformatter \
 
 ---
 
-### Format a genomic variant using all transcript databases
+## Format a genomic variant using all transcript databases
 
 ```bash
 variantformatter \
@@ -175,7 +186,7 @@ variantformatter \
 
 ---
 
-### Format a pseudo-VCF variant
+## Format a pseudo-VCF variant
 
 VariantFormatter accepts pseudo-VCF chromosome-coordinate notation.
 
@@ -197,7 +208,7 @@ variantformatter \
 
 ---
 
-### Format multiple variants
+## Format multiple variants
 
 Multiple variants can be supplied by repeating the `--variant` argument:
 
@@ -228,9 +239,9 @@ Each variant is processed as part of the formatting request and returned in the 
 
 ---
 
-## Selecting Transcripts
+# Selecting Transcripts
 
-### Restrict the output to MANE Select transcripts
+## Restrict the output to MANE Select transcripts
 
 ```bash
 variantformatter \
@@ -241,7 +252,7 @@ variantformatter \
 
 ---
 
-### Restrict the output to MANE transcripts
+## Restrict the output to MANE transcripts
 
 ```bash
 variantformatter \
@@ -252,7 +263,7 @@ variantformatter \
 
 ---
 
-### Return all latest transcript versions
+## Return all latest transcript versions
 
 ```bash
 variantformatter \
@@ -263,7 +274,7 @@ variantformatter \
 
 ---
 
-### Return all transcript versions
+## Return all transcript versions
 
 ```bash
 variantformatter \
@@ -274,7 +285,7 @@ variantformatter \
 
 ---
 
-### Restrict the output to a single specified transcript
+## Restrict the output to a single specified transcript
 
 The `--select-transcripts` option can also be supplied with an explicit transcript identifier.
 
@@ -289,7 +300,7 @@ Only the specified transcript is requested for the genomic variant.
 
 ---
 
-### Restrict the output to multiple specified transcripts
+## Restrict the output to multiple specified transcripts
 
 Multiple transcript identifiers can be supplied as a pipe-delimited value:
 
@@ -313,14 +324,14 @@ RefSeq and Ensembl transcript identifiers must not be mixed in the same explicit
 
 ---
 
-## Transcript Models
+# Transcript Models
 
 The `--transcript-model` option controls which transcript database is used.
 
 Available values are:
 
 | Value | Description |
-|-------|-------------|
+| --- | --- |
 | `refseq` | Use RefSeq transcripts. |
 | `ensembl` | Use Ensembl transcripts. |
 | `all` | Use both RefSeq and Ensembl transcripts. |
@@ -336,7 +347,7 @@ variantformatter \
 
 ---
 
-## Validate Genomic HGVS Syntax Only
+# Validate Genomic HGVS Syntax Only
 
 The `--check-only` option validates the genomic HGVS description without generating transcript or protein representations.
 
@@ -351,14 +362,14 @@ This can be useful when only validation and genomic formatting are required.
 
 ---
 
-## Liftover
+# Liftover
 
 VariantFormatter can generate genomic representations on another genome assembly.
 
 The `--liftover-level` option controls this behaviour.
 
 | Value | Description |
-|-------|-------------|
+| --- | --- |
 | `true` | Perform full liftover. |
 | `primary` | Perform liftover while excluding alternative scaffolds. |
 | `false` | Disable liftover. |
@@ -385,11 +396,11 @@ variantformatter \
 
 ---
 
-## Format Variants from an Input File
+# Format Variants from an Input File
 
 VariantFormatter can read variants from a text or JSON file by prefixing the filename with `@`.
 
-### Text file
+## Text file
 
 Each non-empty line should contain one variant description. Lines beginning with `#` are ignored.
 
@@ -409,7 +420,7 @@ variantformatter \
     --genome GRCh38
 ```
 
-### JSON file
+## JSON file
 
 A JSON input file should contain an array of variant description strings.
 
@@ -432,7 +443,7 @@ variantformatter \
 
 ---
 
-## Write Results to a JSON File
+# Write Results to a JSON File
 
 By default, VariantFormatter writes JSON to standard output.
 
@@ -447,7 +458,7 @@ variantformatter \
 
 ---
 
-## Display Command Help
+# Display Command Help
 
 To display the complete command-line help:
 
@@ -457,7 +468,7 @@ variantformatter --help
 
 ---
 
-## Common Errors
+# Common Errors
 
 Common problems include:
 
@@ -478,11 +489,28 @@ For a complete description of command-line error messages, exit codes and troubl
 
 ---
 
-## Related Documentation
+# Getting help
+
+VariantValidator has been developed to support a wide range of users, from those new to HGVS nomenclature to experienced clinical scientists and bioinformaticians. If you encounter difficulties using VariantFormatter or interpreting the returned results, we encourage you to seek assistance.
+
+Before contacting the development team, you may find the following documentation helpful:
 
 - [VariantFormatter Python API](../python-api/variantformatter_python.md)
-- [VariantValidator Command Line Interface](variantvalidator_cli.md)
 - [Supported Input Formats](../reference/supported_inputs.md)
 - [Output Formats](../reference/output_formats.md)
 - [Transcript Selection](../reference/transcript_selection.md)
 - [Errors and Error Codes](../reference/errors_and_error_codes.md)
+
+If you still require assistance, you can contact the VariantValidator team using our [contact form](https://variantvalidator.org/help/contact/).
+
+Software bugs and feature requests can be reported through the [VariantValidator GitHub issue tracker](https://github.com/openvar/VariantValidator/issues).
+
+---
+
+## Acknowledgements
+
+**VariantValidator was originally developed at the University of Leicester (2016–2019). It is now maintained and developed by the University of Manchester, with continued hosting and development contributions from the University of Leicester.**
+
+<img src="../../static/img/logos/Manchester_logo.png" width="40%" align="left"/>
+<img src="../../static/img/logos/uniofleicesterlogo.png" width="40%" align="right" />
+<br clear="both"/>

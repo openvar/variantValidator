@@ -1,3 +1,5 @@
+<img src="../../static/img/logos/VV_logo.png" width="20%" />
+
 # Error Messages and Warning Codes
 
 VariantValidator validates sequence variant descriptions against the Human Genome Variation Society (HGVS) recommendations and a range of supporting reference datasets. During validation, one or more **errors**, **warnings**, or **informational messages** may be returned.
@@ -18,6 +20,14 @@ The purpose of these codes is to:
 - distinguish between validation failures and advisory information.
 
 This page explains the different categories of messages produced by VariantValidator and provides guidance on interpreting them.
+
+## See also
+
+- [Supported Input Formats](supported_inputs.md) — Variant description formats accepted by VariantValidator.
+- [Output Formats](output_formats.md) — Validation output structures and available formats.
+- [Transcript Selection](transcript_selection.md) — Available transcript selection strategies.
+- [VariantValidator Command Line Interface](../cli/variantvalidator_cli.md) — Validate variants from the command line.
+- [VariantValidator Python API](../python-api/variantvalidator_python.md) — Validate variants directly from Python.
 
 ---
 
@@ -98,7 +108,7 @@ Variant reference (C) does not agree with reference sequence (G)
 
 The submitted variant description specifies a reference nucleotide or amino acid that does not match the selected reference sequence.
 
-For example,
+For example:
 
 ```text
 NM_000088.4:c.472C>T
@@ -406,7 +416,7 @@ RefSeqGene record not available.
 
 ### What does this mean?
 
-Not every gene has an associated RefSeqGene (NG_) reference sequence.
+Not every gene has an associated RefSeqGene (`NG_`) reference sequence.
 
 This warning indicates that no RefSeqGene record currently exists for the gene being validated.
 
@@ -481,7 +491,7 @@ LrgMappingWarning:
 LRG_1:g.8638G>T automapped to NG_007400.1:g.8638G>T
 ```
 
-or
+or:
 
 ```text
 LRG_1t1:c.589G>T automapped to NM_000088.3:c.589G>T
@@ -510,7 +520,7 @@ The following table summarises every error code currently recognised by VariantV
 Errors indicate that the submitted variant description could not be validated as provided. Unless otherwise stated, the submitted variant should be corrected and resubmitted.
 
 | Error Code | Description |
-|------------|-------------|
+| --- | --- |
 | AccessionVersionError | A required reference sequence version has not been supplied. |
 | AlleleMergeError | Multiple variants should be merged into a single HGVS allele description. |
 | AlleleSyntaxError | The submitted allele description is not valid HGVS syntax. |
@@ -584,6 +594,8 @@ Errors indicate that the submitted variant description could not be validated as
 >
 > Some errors include additional explanatory text, suggested transcript accessions, or recommended corrected variant descriptions. Where available, these suggestions should be followed when correcting and resubmitting the variant.
 
+---
+
 # Complete Warning Code Reference
 
 The following table summarises all warning and informational codes currently recognised by VariantValidator.
@@ -593,7 +605,7 @@ Unlike errors, warnings do not necessarily indicate that the submitted variant d
 Users should always review any warnings that accompany a validation result.
 
 | Warning Code | Description |
-|--------------|-------------|
+| --- | --- |
 | AlignmentDataWarning | Alignment data are incomplete or unavailable for the requested operation. |
 | AlignmentGapWarning | Differences exist between transcript and genomic reference sequences. |
 | AlleleExtractionWarning | An allele description has been extracted automatically from the submitted variant. |
@@ -634,12 +646,14 @@ Users should always review any warnings that accompany a validation result.
 | VariantNormalizationWarning | The submitted variant has been normalised to the canonical HGVS representation. |
 | VcfConversionWarning | The submitted VCF description has been converted into HGVS nomenclature. |
 
-## Informational Codes
+---
+
+# Informational Codes
 
 The following informational codes are provided for completeness. These messages do not indicate errors or warnings, but provide additional context regarding validation or external libraries.
 
 | Information Code | Description |
-|------------------|-------------|
+| --- | --- |
 | LovdSyntaxcheckInvalid | Invalid syntax reported by the integrated LOVD syntax checker. |
 | LovdSyntaxcheckLibraryVersion | Version of the LOVD syntax checking library used during validation. |
 | LovdSyntaxcheckSource | Source of the LOVD syntax checking results. |
@@ -664,3 +678,31 @@ Applications should use the code (`ReferenceMismatchError`) when filtering, cate
 The descriptive text may be expanded over time to improve clarity, while the corresponding error or warning code will remain stable wherever possible.
 
 Multiple errors and warnings may be returned for a single submitted variant. Users are encouraged to review all reported diagnostics before interpreting or reporting a variant description.
+
+---
+
+# Getting help
+
+VariantValidator has been developed to support a wide range of users, from those new to HGVS nomenclature to experienced clinical scientists and bioinformaticians. If you encounter an error or warning that you do not understand, we encourage you to review the relevant documentation before contacting the development team.
+
+You may find the following documentation helpful:
+
+- [Supported Input Formats](supported_inputs.md)
+- [Output Formats](output_formats.md)
+- [Transcript Selection](transcript_selection.md)
+- [VariantValidator Command Line Interface](../cli/variantvalidator_cli.md)
+- [VariantValidator Python API](../python-api/variantvalidator_python.md)
+
+If you still require assistance, you can contact the VariantValidator team using our [contact form](https://variantvalidator.org/help/contact/).
+
+Software bugs and feature requests can be reported through the [VariantValidator GitHub issue tracker](https://github.com/openvar/VariantValidator/issues).
+
+---
+
+## Acknowledgements
+
+**VariantValidator was originally developed at the University of Leicester (2016–2019). It is now maintained and developed by the University of Manchester, with continued hosting and development contributions from the University of Leicester.**
+
+<img src="../../static/img/logos/Manchester_logo.png" width="40%" align="left"/>
+<img src="../../static/img/logos/uniofleicesterlogo.png" width="40%" align="right" />
+<br clear="both"/>
