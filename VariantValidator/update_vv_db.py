@@ -297,7 +297,7 @@ def update_refseq(dbcnx):
                                         line[2] = "GRCh37"
                                         chr_num = line[1].split("NC_")[1].split(".")
                                         chr_num = int(chr_num[0])
-                                        chr_acc = VariantValidator.modules.seq_data.to_accession(str(chr_num), "GRCh37")
+                                        chr_acc = VariantValidator.modules.seq_data.get_accession(str(chr_num), "GRCh37")
                                         line[1] = chr_acc
 
                                     update_success = True
@@ -484,19 +484,9 @@ def map_line(line, genome, rsg_id_info):
     # Create the entry and append to db
     return ml
 
-# <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as
-# published by the Free Software Foundation, either version 3 of the
-# License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Affero General Public License for more details.
-#
-# You should have received a copy of the GNU Affero General Public License
-# along with this program.  If not, see <https://www.gnu.org/licenses/>.
-# </LICENSE>
+# This file is part of VariantValidator and is distributed under the
+# GNU Affero General Public License, version 3 or (at your option) any
+# later version. See the LICENSE file in the project root for the full
+# licence terms.
+# SPDX-License-Identifier: AGPL-3.0-or-later

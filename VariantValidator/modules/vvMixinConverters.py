@@ -528,7 +528,7 @@ class Mixin(vvMixinInit.Mixin):
 
                 if (
                         genomic_ac.startswith('NC_')
-                        and seq_data.supported_for_mapping(
+                        and seq_data.is_supported_for_mapping(
                     genomic_ac,
                     primary_assembly
                 )
@@ -610,7 +610,7 @@ class Mixin(vvMixinInit.Mixin):
             # Requested assembly first. NG_ is not chromosomal.
             if genomic_ac_type != 'NG_':
                 for genomic_ac in current_options:
-                    if not seq_data.supported_for_mapping(
+                    if not seq_data.is_supported_for_mapping(
                             genomic_ac,
                             primary_assembly
                     ):
@@ -647,7 +647,7 @@ class Mixin(vvMixinInit.Mixin):
             for genomic_ac in current_options:
                 if (
                         genomic_ac_type != 'NG_'
-                        and seq_data.supported_for_mapping(
+                        and seq_data.is_supported_for_mapping(
                     genomic_ac,
                     primary_assembly
                 )
@@ -1284,7 +1284,7 @@ class Mixin(vvMixinInit.Mixin):
                         continue
 
                     if not final:
-                        chr_num = seq_data.supported_for_mapping(
+                        chr_num = seq_data.is_supported_for_mapping(
                             genomic_ac,
                             variant.primary_assembly
                         )
@@ -3176,7 +3176,7 @@ class Mixin(vvMixinInit.Mixin):
                     ):
                         genomic_ac = option[1]
 
-                        if seq_data.to_chr_num_refseq(
+                        if seq_data.get_chr_num_refseq(
                                 genomic_ac,
                                 my_variant.primary_assembly
                         ) is not None:
@@ -3696,19 +3696,9 @@ class Mixin(vvMixinInit.Mixin):
             return [select_transcripts]
 
 
-# <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as
-# published by the Free Software Foundation, either version 3 of the
-# License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Affero General Public License for more details.
-#
-# You should have received a copy of the GNU Affero General Public License
-# along with this program.  If not, see <https://www.gnu.org/licenses/>.
-# </LICENSE>
+# This file is part of VariantValidator and is distributed under the
+# GNU Affero General Public License, version 3 or (at your option) any
+# later version. See the LICENSE file in the project root for the full
+# licence terms.
+# SPDX-License-Identifier: AGPL-3.0-or-later

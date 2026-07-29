@@ -632,7 +632,7 @@ def pvcf_to_hgvs(query, selected_assembly, normalization_direction, reverse_norm
             if re.match(r'CHR', chr_num):
                 chr_num = chr_num.replace('CHR', '')
             # Use selected assembly
-            accession = seq_data.to_accession(chr_num, selected_assembly)
+            accession = seq_data.get_accession(chr_num, selected_assembly)
             if accession is None:
                 error = chr_num + ' is not part of genome build ' + selected_assembly + ' or is not supported'
                 raise PseudoVCF2HGVSError(error)
@@ -759,7 +759,7 @@ def hgvs2vcf(hgvs_genomic, primary_assembly, reverse_normalizer, sf, extra_flank
     # hgvs_genomic_5pr = copy.deepcopy(reverse_normalized_hgvs_genomic)
 
     # Chr
-    chr = seq_data.to_chr_num_ucsc(reverse_normalized_hgvs_genomic.ac, primary_assembly)
+    chr = seq_data.get_chr_num_ucsc(reverse_normalized_hgvs_genomic.ac, primary_assembly)
     if chr is not None:
         pass
     else:
@@ -924,14 +924,14 @@ def report_hgvs2vcf(hgvs_genomic, primary_assembly, reverse_normalizer, sf):
 
         genomes = ['GRCh37','hg19','GRCh38','hg38']
         for genome in genomes:
-            if not seq_data.supported_for_mapping(hgvs_genomic_variant.ac, genome):
+            if not seq_data.is_supported_for_mapping(hgvs_genomic_variant.ac, genome):
                 continue
             if genome.startswith('GRC'):
-                chrom = seq_data.to_chr_num_refseq(
+                chrom = seq_data.get_chr_num_refseq(
                         reverse_normalized_hgvs_genomic.ac,
                         genome)
             else:
-                chrom = seq_data.to_chr_num_ucsc(
+                chrom = seq_data.get_chr_num_ucsc(
                         reverse_normalized_hgvs_genomic.ac,
                         genome)
             if chrom is None:
@@ -953,14 +953,14 @@ def report_hgvs2vcf(hgvs_genomic, primary_assembly, reverse_normalizer, sf):
                 ucsc_pa = primary_assembly
                 grc_pa = 'GRCh38'
         # UCSC Chr
-        ucsc_chr = seq_data.to_chr_num_ucsc(reverse_normalized_hgvs_genomic.ac, ucsc_pa)
+        ucsc_chr = seq_data.get_chr_num_ucsc(reverse_normalized_hgvs_genomic.ac, ucsc_pa)
         if ucsc_chr is not None:
             pass
         else:
             ucsc_chr = reverse_normalized_hgvs_genomic.ac
 
         # GRC Chr
-        grc_chr = seq_data.to_chr_num_refseq(reverse_normalized_hgvs_genomic.ac, grc_pa)
+        grc_chr = seq_data.get_chr_num_refseq(reverse_normalized_hgvs_genomic.ac, grc_pa)
         if grc_chr is not None:
             pass
         else:
@@ -1100,7 +1100,7 @@ def pos_lock_hgvs2vcf(hgvs_genomic, primary_assembly, reverse_normalizer, sf):
     # hgvs_genomic_5pr = copy.deepcopy(reverse_normalized_hgvs_genomic)
 
     # Chr
-    chr = seq_data.to_chr_num_ucsc(reverse_normalized_hgvs_genomic.ac, primary_assembly)
+    chr = seq_data.get_chr_num_ucsc(reverse_normalized_hgvs_genomic.ac, primary_assembly)
     if chr is not None:
         pass
     else:
@@ -1458,7 +1458,7 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
 
     # Chr
     if hgvs_genomic.type == 'g':
-        chr = seq_data.to_chr_num_ucsc(normalized_hgvs_genomic.ac, primary_assembly)
+        chr = seq_data.get_chr_num_ucsc(normalized_hgvs_genomic.ac, primary_assembly)
         if chr is None:
            chr = normalized_hgvs_genomic.ac
     else:
@@ -2155,7 +2155,7 @@ def hard_left_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, s
 
     # Chr
     if hgvs_genomic.type == 'g':
-        chr = seq_data.to_chr_num_ucsc(reverse_normalized_hgvs_genomic.ac, primary_assembly)
+        chr = seq_data.get_chr_num_ucsc(reverse_normalized_hgvs_genomic.ac, primary_assembly)
         if chr is None:
            chr = reverse_normalized_hgvs_genomic.ac
     else:
@@ -2861,7 +2861,7 @@ def incomplete_alignment_mapping_t_to_g(validator, variant):
     mapping_options = variant.map_dat.mapping_options(variant.input_parses.ac,hdp=validator.hdp)
     for option in mapping_options:
         if option[2] == validator.alt_aln_method and "NC_" not in option[1]:
-            in_assembly = seq_data.to_chr_num_refseq(option[1], variant.primary_assembly)
+            in_assembly = seq_data.get_chr_num_refseq(option[1], variant.primary_assembly)
             if in_assembly is not None:
                 try:
                     output = validator.vm.t_to_g(variant.input_parses, option[1])
@@ -2871,19 +2871,9 @@ def incomplete_alignment_mapping_t_to_g(validator, variant):
                     pass
     return output
 
-# <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as
-# published by the Free Software Foundation, either version 3 of the
-# License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Affero General Public License for more details.
-#
-# You should have received a copy of the GNU Affero General Public License
-# along with this program.  If not, see <https://www.gnu.org/licenses/>.
-# </LICENSE>
+# This file is part of VariantValidator and is distributed under the
+# GNU Affero General Public License, version 3 or (at your option) any
+# later version. See the LICENSE file in the project root for the full
+# licence terms.
+# SPDX-License-Identifier: AGPL-3.0-or-later

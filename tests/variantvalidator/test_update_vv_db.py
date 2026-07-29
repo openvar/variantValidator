@@ -619,13 +619,13 @@ def test_update_refseq_entrez_regulatory_loc_fallback(
     assert written[10] == "LOC12345"
 
 
-@patch("VariantValidator.update_vv_db.VariantValidator.modules.seq_data.to_accession")
+@patch("VariantValidator.update_vv_db.VariantValidator.modules.seq_data.get_accession")
 @patch("VariantValidator.update_vv_db.gzip.decompress")
 @patch("VariantValidator.update_vv_db.requests.get")
 def test_update_refseq_entrez_regulatory_grch37_fallback(
     mock_get,
     mock_decompress,
-    mock_to_accession,
+    mock_get_accession,
     fake_db,
 ):
     mock_get.side_effect = [
@@ -651,7 +651,7 @@ def test_update_refseq_entrez_regulatory_grch37_fallback(
         b"\tID=x;Target=NG_000001.1 1 100 +;gap_count=0"
     )
 
-    mock_to_accession.return_value = "NC_000001.10"
+    mock_get_accession.return_value = "NC_000001.10"
 
     feature = MagicMock()
     feature.type = "regulatory"
@@ -683,26 +683,16 @@ def test_update_refseq_entrez_regulatory_grch37_fallback(
     assert written[9] == "1234"
     assert written[10] == "LOC12345"
 
-    mock_to_accession.assert_called_once_with(
+    mock_get_accession.assert_called_once_with(
         "1",
         "GRCh37",
     )
 
 
 
-# <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as
-# published by the Free Software Foundation, either version 3 of the
-# License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Affero General Public License for more details.
-#
-# You should have received a copy of the GNU Affero General Public License
-# along with this program.  If not, see <https://www.gnu.org/licenses/>.
-# </LICENSE>
+# This file is part of VariantValidator and is distributed under the
+# GNU Affero General Public License, version 3 or (at your option) any
+# later version. See the LICENSE file in the project root for the full
+# licence terms.
+# SPDX-License-Identifier: AGPL-3.0-or-later

@@ -183,7 +183,7 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict, batch_list)
 
         # Chromosome build is not supported or intergenic???
         else:
-            sfm = seq_data.supported_for_mapping(variant.hgvs_genomic.ac, variant.primary_assembly)
+            sfm = seq_data.is_supported_for_mapping(variant.hgvs_genomic.ac, variant.primary_assembly)
             if sfm:
                 try:
                     validator.vr.validate(variant.hgvs_genomic)
@@ -1116,7 +1116,7 @@ def final_tx_to_multiple_genomic(variant, validator, tx_variant, liftover_level=
                 if "Submitted description does not represent" not in str(variant.warnings):
 
                     # Check assembly
-                    if "NC_" in hgvs_alt_genomic.ac and seq_data.to_chr_num_refseq(hgvs_alt_genomic.ac, variant.primary_assembly) is not None:
+                    if "NC_" in hgvs_alt_genomic.ac and seq_data.get_chr_num_refseq(hgvs_alt_genomic.ac, variant.primary_assembly) is not None:
                         make_gap_warnings = gap_mapper.make_gap_warnings(hgvs_coding.ac, hgvs_alt_genomic.ac, variant.primary_assembly)
                         make_gap_warnings["gapped_alignment_warning"] = make_gap_warnings[
                             "gapped_alignment_warning"].replace(
@@ -1127,7 +1127,7 @@ def final_tx_to_multiple_genomic(variant, validator, tx_variant, liftover_level=
 
                     elif "NC_" in variant.original and ":g." in variant.original:
                         original_g_ac = variant.original.split(":g.")[0]
-                        if seq_data.to_chr_num_refseq(original_g_ac, variant.primary_assembly) is None:
+                        if seq_data.get_chr_num_refseq(original_g_ac, variant.primary_assembly) is None:
                             make_gap_warnings = gap_mapper.make_gap_warnings(hgvs_coding.ac, original_g_ac,
                                                                              variant.primary_assembly)
                             make_gap_warnings["gapped_alignment_warning"] = make_gap_warnings[
@@ -1141,7 +1141,7 @@ def final_tx_to_multiple_genomic(variant, validator, tx_variant, liftover_level=
                         chromosome = match.group()
                         chromosome = chromosome.replace("-", "")
                         chromosome = chromosome.replace(":", "")
-                        original_g_ac = seq_data.to_accession(chromosome, variant.primary_assembly)
+                        original_g_ac = seq_data.get_accession(chromosome, variant.primary_assembly)
                         make_gap_warnings = gap_mapper.make_gap_warnings(hgvs_coding.ac, original_g_ac,
                                                                          variant.primary_assembly)
                         make_gap_warnings["gapped_alignment_warning"] = make_gap_warnings[
@@ -1196,19 +1196,9 @@ def final_tx_to_multiple_genomic(variant, validator, tx_variant, liftover_level=
 
     return multi_g
 
-# <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as
-# published by the Free Software Foundation, either version 3 of the
-# License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Affero General Public License for more details.
-#
-# You should have received a copy of the GNU Affero General Public License
-# along with this program.  If not, see <https://www.gnu.org/licenses/>.
-# </LICENSE>
+# This file is part of VariantValidator and is distributed under the
+# GNU Affero General Public License, version 3 or (at your option) any
+# later version. See the LICENSE file in the project root for the full
+# licence terms.
+# SPDX-License-Identifier: AGPL-3.0-or-later

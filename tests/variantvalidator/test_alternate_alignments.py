@@ -429,7 +429,7 @@ class TestAltIntronMocked:
             return_value=True,
         ), patch(
             "VariantValidator.modules.format_converters."
-            "seq_data.supported_for_mapping",
+            "seq_data.is_supported_for_mapping",
             side_effect=lambda ac, assembly:
                 ac == "NC_000001.10"
                 and assembly == "GRCh37",
@@ -491,7 +491,7 @@ class TestAltIntronMocked:
             return_value=True,
         ), patch(
             "VariantValidator.modules.format_converters."
-            "seq_data.supported_for_mapping",
+            "seq_data.is_supported_for_mapping",
             side_effect=lambda ac, assembly: (
                 ac == "NC_000001.10"
                 and assembly == "GRCh37"
@@ -543,7 +543,7 @@ class TestAltIntronMocked:
             return_value=True,
         ), patch(
             "VariantValidator.modules.format_converters."
-            "seq_data.supported_for_mapping",
+            "seq_data.is_supported_for_mapping",
             side_effect=lambda ac, assembly:
                 ac == "NC_000001.11"
                 and assembly == "GRCh38",
@@ -796,7 +796,7 @@ class TestAltIntronMocked:
             return_value=True,
         ), patch(
             "VariantValidator.modules.format_converters."
-            "seq_data.supported_for_mapping",
+            "seq_data.is_supported_for_mapping",
             side_effect=lambda ac, assembly:
                 ac == "NC_000001.10"
                 and assembly == "GRCh37",
@@ -846,7 +846,7 @@ class TestAltIntronMocked:
             return_value=False,
         ), patch(
             "VariantValidator.modules.format_converters."
-            "seq_data.supported_for_mapping",
+            "seq_data.is_supported_for_mapping",
             side_effect=lambda ac, assembly:
                 ac == "NC_000001.10"
                 and assembly == "GRCh37",
@@ -1074,7 +1074,7 @@ class TestAltIntronMocked:
             return_value=True,
         ), patch(
             "VariantValidator.modules.format_converters."
-            "seq_data.supported_for_mapping",
+            "seq_data.is_supported_for_mapping",
             side_effect=lambda ac, assembly:
                 ac == "NC_000001.11"
                 and assembly == "GRCh38",
@@ -1119,7 +1119,7 @@ class TestAltIntronMocked:
             return_value=True,
         ), patch(
             "VariantValidator.modules.format_converters."
-            "seq_data.supported_for_mapping",
+            "seq_data.is_supported_for_mapping",
             side_effect=lambda ac, assembly:
                 ac == "NC_000001.10"
                 and assembly == "GRCh37",
@@ -1163,7 +1163,7 @@ class TestAltIntronMocked:
             return_value=True,
         ), patch(
             "VariantValidator.modules.format_converters."
-            "seq_data.supported_for_mapping",
+            "seq_data.is_supported_for_mapping",
             side_effect=lambda ac, assembly:
                 ac == "NC_000001.11"
                 and assembly == "GRCh38",
@@ -1175,22 +1175,12 @@ class TestAltIntronMocked:
         assert result is False
         assert variant.primary_assembly == "GRCh38"
 
-# <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as
-# published by the Free Software Foundation, either version 3 of the
-# License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Affero General Public License for more details.
-#
-# You should have received a copy of the GNU Affero General Public License
-# along with this program.  If not, see <https://www.gnu.org/licenses/>.
-# </LICENSE>
+# This file is part of VariantValidator and is distributed under the
+# GNU Affero General Public License, version 3 or (at your option) any
+# later version. See the LICENSE file in the project root for the full
+# licence terms.
+# SPDX-License-Identifier: AGPL-3.0-or-later
 
 
 

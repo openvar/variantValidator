@@ -256,10 +256,10 @@ def liftover(
 
         def accession_on_build(accession, build):
             if build.startswith('GRC'):
-                return seq_data.to_chr_num_refseq(accession, build)
+                return seq_data.get_chr_num_refseq(accession, build)
 
             if build.startswith('hg'):
-                return seq_data.to_chr_num_ucsc(accession, build)
+                return seq_data.get_chr_num_ucsc(accession, build)
 
             return None
 
@@ -352,7 +352,7 @@ def liftover(
                     ):
                         map_to_assembly = None
 
-                        get_assembly = seq_data.supported_for_mapping(
+                        get_assembly = seq_data.is_supported_for_mapping(
                             accession,
                             "GRCh38",
                         )
@@ -360,7 +360,7 @@ def liftover(
                         if get_assembly is True:
                             map_to_assembly = "GRCh38"
                         else:
-                            get_assembly = seq_data.supported_for_mapping(
+                            get_assembly = seq_data.is_supported_for_mapping(
                                 accession,
                                 "GRCh37",
                             )
@@ -606,7 +606,7 @@ def liftover(
         if orientation != '+':
             continue
 
-        accession = seq_data.to_accession(
+        accession = seq_data.get_accession(
             chrom,
             lo_to,
         )
@@ -956,19 +956,9 @@ def liftover(
     return lifted_response
 
 
-# <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as
-# published by the Free Software Foundation, either version 3 of the
-# License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Affero General Public License for more details.
-#
-# You should have received a copy of the GNU Affero General Public License
-# along with this program.  If not, see <https://www.gnu.org/licenses/>.
-# </LICENSE>
+# This file is part of VariantValidator and is distributed under the
+# GNU Affero General Public License, version 3 or (at your option) any
+# later version. See the LICENSE file in the project root for the full
+# licence terms.
+# SPDX-License-Identifier: AGPL-3.0-or-later

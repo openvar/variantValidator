@@ -830,11 +830,11 @@ class TestPVCFtoHGVS(unittest.TestCase):
         self.mock_reverse = Mock()
         self.mock_reverse.normalize = Mock(side_effect=lambda x: x)
 
-    @patch('VariantValidator.modules.hgvs_utils.seq_data.to_accession')
+    @patch('VariantValidator.modules.hgvs_utils.seq_data.get_accession')
     @patch('VariantValidator.modules.hgvs_utils.hgvs_delins_parts_to_hgvs_obj')
-    def test_simple_substitution(self, mock_hgvs_obj, mock_to_accession):
+    def test_simple_substitution(self, mock_hgvs_obj, mock_get_accession):
         # Setup mocks
-        mock_to_accession.return_value = "NM_000000.1"
+        mock_get_accession.return_value = "NM_000000.1"
         mock_hgvs_obj.return_value = "HGVS_OBJ"
 
         # Provide a simple pVCF string
@@ -847,7 +847,7 @@ class TestPVCFtoHGVS(unittest.TestCase):
         # Assertions
         self.assertEqual(result, "HGVS_OBJ")
         self.mock_validator.hn.normalize.assert_called_once()
-        mock_to_accession.assert_called_once_with("1", "GRCh38")
+        mock_get_accession.assert_called_once_with("1", "GRCh38")
         mock_hgvs_obj.assert_called()  # At least called once
 
     def test_unsupported_format(self):
@@ -859,19 +859,9 @@ class TestPVCFtoHGVS(unittest.TestCase):
 if __name__ == '__main__':
     unittest.main()
 
-# <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as
-# published by the Free Software Foundation, either version 3 of the
-# License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Affero General Public License for more details.
-#
-# You should have received a copy of the GNU Affero General Public License
-# along with this program.  If not, see <https://www.gnu.org/licenses/>.
-# </LICENSE>
+# This file is part of VariantValidator and is distributed under the
+# GNU Affero General Public License, version 3 or (at your option) any
+# later version. See the LICENSE file in the project root for the full
+# licence terms.
+# SPDX-License-Identifier: AGPL-3.0-or-later

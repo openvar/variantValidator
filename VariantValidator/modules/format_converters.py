@@ -472,7 +472,7 @@ def vcf2hgvs_stage2(variant, validator):
             seq_id_part = seq_id_part[3:]
             chr_in = True
 
-        accession = seq_data.to_accession(
+        accession = seq_data.get_accession(
             seq_id_part,
             variant.primary_assembly
         )
@@ -2255,13 +2255,13 @@ def map_alt_intron_to_primary(variant, validator):
         if not genomic_ac.startswith('NC_'):
             continue
 
-        if seq_data.supported_for_mapping(
+        if seq_data.is_supported_for_mapping(
                 genomic_ac,
                 current_assembly,
         ):
             current_ac = genomic_ac
 
-        elif seq_data.supported_for_mapping(
+        elif seq_data.is_supported_for_mapping(
                 genomic_ac,
                 other_assembly,
         ):
@@ -2416,19 +2416,9 @@ def map_alt_intron_to_primary(variant, validator):
     raise AltPrimaryMappingError(warning)
 
 
-# <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as
-# published by the Free Software Foundation, either version 3 of the
-# License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Affero General Public License for more details.
-#
-# You should have received a copy of the GNU Affero General Public License
-# along with this program.  If not, see <https://www.gnu.org/licenses/>.
-# </LICENSE>
+# This file is part of VariantValidator and is distributed under the
+# GNU Affero General Public License, version 3 or (at your option) any
+# later version. See the LICENSE file in the project root for the full
+# licence terms.
+# SPDX-License-Identifier: AGPL-3.0-or-later
