@@ -345,6 +345,31 @@ class TestVFGapWarnings(TestCase):
             'NC_000008.11:g.10623201T>A']['NC_000008.11:g.10623201T>A']['hgvs_t_and_p'][
             'ENST00000382483.3']['transcript_version_warning']
 
+    def test_vf_series_11_wrong_genome_build(self):
+        variant = 'NC_000019.10:g.50378563_50378564insTAC'
+
+        results = simpleVariantFormatter.format(
+            variant,
+            'GRCh37',
+            'refseq',
+            None,
+            False,
+            True,
+            testing=True
+        )
+
+        print(results)
+
+        assert variant in results.keys()
+
+        entry = results[variant][variant]
+
+        assert (
+            "GenomeBuildError: chromosome ID NC_000019.10 is not associated "
+            "with genome build GRCh37"
+            in entry["genomic_variant_error"]
+        )
+
 
 # <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors

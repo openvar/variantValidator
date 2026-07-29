@@ -18,7 +18,7 @@ import vvhgvs.exceptions
 
 import VariantFormatter.formatter as formatter
 import VariantValidator.modules.liftover as lo
-from VariantValidator.modules import hgvs_utils
+from VariantValidator.modules import hgvs_utils, seq_data
 import VariantValidator.modules.utils as fn
 
 
@@ -303,7 +303,7 @@ class FormatVariant:
                         None,
                         None,
                         (
-                            f"Unable to obtain a valid genomic HGVS description "
+                            f"InvalidSyntaxError: Unable to obtain a valid genomic HGVS description "
                             f"for {self.variant_description}"
                         ),
                         genome_build,
@@ -321,6 +321,35 @@ class FormatVariant:
                     recovery_error = edit_warnings[0]
 
                 self.warning_level = "genomic_variant_warning"
+
+            # Check the parsed genomic reference against the selected build.
+            #
+            # This is deliberately performed after the normal and recovery
+            # parsing paths converge so that both operate on an HGVS object.
+            if self.genome_build.lower().startswith("grch"):
+                seq_data_func = seq_data.to_chr_num_refseq
+            else:
+                seq_data_func = seq_data.to_chr_num_ucsc
+            if seq_data_func(
+                    hgvs_genomic.ac,
+                    self.genome_build
+            ) is None:
+                gen_error = (
+                    f"GenomeBuildError: chromosome ID {hgvs_genomic.ac} "
+                    f"is not associated with genome build {self.genome_build}"
+                )
+
+                self.genomic_descriptions = GenomicDescriptions(
+                    None,
+                    hgvs_genomic,
+                    None,
+                    None,
+                    gen_error,
+                    genome_build,
+                    variant_description,
+                )
+                self.warning_level = "genomic_variant_warning"
+                return
 
             # Preserve the submitted/recovered HGVS object before normalization.
             un_norm_hgvs = copy.deepcopy(

@@ -1,19 +1,7 @@
-"""
-NAME:          modules/expanded_repeats.py
-AUTHORS:       Rebecca Locke (@rklocke) & Robert Wilson (@RSWilson1)
-DATE:          18/02/22
-INSTITUTION:   University of Manchester/Cambridge University Hospitals
-
-DESCRIPTION:   This script contains the TandemRepeats class and methods,
-               aiming to check the syntax and
-               reformat tandem repeat variants for VariantValidator.
-"""
-
-# Importing Modules
-import re
-import logging
 import copy
 from vvhgvs.assemblymapper import AssemblyMapper
+import re
+import logging
 # AlignmentMapper allows us to skip redundant validation & ref filling on c<->n
 # the no normalisation flags for AssemblyMapper only skip the validation & post
 # map replacement but ref will always be subject to initial pre map filling
@@ -24,32 +12,14 @@ from vvhgvs.location import BaseOffsetInterval, Interval
 from .transcript_map_data import TranscriptMapData
 from .hgvs_utils import hgvs_delins_parts_to_hgvs_obj, \
         _hgvs_offset_pos_from_str_in
-# Set up logger
 logger = logging.getLogger(__name__)
-
 
 class RepeatSyntaxError(Exception):
     """Raised when the syntax of the expanded repeat is incorrect"""
 
-# Established class for Tandem repeats
+# Established class for converting Tandem repeats
 class TandemRepeats:
-    """
-    Class used for create instances of
-    expanded repeat variants.
-    ----------
-    reference : str
-        reference sequence name
-    prefix : str
-        reference sequence type used
-    variant_position : str
-        nucleotide position(s)
-    repeat_sequence : str
-        sequence repeat unit
-    copy_number : str
-        number of repeat units
-    after_the_bracket: str
-        anything after the last square bracket
-    """
+    """Represent and process an expanded tandem-repeat variant."""
 
     def __init__(
         self,
@@ -64,22 +34,8 @@ class TandemRepeats:
         variant_str,
         map_dat=False
     ):
-        """
-        This initialised an instance of the class with set class vars.
-
-        Parameters
-        ----------
-        variant_str : str
-            (Variant string i.e. LRG_199:g.1ACT[20])
-        build : str
-            Which genome reference the variant_string refers to e.g. GRCh37
-        select_transcripts : str
-            Return all possible transcripts or only select ones e.g. "all"
-        Returns
-        -------
-        None. But a class instance of variant is created.
-        """
-        self.reference = reference
+        """Initialise an expanded repeat and its mapping state."""
+        self.reference =  reference
         self.intronic_g_reference = False
         self.prefix = prefix
         self.variant_position = variant_position
@@ -122,39 +78,7 @@ class TandemRepeats:
 
     @classmethod
     def parse_repeat_variant(cls, variant_str, build, select_transcripts, validator):
-        """
-        Summary
-        -------
-        Takes a variant string and breaks it into its constituent parts
-        with regex to be processed in downstream functions,
-        assigns them to class variables.
-        Parameters
-        ----------
-            variant_str : str
-                variant string e.g. "LRG_199:g.1ACT[20]A"
-        Returns
-        -------
-            Updates each class attribute:
-            reference : str
-                Transcript or gene; everything before the first colon, e.g. "LRG_199"
-            prefix : str
-                The variant genomic or coding type e.g. "g"
-            variant_position : str
-                Position of the variant, e.g. "1" or "1_12"
-            repeat_sequence : str
-                The repeated sequence e.g. "ACT"
-            copy_number : str
-                The number of repeat units e.g. "20"
-            after_the_bracket : str
-                Captures anything after the number of repeats bracket e.g. "A"
-
-        Example 1:
-            >>>parse_repeat_variant("LRG_199:g.1ACT[20]A")
-                "LRG_199", "g", "1", "ACT", "20", "A"
-        Example 2:
-            >>>parse_repeat_variant("NM_024312.4:c.1_10A[10]")
-                "NM_024312.4", "c", "1_10" "A", "10", ""
-        """
+        """Parse expanded-repeat syntax and return a populated instance."""
 
         logger.info(f"Parsing variant: parse_repeat_variant({variant_str})")
         # Strip any whitespace
@@ -263,10 +187,7 @@ class TandemRepeats:
         return self.reference
 
     def check_genomic_or_coding(self):
-        """Takes reference and works out what prefix type should be used
-        Raises:
-            AssertionError if wrong prefix type is used
-        """
+        """Check that the HGVS prefix matches the reference type."""
         logger.info(
             f"Checking prefix is consistent with reference: "\
             f"check_genomic_or_coding({self.reference},{self.prefix})"
@@ -295,10 +216,7 @@ class TandemRepeats:
             ), "Please ensure variant type is non-coding if NR transcript is used"
 
     def check_positions_given(self, validator):
-        """
-        Checks the position range matches the genomic reference
-        Assumes that range is n type coordinates, 1 based WRT reference start
-        """
+        """Check that the stated repeat range matches the reference sequence."""
         logger.info(
             f"Checking range given: "\
             f"check_positions_given({self.repeat_sequence}, "\
@@ -340,17 +258,7 @@ class TandemRepeats:
                 f"reference is {reference_repeat_sequence} at the specified position")
 
     def get_valid_n_or_g_range_from_input_pos(self, validator):
-        """
-        Substitute for get_range_from_single_or_start_pos without full re-build.
-
-        Works by converting c->n or c/n->g without rebuilding, leaves other
-        input untouched. Used to keep the original input range, mainly for
-        testing. Mutually exclusive with get_range_from_single_or_start_pos,
-        using both will break c type inputs. This also avoids ALL checks for
-        c/n intronic to g mapping, for the same reasons (testing or deliberate
-        maintenance of the original) so should be combined with extra tests for
-        the sequence state if it is being used for user visible output.
-        """
+        """Map c/n coordinates as needed while preserving the supplied range."""
         pos = self.variant_position
         if isinstance(self.variant_position, BaseOffsetInterval) and (
                 pos.start.offset or pos.end.offset):
@@ -393,23 +301,7 @@ class TandemRepeats:
 
 
     def get_range_from_single_or_start_pos(self, validator):
-        """
-        Gets full range of the variant if this is needed,
-        Used both when a single start position is supplied
-        and to rebuild ranges for validation purposes.
-
-        Currently this is the only place that intronic g locations are derived
-
-        Uses: self.variant_position
-              validator (a VariantValidator object for data fetch, intronic
-              genomic mappings, etc.)
-        Sets: self.variant_position, to the start position of the repeat (if it
-              is not already done). In the case of intronic variants with -1
-              strand mapping this will be the end of the within transcript
-              position pair.
-        Returns: The n based coordinate span of the repeat region, as found
-
-        """
+        """Resolve the full repeat range, including intronic genomic mapping."""
         # due to the nature of hgvs object pos we always have end but it may == start
         start_pos = self.variant_position.start
         end_pos = self.variant_position.end
@@ -557,10 +449,7 @@ class TandemRepeats:
         return re.compile(regex_pattern)
 
     def check_reference_sequence(self, validator, within_ref_pos):
-        """
-        Check that the current within_ref_pos is a valid start for the given repeat.
-        return is unused, we raise a RepeatSyntaxError if the match fails
-        """
+        """Verify that the repeat starts at the supplied reference position."""
         start = within_ref_pos
         end = within_ref_pos + len(self.repeat_sequence)
         ref = self.reference
@@ -583,11 +472,7 @@ class TandemRepeats:
                 f"reference sequence {ref}")
 
     def get_reference_range(self, validator, within_ref_pos):
-        """
-        Get the full range of the variant, starting with a within reference 0
-        based start position that should line up with the start of the repeat
-        sequence.
-        """
+        """Find the full repeat span from a zero-based reference start."""
         # get sequence ref
         ref = self.reference
         if self.intronic_g_reference:
@@ -704,17 +589,7 @@ class TandemRepeats:
         return final_hgvs
 
     def _get_c_tx_info(self,validator):
-        """
-        Get the transcript info needed for turning n type from start of
-        transcript coordinates into c type CDS relative coordinates.
-        Only calls out to the database once per variant.
-        Parameters
-        ----------
-        validator a variant validator object to use for data fetch
-        Returns
-        -------
-        None, data is stored in self.cds_start and self.cds_end instead
-        """
+        """Initialise the cached mapper required for c/n coordinate conversion."""
         if not self.prefix == "c":
             return
         if self._c_to_n_tx_maper is not None:
@@ -724,12 +599,7 @@ class TandemRepeats:
 
 
     def convert_n_to_c_coordinates(self):
-        """
-        Applies CDS based c type offset to a n type variant position
-        used for c transcripts only!
-        _get_c_tx_info must be called before this function is
-        used.
-        """
+        """Convert n. coordinates to c. coordinates when required."""
         logger.info(
             "Applying c type offset to n type coordinates: " +
             f"convert_n_to_c_coordinates({str(self.variant_position)})"
@@ -739,11 +609,7 @@ class TandemRepeats:
         return self._c_to_n_tx_maper.n_to_c(self.variant_position)
 
     def convert_c_to_n_coordinates(self, pos=None):
-        """
-        Removes the offset from c type offset variant positions
-        _get_c_tx_info must be called before this function is
-        used.
-        """
+        """Convert c. coordinates to n. coordinates when required."""
         if pos is None:
             pos = self.variant_position
         logger.info(
@@ -754,20 +620,14 @@ class TandemRepeats:
         return self._c_to_n_tx_maper.c_to_n(pos)
 
     def reverse_complement(self, dna_seq):
-        """
-        Reverse complement a DNA string using the
-        :param dna_seq:
-        :return: (str)
-        """
+        """Return the reverse complement of a DNA sequence."""
         reverse_seq = dna_seq[::-1]
         return "".join([{"G": "C", "T": "A", "A": "T", "C": "G",
                                          "g": "c", "t": "a", "a": "t", "c": "g"}[base]
                                         for base in list(reverse_seq)])
 
     def check_exon_boundaries(self,validator):
-        """
-        Check the boundaries of intronic variants are correctly stated
-        """
+        """Validate intronic positions against transcript exon boundaries."""
         logger.info(
             "Checking intronic variant boundaries: "+
             f"check_exon_boundaries({str(self.original_position)})"
@@ -818,10 +678,7 @@ class TandemRepeats:
 
 
 def convert_tandem(variant, validator, build, select_transcripts):
-    """
-    Parse expanded repeat syntax from a Variant object and store the
-    resulting structured repeat data on that object.
-    """
+    """Parse and store expanded-repeat data on a Variant object."""
     logger.info(
         "Parsing expanded repeat variant from %s",
         variant.quibble

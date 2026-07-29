@@ -12,12 +12,12 @@ class TestVFvariantsAuto(object):
 
     def test_variant1(self):
         variant = 'NC_000019.10:g.50378563_50378564insTAC'
-        results = vf.FormatVariant(variant, 'GRCh37', vfo, 'refseq', None)
+        results = vf.FormatVariant(variant, 'GRCh38', vfo, 'refseq', None)
         results = results.stucture_data()
         print(results)
 
         assert variant in results.keys()
-        assert results[variant]['p_vcf'] == 'NC_000019.10:50378563:A:ATAC'
+        assert results[variant]['p_vcf'] == '19:50378563:A:ATAC'
         assert results[variant]['g_hgvs'] == 'NC_000019.10:g.50378563_50378564insTAC'
         assert results[variant]['genomic_variant_error'] is None
         assert results[variant]['hgvs_t_and_p'] is not None
