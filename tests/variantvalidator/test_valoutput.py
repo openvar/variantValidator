@@ -184,12 +184,12 @@ class TestValOutput(TestCase):
         res = obj.format_as_table(with_meta=False)
         print(res)
         self.assertIsInstance(res, list)
-        self.assertEqual(res, [['Input', 'Warnings', 'Select transcript', 'HGVS_transcript', 'HGVS_intronic_chr_context',
+        self.assertEqual(res, [('Input', 'Warnings', 'Select transcript', 'HGVS_transcript', 'HGVS_intronic_chr_context',
                                 'HGVS_intronic_rsg_context', 'HGVS_RefSeqGene', 'HGVS_LRG',
                                 'HGVS_LRG_transcript', 'HGVS_Predicted_Protein', 'HGVS_Genomic_GRCh37', 'GRCh37_CHR',
                                 'GRCh37_POS', 'GRCh37_ID', 'GRCh37_REF', 'GRCh37_ALT', 'HGVS_Genomic_GRCh38',
                                 'GRCh38_CHR', 'GRCh38_POS', 'GRCh38_ID', 'GRCh38_REF', 'GRCh38_ALT',
-                                'Gene_Symbol', 'HGNC_Gene_ID', 'Transcript_description', 'Alt_genomic_loci']])
+                                'Gene_Symbol', 'HGNC_Gene_ID', 'Transcript_description', 'Alt_genomic_loci')])
 
     def test_table_one(self):
         var1 = Variant('var1')
@@ -197,12 +197,12 @@ class TestValOutput(TestCase):
         res = obj.format_as_table(with_meta=False)
         print(res)
         self.assertIsInstance(res, list)
-        self.assertEqual(res, [['Input', 'Warnings', 'Select transcript', 'HGVS_transcript', 'HGVS_intronic_chr_context',
+        self.assertEqual(res, [('Input', 'Warnings', 'Select transcript', 'HGVS_transcript', 'HGVS_intronic_chr_context',
                                 'HGVS_intronic_rsg_context', 'HGVS_RefSeqGene', 'HGVS_LRG',
                                 'HGVS_LRG_transcript', 'HGVS_Predicted_Protein', 'HGVS_Genomic_GRCh37', 'GRCh37_CHR',
                                 'GRCh37_POS', 'GRCh37_ID', 'GRCh37_REF', 'GRCh37_ALT', 'HGVS_Genomic_GRCh38',
                                 'GRCh38_CHR', 'GRCh38_POS', 'GRCh38_ID', 'GRCh38_REF', 'GRCh38_ALT',
-                                'Gene_Symbol', 'HGNC_Gene_ID', 'Transcript_description', 'Alt_genomic_loci'],
+                                'Gene_Symbol', 'HGNC_Gene_ID', 'Transcript_description', 'Alt_genomic_loci'),
                                ['var1', '', None, None, None, None, None, None, None, '', '', '', '', '', '', '', '',
                                 '', '', '', '', '', '', '', '', '']])
 
@@ -213,13 +213,13 @@ class TestValOutput(TestCase):
         res = obj.format_as_table(with_meta=False)
         print(res)
         self.assertIsInstance(res, list)
-        self.assertEqual(res[0], ['Input', 'Warnings', 'Select transcript', 'HGVS_transcript',
+        self.assertEqual(res[0], ('Input', 'Warnings', 'Select transcript', 'HGVS_transcript',
                                   'HGVS_intronic_chr_context',
                                   'HGVS_intronic_rsg_context', 'HGVS_RefSeqGene', 'HGVS_LRG',
                                   'HGVS_LRG_transcript', 'HGVS_Predicted_Protein', 'HGVS_Genomic_GRCh37', 'GRCh37_CHR',
                                   'GRCh37_POS', 'GRCh37_ID', 'GRCh37_REF', 'GRCh37_ALT', 'HGVS_Genomic_GRCh38',
                                   'GRCh38_CHR', 'GRCh38_POS', 'GRCh38_ID', 'GRCh38_REF', 'GRCh38_ALT',
-                                  'Gene_Symbol', 'HGNC_Gene_ID', 'Transcript_description', 'Alt_genomic_loci'])
+                                  'Gene_Symbol', 'HGNC_Gene_ID', 'Transcript_description', 'Alt_genomic_loci'))
         self.assertEqual(res[1], ['var1', '', None, None, None, None, None, None, None, '', '', '', '', '', '', '', '',
                                   '', '', '', '', '', '', '', '', ''])
         self.assertEqual(len(res), 2)
