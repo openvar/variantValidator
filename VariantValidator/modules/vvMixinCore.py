@@ -379,11 +379,10 @@ class Mixin(vvMixinConverters.Mixin):
                         elif selected_assembly == 'hg38':
                             primary_assembly = 'GRCh38'
                         # Ensure genome build is correctly formatted
-                        elif re.search('GRC', selected_assembly, re.IGNORECASE):
-                            selected_assembly = selected_assembly.replace('g', 'G')
-                            selected_assembly = selected_assembly.replace('r', 'R')
-                            selected_assembly = selected_assembly.replace('c', 'C')
-                            selected_assembly = selected_assembly.replace('H', 'h')
+                        elif selected_assembly.upper().startswith("GRC"):
+                            selected_assembly = (
+                                    selected_assembly[:3].upper() + selected_assembly[3:].lower()
+                            )
                             primary_assembly = selected_assembly
                         # Catch invalid genome build
                         if primary_assembly in self.genome_builds or primary_assembly == 'hg38':
@@ -415,16 +414,19 @@ class Mixin(vvMixinConverters.Mixin):
                         if match:
                             result = match.group()
 
-                            # Check if Ens submitted as RefSeq set and vice versa
-                            if "ENST" in result and transcript_set == "refseq":
+                            # Check if Ensembl transcript submitted as RefSeq set and vice versa
+                            if result.startswith("ENST") and transcript_set == "refseq":
                                 my_variant.warnings.append(
-                                    "InvalidFieldError: The transcript " + result + " is not in the RefSeq "
-                                    "data set. Please select Ensembl")
+                                    f"InvalidFieldError: The transcript {result} is not in the RefSeq "
+                                    "data set. Please select Ensembl"
+                                )
                                 continue
-                            elif ("NM_" in result or "NR_" in result) and transcript_set == "ensembl":
+
+                            elif result.startswith(("NM_", "NR_")) and transcript_set == "ensembl":
                                 my_variant.warnings.append(
-                                    "InvalidFieldError: The transcript " + result + " is not in the Ensembl "
-                                    "data set. Please select RefSeq")
+                                    f"InvalidFieldError: The transcript {result} is not in the Ensembl "
+                                    "data set. Please select RefSeq"
+                                )
                                 continue
                             try:
                                 to_code_or_not_to_code = self.hdp.get_tx_identity_info(result)

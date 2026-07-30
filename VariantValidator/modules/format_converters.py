@@ -280,7 +280,10 @@ def vcf2hgvs_stage1(variant, batch_list):
     if vcf_data[3] == '.':
         vcf_data[3] = ''
 
-    if re.search(r'[^CGAT]', vcf_data[2]) or re.search(r'[^CGAT,]', vcf_data[3]):
+    if (
+            not set(vcf_data[2]) <= {"A", "C", "G", "T"}
+            or not set(vcf_data[3]) <= {"A", "C", "G", "T", ","}
+    ):
         logger.debug("Completed VCF-HVGS step 1 for %s", variant.quibble)
         return False
 

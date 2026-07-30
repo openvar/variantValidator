@@ -2,7 +2,6 @@
 
 import logging
 import os
-import re
 from configparser import ConfigParser
 
 import vvhgvs
@@ -606,14 +605,11 @@ class Mixin:
                         hgvs_protein.posedit.edit.alt
                     )
 
-                    if re.search(r"\*[A-Z]+", protein_alt):
-                        protein_alt = (
-                            protein_alt.split("*")[0] + "*"
-                        )
-
-                        hgvs_protein.posedit.edit.alt = (
-                            protein_alt
-                        )
+                    if "*" in protein_alt:
+                        head, _, tail = protein_alt.partition("*")
+                        if tail[:1].isupper():
+                            protein_alt = head + "*"
+                            hgvs_protein.posedit.edit.alt = protein_alt
 
                 except Exception:
                     pass

@@ -189,13 +189,13 @@ def pre_parsing_global_common_mistakes(my_variant):
                 logger.info(error)
                 return True
 
+
             elif (
-                    (
-                        re.search(r'\(ENST\d+\.\d+\):', quibble)
-                        or re.search(r'\(N[MRCG]_\d+\.\d+\):', quibble)
-                        or re.search(r'\(LRG_\d+t\d+\):', quibble)
+                    re.search(
+                        r"\((?:ENST\d+\.\d+|N[MRCG]_\d+\.\d+|LRG_\d+t\d+)\):",
+                        quibble,
                     )
-                    and not quibble.startswith('NC_')
+                    and not quibble.startswith("NC_")
             ):
                 reference_region, variation = quibble.split(':', 1)
                 reference = reference_region.split('(', 1)[1].replace(')', '')

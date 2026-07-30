@@ -625,12 +625,10 @@ def pvcf_to_hgvs(query, selected_assembly, normalization_direction, reverse_norm
     try:
         input_list = query.split(':')
         position_and_edit = input_list[1]
-        if not re.match(r'N[CGWT]_', query) and not re.match(r'LRG_\d+$', query):
-            chr_num = str(input_list[0])
-            chr_num = chr_num.upper()
-            chr_num = chr_num.strip()
-            if re.match(r'CHR', chr_num):
-                chr_num = chr_num.replace('CHR', '')
+        if not query.startswith(("NC_", "NG_", "NW_", "NT_")) and not re.fullmatch(r"LRG_\d+", query):
+            chr_num = input_list[0].strip().upper()
+            if chr_num.startswith("CHR"):
+                chr_num = chr_num[3:]
             # Use selected assembly
             accession = seq_data.get_accession(chr_num, selected_assembly)
             if accession is None:
