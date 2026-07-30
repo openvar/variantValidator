@@ -6,6 +6,34 @@ from VariantValidator.modules import lovd_api
 
 logger = logging.getLogger(__name__)
 
+_OUTPUT_HEADERS = (
+            'Input',
+            'Warnings',
+            'Select transcript',
+            'HGVS_transcript',
+            'HGVS_intronic_chr_context',
+            'HGVS_intronic_rsg_context',
+            'HGVS_RefSeqGene',
+            'HGVS_LRG',
+            'HGVS_LRG_transcript',
+            'HGVS_Predicted_Protein',
+            'HGVS_Genomic_GRCh37',
+            'GRCh37_CHR',
+            'GRCh37_POS',
+            'GRCh37_ID',
+            'GRCh37_REF',
+            'GRCh37_ALT',
+            'HGVS_Genomic_GRCh38',
+            'GRCh38_CHR',
+            'GRCh38_POS',
+            'GRCh38_ID',
+            'GRCh38_REF',
+            'GRCh38_ALT',
+            'Gene_Symbol',
+            'HGNC_Gene_ID',
+            'Transcript_description',
+            'Alt_genomic_loci',
+)
 
 class ValOutput(object):
     """
@@ -147,34 +175,7 @@ class ValOutput(object):
                 )
             )
 
-        outputstrings.append([
-            'Input',
-            'Warnings',
-            'Select transcript',
-            'HGVS_transcript',
-            'HGVS_intronic_chr_context',
-            'HGVS_intronic_rsg_context',
-            'HGVS_RefSeqGene',
-            'HGVS_LRG',
-            'HGVS_LRG_transcript',
-            'HGVS_Predicted_Protein',
-            'HGVS_Genomic_GRCh37',
-            'GRCh37_CHR',
-            'GRCh37_POS',
-            'GRCh37_ID',
-            'GRCh37_REF',
-            'GRCh37_ALT',
-            'HGVS_Genomic_GRCh38',
-            'GRCh38_CHR',
-            'GRCh38_POS',
-            'GRCh38_ID',
-            'GRCh38_REF',
-            'GRCh38_ALT',
-            'Gene_Symbol',
-            'HGNC_Gene_ID',
-            'Transcript_description',
-            'Alt_genomic_loci',
-        ])
+        outputstrings.append(_OUTPUT_HEADERS)
 
         empty_vcf = {
             'chr': '',
