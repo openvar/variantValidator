@@ -17,7 +17,6 @@ import json
 from vvhgvs.exceptions import HGVSError, HGVSDataNotAvailableError, HGVSUnsupportedOperationError, \
      HGVSInvalidVariantError
 from vvhgvs.enums import Datum # needed to handle r-> n mapping without re-parsing posedit
-from  VariantValidator.modules.utils import simple_dna_revcomp
 from VariantValidator.modules.hgvs_utils import hgvs_delins_parts_to_hgvs_obj, hgvs_dup_to_delins,\
         hgvs_obj_from_existing_edit
 from VariantValidator.modules.transcript_map_data import TranscriptMapData

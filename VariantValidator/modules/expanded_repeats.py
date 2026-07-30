@@ -18,6 +18,24 @@ class RepeatSyntaxError(Exception):
     """Raised when the syntax of the expanded repeat is incorrect"""
 
 # Established class for converting Tandem repeats
+_wobble_bases_map = {
+            'A': r'A',       # Adenine
+            'C': r'C',       # Cytosine
+            'G': r'G',       # Guanine
+            'T': r'T',       # Thymine
+            'U': r'U',       # Uracil (in RNA)
+            'R': r'[AG]',    # A or G (puRine)
+            'Y': r'[CT]',    # C or T (pYrimidine)
+            'S': r'[GC]',    # G or C (Strong interaction)
+            'W': r'[AT]',    # A or T (Weak interaction)
+            'K': r'[GT]',    # G or T (Keto)
+            'M': r'[AC]',    # A or C (aMino)
+            'B': r'[CGT]',   # C or G or T (not A)
+            'D': r'[AGT]',   # A or G or T (not C)
+            'H': r'[ACT]',   # A or C or T (not G)
+            'V': r'[ACG]',   # A or C or G (not T)
+            'N': r'[ACGT]',  # Any base (A or C or G or T)
+        }
 class TandemRepeats:
     """Represent and process an expanded tandem-repeat variant."""
 
@@ -57,24 +75,7 @@ class TandemRepeats:
         self.reference_sequence_bases = None
 
         # Define the wobble bases map with proper regex
-        self._wobble_bases_map = {
-            'A': r'A',       # Adenine
-            'C': r'C',       # Cytosine
-            'G': r'G',       # Guanine
-            'T': r'T',       # Thymine
-            'U': r'U',       # Uracil (in RNA)
-            'R': r'[AG]',    # A or G (puRine)
-            'Y': r'[CT]',    # C or T (pYrimidine)
-            'S': r'[GC]',    # G or C (Strong interaction)
-            'W': r'[AT]',    # A or T (Weak interaction)
-            'K': r'[GT]',    # G or T (Keto)
-            'M': r'[AC]',    # A or C (aMino)
-            'B': r'[CGT]',   # C or G or T (not A)
-            'D': r'[AGT]',   # A or G or T (not C)
-            'H': r'[ACT]',   # A or C or T (not G)
-            'V': r'[ACG]',   # A or C or G (not T)
-            'N': r'[ACGT]',  # Any base (A or C or G or T)
-        }
+        self._wobble_bases_map = _wobble_bases_map
 
     @classmethod
     def parse_repeat_variant(cls, variant_str, build, select_transcripts, validator):

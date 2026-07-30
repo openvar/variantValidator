@@ -647,43 +647,45 @@ def translate(ed_seq, cds_start, modified_aa=None, tolerate_no_stop_cds=False):
     return "".join(translation)
 
 
+_aacode_1_to_3 = {
+    'A': 'Ala', 'C': 'Cys', 'D': 'Asp', 'E': 'Glu',
+    'F': 'Phe', 'G': 'Gly', 'H': 'His', 'I': 'Ile',
+    'K': 'Lys', 'L': 'Leu', 'M': 'Met', 'N': 'Asn',
+    'P': 'Pro', 'Q': 'Gln', 'R': 'Arg', 'S': 'Ser',
+    'T': 'Thr', 'V': 'Val', 'W': 'Trp', 'Y': 'Tyr',
+    '*': 'Ter', 'U': 'Sec'
+}
+
 def one_to_three(seq):
     """
     Convert single letter amino acid code to 3 letter code
     """
-    aacode = {
-        'A': 'Ala', 'C': 'Cys', 'D': 'Asp', 'E': 'Glu',
-        'F': 'Phe', 'G': 'Gly', 'H': 'His', 'I': 'Ile',
-        'K': 'Lys', 'L': 'Leu', 'M': 'Met', 'N': 'Asn',
-        'P': 'Pro', 'Q': 'Gln', 'R': 'Arg', 'S': 'Ser',
-        'T': 'Thr', 'V': 'Val', 'W': 'Trp', 'Y': 'Tyr',
-        '*': 'Ter', 'U': 'Sec'}
 
     oned = list(seq)
     out = []
     for aa in oned:
-        get_value = aacode.get(aa)
+        get_value = _aacode_1_to_3.get(aa)
         out.append(get_value)
 
     threed_up = ''.join(out)
     return threed_up
 
 
+_aacode_3_to_1 = {
+    'Ala': 'A', 'Cys': 'C', 'Asp': 'D', 'Glu': 'E',
+    'Phe': 'F', 'Gly': 'G', 'His': 'H', 'Ile': 'I',
+    'Lys': 'K', 'Leu': 'L', 'Met': 'M', 'Asn': 'N',
+    'Pro': 'P', 'Gln': 'Q', 'Arg': 'R', 'Ser': 'S',
+    'Thr': 'T', 'Val': 'V', 'Trp': 'W', 'Tyr': 'Y',
+    'Ter': '*', 'Sec': 'U'
+}
 def three_to_one(seq):
-
-    aacode = {
-        'Ala': 'A', 'Cys': 'C', 'Asp': 'D', 'Glu': 'E',
-        'Phe': 'F', 'Gly': 'G', 'His': 'H', 'Ile': 'I',
-        'Lys': 'K', 'Leu': 'L', 'Met': 'M', 'Asn': 'N',
-        'Pro': 'P', 'Gln': 'Q', 'Arg': 'R', 'Ser': 'S',
-        'Thr': 'T', 'Val': 'V', 'Trp': 'W', 'Tyr': 'Y',
-        'Ter': '*', 'Sec': 'U'}
 
     threed = [seq[i:i + 3] for i in range(0, len(seq), 3)]
     out = []
 
     for aa in threed:
-        get_value = aacode.get(aa)
+        get_value = _aacode_3_to_1.get(aa)
         out.append(get_value)
 
     oned_up = ''.join(out)
