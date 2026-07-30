@@ -1,6 +1,6 @@
 from unittest.mock import MagicMock, patch
 import pytest
-import json
+import vvhgvs
 
 from VariantValidator.modules.vvMixinConverters import Mixin
 from vvhgvs.exceptions import HGVSDataNotAvailableError, HGVSError
@@ -713,6 +713,65 @@ def test_expand_ref_boundary_1000():
     assert right == "A"
 
     mixin.sf.fetch_seq.assert_called_once()
+
+def test_coding_invalid_string_returns_none():
+    mixin = make_mixin()
+
+    assert mixin.coding("hello world") is None
+
+    mixin.hp.parse_hgvs_variant.assert_not_called()
+
+
+def test_genomic_returns_error_when_mapping_fails_for_object():
+    mixin = make_mixin()
+
+    variant = MagicMock()
+    variant.type = "c"
+
+    mixin.myevm_t_to_g = MagicMock(
+        side_effect=HGVSError("boom")
+    )
+
+    result = mixin.genomic(
+        variant,
+        MagicMock(),
+        "GRCh38",
+        MagicMock(hn=MagicMock()),
+    )
+
+    assert result == "error boom"
+
+    mixin.myevm_t_to_g.assert_called_once()
+
+
+def test_genomic_returns_error_when_mapping_fails_for_string():
+    mixin = make_mixin()
+
+    parsed = MagicMock()
+    parsed.type = "c"
+
+    mixin.hp.parse_hgvs_variant.return_value = parsed
+
+    mixin.myevm_t_to_g = MagicMock(
+        side_effect=HGVSError("boom")
+    )
+
+    result = mixin.genomic(
+        "NM_000001.1:c.123A>G",
+        MagicMock(),
+        "GRCh38",
+        MagicMock(hn=MagicMock()),
+    )
+
+    assert result == "error boom"
+
+    mixin.hp.parse_hgvs_variant.assert_called_once_with(
+        "NM_000001.1:c.123A>G"
+    )
+
+    mixin.myevm_t_to_g.assert_called_once()
+
+
 
 # Copyright (C) 2016-2026 VariantValidator Contributors
 # This file is part of VariantValidator and is distributed under the

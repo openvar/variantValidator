@@ -550,6 +550,391 @@ class TestGeneToTranscriptsUnit(TestCase):
             1,
         )
 
+    def test_refseqgene_mapping_finds_more_transcripts(self):
+        hp = vvhgvs.parser.Parser()
+
+        self.g_query = hp.parse_hgvs_variant("NG_000001.1:g.100A>G")
+        self.g_test = copy.deepcopy(self.g_query)
+
+        self.variant.hgvs_formatted = self.g_query
+        self.variant.hgvs_genomic = self.g_query
+        self.variant.hn.normalize.return_value = self.g_test
+
+        coding = hp.parse_hgvs_variant("NM_000001.1:c.100A>G")
+
+        self.validator.relevant_transcripts.side_effect = [
+            [coding],
+            [coding, coding],
+        ]
+
+        self.validator.myevm_t_to_g.return_value = self.g_query
+
+        gap_mapper = MagicMock()
+        gap_mapper.gapped_g_to_c.return_value = (
+            {"gapped_alignment_warning": "", "auto_info": ""},
+            [coding, coding],
+        )
+
+        with patch(
+                "VariantValidator.modules.mappers.gapped_mapping.GapMapper",
+                return_value=gap_mapper,
+        ):
+            gene_to_transcripts(
+                self.variant,
+                self.validator,
+                {},
+                self.batch_list,
+            )
+
+        self.assertEqual(
+            self.validator.relevant_transcripts.call_count,
+            2,
+        )
+
+    def test_refseqgene_mapping_keeps_original_when_no_extra_transcripts(self):
+        hp = vvhgvs.parser.Parser()
+
+        self.g_query = hp.parse_hgvs_variant("NG_000001.1:g.100A>G")
+        self.g_test = copy.deepcopy(self.g_query)
+
+        self.variant.hgvs_formatted = self.g_query
+        self.variant.hgvs_genomic = self.g_query
+        self.variant.hn.normalize.return_value = self.g_test
+
+        coding = hp.parse_hgvs_variant("NM_000001.1:c.100A>G")
+
+        self.validator.relevant_transcripts.side_effect = [
+            [coding],
+            [coding],
+        ]
+
+        self.validator.myevm_t_to_g.return_value = self.g_query
+
+        gap_mapper = MagicMock()
+        gap_mapper.gapped_g_to_c.return_value = (
+            {"gapped_alignment_warning": "", "auto_info": ""},
+            [coding],
+        )
+
+        with patch(
+                "VariantValidator.modules.mappers.gapped_mapping.GapMapper",
+                return_value=gap_mapper,
+        ):
+            gene_to_transcripts(
+                self.variant,
+                self.validator,
+                {},
+                self.batch_list,
+            )
+
+        self.assertEqual(
+            self.validator.relevant_transcripts.call_count,
+            2,
+        )
+
+    def test_gene_to_transcripts_hgvs2vcf_data_not_available(self):
+        self.validator.relevant_transcripts.return_value = []
+
+        with patch(
+                "VariantValidator.modules.mappers.hgvs_utils.hgvs2vcf",
+                side_effect=vvhgvs.exceptions.HGVSDataNotAvailableError("missing"),
+        ), patch(
+            "VariantValidator.modules.mappers.seq_data.is_supported_for_mapping",
+            return_value=False,
+        ):
+            result = gene_to_transcripts(
+                self.variant,
+                self.validator,
+                {},
+                self.batch_list,
+            )
+
+        self.assertTrue(result)
+
+    def test_gene_to_transcripts_large_reference_skips_second_search(self):
+        self.validator.relevant_transcripts.return_value = []
+
+        with patch(
+                "VariantValidator.modules.mappers.hgvs_utils.hgvs2vcf",
+                return_value={
+                    "pos": 1,
+                    "ref": "A" * 100001,
+                    "alt": "G",
+                },
+        ), patch(
+            "VariantValidator.modules.mappers.seq_data.is_supported_for_mapping",
+            return_value=False,
+        ):
+            result = gene_to_transcripts(
+                self.variant,
+                self.validator,
+                {},
+                self.batch_list,
+            )
+
+        self.assertTrue(result)
+
+    def test_gap_warnings_are_added_to_batch(self):
+        hp = vvhgvs.parser.Parser()
+
+        coding = hp.parse_hgvs_variant(
+            "NM_000001.1:c.100A>G"
+        )
+
+        self.validator.relevant_transcripts.return_value = [
+            coding
+        ]
+
+        gap_mapper = MagicMock()
+        gap_mapper.gapped_g_to_c.return_value = (
+            {
+                "gapped_alignment_warning": "Gap warning",
+                "auto_info": "NM_000001.1 automatic correction",
+            },
+            [coding],
+        )
+
+        with patch(
+                "VariantValidator.modules.mappers.gapped_mapping.GapMapper",
+                return_value=gap_mapper,
+        ):
+            result = gene_to_transcripts(
+                self.variant,
+                self.validator,
+                {},
+                self.batch_list,
+            )
+
+        self.assertTrue(result)
+        self.assertEqual(len(self.batch_list), 1)
+        self.assertIn("Gap warning", self.batch_list[0].warnings)
+        self.assertIn(
+            "NM_000001.1 automatic correction",
+            self.batch_list[0].warnings,
+        )
+
+    def test_multiple_transcripts_are_added_to_batch(self):
+        hp = vvhgvs.parser.Parser()
+
+        coding1 = hp.parse_hgvs_variant(
+            "NM_000001.1:c.100A>G"
+        )
+        coding2 = hp.parse_hgvs_variant(
+            "NM_000002.1:c.100A>G"
+        )
+
+        self.validator.relevant_transcripts.return_value = [
+            coding1,
+            coding2,
+        ]
+
+        gap_mapper = MagicMock()
+        gap_mapper.gapped_g_to_c.return_value = (
+            {
+                "gapped_alignment_warning": "",
+                "auto_info": "",
+            },
+            [coding1, coding2],
+        )
+
+        with patch(
+                "VariantValidator.modules.mappers.gapped_mapping.GapMapper",
+                return_value=gap_mapper,
+        ):
+            result = gene_to_transcripts(
+                self.variant,
+                self.validator,
+                {},
+                self.batch_list,
+            )
+
+        self.assertTrue(result)
+        self.assertEqual(len(self.batch_list), 2)
+
+    def test_no_transcripts_found_with_mane_filter(self):
+        self.validator.select_transcripts = "mane"
+
+        self.validator.relevant_transcripts.return_value = []
+        self.validator.chr_to_rsg.return_value = []
+
+        with patch(
+                "VariantValidator.modules.mappers.seq_data.is_supported_for_mapping",
+                return_value=True,
+        ):
+            result = gene_to_transcripts(
+                self.variant,
+                self.validator,
+                {},
+                self.batch_list,
+            )
+
+        self.assertTrue(result)
+        self.assertEqual(
+            self.variant.output_type_flag,
+            "intergenic",
+        )
+
+        self.assertTrue(
+            any(
+                warning.startswith("TranscriptIdentificationWarning:")
+                or warning.startswith("TranscriptSelectionError:")
+                for warning in self.variant.warnings
+            )
+        )
+
+    def test_refseqgene_output_is_saved(self):
+        hp = vvhgvs.parser.Parser()
+
+        rsg = hp.parse_hgvs_variant(
+            "NG_000001.1:g.100A>G"
+        )
+
+        self.validator.relevant_transcripts.return_value = []
+        self.validator.chr_to_rsg.return_value = [
+            {
+                "valid": "true",
+                "hgvs_refseqgene": rsg,
+            }
+        ]
+
+        with patch(
+                "VariantValidator.modules.mappers.seq_data.is_supported_for_mapping",
+                return_value=True,
+        ):
+            result = gene_to_transcripts(
+                self.variant,
+                self.validator,
+                {},
+                self.batch_list,
+            )
+
+        self.assertTrue(result)
+        self.assertEqual(
+            str(self.variant.genomic_r),
+            "NG_000001.1:g.100A>G",
+        )
+
+    def test_ng_automap_success(self):
+        hp = vvhgvs.parser.Parser()
+
+        self.g_query = hp.parse_hgvs_variant(
+            "NG_000001.1:g.100A>G"
+        )
+        self.g_test = copy.deepcopy(self.g_query)
+
+        self.variant.hgvs_formatted = self.g_query
+        self.variant.hgvs_genomic = self.g_query
+        self.variant.hn.normalize.return_value = self.g_test
+        self.variant.original = str(self.g_query)
+        self.variant.order = 1
+        self.variant.selected_assembly = "GRCh38"
+
+        self.validator.relevant_transcripts.return_value = []
+        self.validator.rsg_to_chr.return_value = [{
+            "valid": "true",
+            "hgvs_genomic": hp.parse_hgvs_variant(
+                "NC_000001.11:g.100A>G"
+            ),
+        }]
+
+        gene_to_transcripts(
+            self.variant,
+            self.validator,
+            {},
+            self.batch_list,
+        )
+
+        self.assertEqual(len(self.batch_list), 1)
+        self.assertEqual(
+            str(self.batch_list[0].quibble),
+            "NC_000001.11:g.100A>G",
+        )
+        self.assertIn(
+            "automapped to genome position",
+            self.variant.warnings[0],
+        )
+
+    def test_ng_automap_invalid_mapping(self):
+        hp = vvhgvs.parser.Parser()
+
+        self.g_query = hp.parse_hgvs_variant(
+            "NG_000001.1:g.100A>G"
+        )
+        self.g_test = copy.deepcopy(self.g_query)
+
+        self.variant.hgvs_formatted = self.g_query
+        self.variant.hgvs_genomic = self.g_query
+        self.variant.hn.normalize.return_value = self.g_test
+
+        self.validator.relevant_transcripts.return_value = []
+        self.validator.rsg_to_chr.return_value = [{
+            "valid": "false",
+        }]
+
+        result = gene_to_transcripts(
+            self.variant,
+            self.validator,
+            {},
+            self.batch_list,
+        )
+
+        self.assertTrue(result)
+        self.assertTrue(
+            any(
+                warning.startswith(
+                    "TranscriptIdentificationWarning: Mapping unavailable"
+                )
+                for warning in self.variant.warnings
+            )
+        )
+
+    def test_transcripts_removed_by_gap_mapper_filter(self):
+        hp = vvhgvs.parser.Parser()
+
+        coding = hp.parse_hgvs_variant(
+            "NM_000001.1:c.100A>G"
+        )
+
+        self.validator.relevant_transcripts.return_value = [
+            coding
+        ]
+        self.validator.select_transcripts = "mane"
+
+        gap_mapper = MagicMock()
+        gap_mapper.gapped_g_to_c.return_value = (
+            {
+                "gapped_alignment_warning": "",
+                "auto_info": "",
+            },
+            [],
+        )
+
+        self.validator.chr_to_rsg.return_value = []
+
+        with patch(
+                "VariantValidator.modules.mappers.gapped_mapping.GapMapper",
+                return_value=gap_mapper,
+        ), patch(
+            "VariantValidator.modules.mappers.seq_data.is_supported_for_mapping",
+            return_value=True,
+        ):
+            result = gene_to_transcripts(
+                self.variant,
+                self.validator,
+                {},
+                self.batch_list,
+            )
+
+        self.assertTrue(result)
+        self.assertTrue(
+            any(
+                warning.startswith(
+                    "TranscriptSelectionError: Transcripts were found but"
+                )
+                for warning in self.variant.warnings
+            )
+        )
+
 class TestTranscriptsToGeneUnit(TestCase):
 
     def setUp(self):

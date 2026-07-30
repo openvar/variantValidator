@@ -2,6 +2,9 @@ import unittest
 from unittest.mock import Mock, patch
 from VariantValidator.modules.hgvs_utils import pvcf_to_hgvs, PseudoVCF2HGVSError
 from VariantValidator.modules.hgvs_utils import pre_push_vcf_tx_g_map_fix
+from vvhgvs.location import Interval, SimplePosition, AAPosition
+from vvhgvs.edit import NARefAlt, AARefAlt
+from VariantValidator.modules.hgvs_utils import VVPosEdit
 
 from unittest import TestCase
 
@@ -817,6 +820,142 @@ class TestHgvsUtils(TestCase):
         self.assertEqual(result.posedit.pos.start.base, 100)
         self.assertEqual(result.posedit.pos.end.base, 101)
 
+    def test_unset_hgvs_obj_ref_identity_vf_mode(self):
+        hp = self.vv.hp
+
+        hgvs = hp.parse_hgvs_variant(
+            "NM_000546.6:n.100_101="
+        )
+
+        result = unset_hgvs_obj_ref(hgvs, vf_mode=True)
+
+        self.assertEqual(result.posedit.edit.type, "identity")
+        self.assertEqual(result.posedit.edit.ref, "")
+        self.assertEqual(result.posedit.edit.alt, "")
+
+
+    def test_unset_hgvs_obj_ref_identity(self):
+        hp = self.vv.hp
+
+        hgvs = hp.parse_hgvs_variant(
+            "NM_000546.6:n.100_101="
+        )
+
+        result = unset_hgvs_obj_ref(hgvs)
+
+        self.assertEqual(result.posedit.edit.type, "identity")
+        self.assertEqual(result.posedit.edit.ref, "")
+        self.assertEqual(result.posedit.edit.alt, "")
+
+
+    def test_unset_hgvs_obj_ref_substitution_unchanged(self):
+        hp = self.vv.hp
+
+        hgvs = hp.parse_hgvs_variant(
+            "NM_000546.6:n.100A>G"
+        )
+
+        result = unset_hgvs_obj_ref(hgvs)
+
+        self.assertEqual(result.posedit.edit.type, "sub")
+        self.assertEqual(result.posedit.edit.ref, "A")
+        self.assertEqual(result.posedit.edit.alt, "G")
+
+
+    def test_hgvs_dup_to_delins_preserves_metadata(self):
+        hp = self.vv.hp
+
+        dup = hp.parse_hgvs_variant(
+            "NM_000546.6:n.100dupA"
+        )
+
+        result = hgvs_dup_to_delins(dup)
+
+        self.assertEqual(result.ac, dup.ac)
+        self.assertEqual(result.type, dup.type)
+        self.assertEqual(result.posedit.edit.type, "delins")
+
+        def test_vv_posedit_eq_notimplemented(self):
+            pos = Interval(
+                start=SimplePosition(base=1),
+                end=SimplePosition(base=1),
+            )
+            pe = VVPosEdit(pos, NARefAlt(ref="A", alt="G"))
+
+            self.assertIs(pe.__eq__(object()), NotImplemented)
+
+        def test_vv_posedit_hash(self):
+            pos = Interval(
+                start=SimplePosition(base=1),
+                end=SimplePosition(base=1),
+            )
+            pe = VVPosEdit(pos, NARefAlt(ref="A", alt="G"))
+
+            self.assertIsInstance(hash(pe), int)
+
+        def test_vv_posedit_format_no_position(self):
+            pe = VVPosEdit(
+                None,
+                NARefAlt(ref="A", alt="G"),
+            )
+
+            self.assertEqual(pe.format(), "A>G")
+
+        def test_vv_posedit_format_uncertain_no_coordinates(self):
+            class DummyPos:
+                start = None
+                end = None
+
+            pe = VVPosEdit(
+                DummyPos(),
+                NARefAlt(ref="A", alt="G"),
+                uncertain=True,
+            )
+
+            self.assertEqual(pe.format(), "A>G?")
+
+        def test_vv_posedit_format_ter_three_letter(self):
+            pos = Interval(
+                start=AAPosition(base=1, aa="*"),
+                end=AAPosition(base=1, aa="*"),
+            )
+
+            pe = VVPosEdit(
+                pos,
+                AARefAlt(ref="*", alt="*"),
+            )
+
+            self.assertEqual(
+                pe.format(
+                    {
+                        "p_3_letter": True,
+                        "p_term_asterisk": False,
+                    }
+                ),
+                "Ter=",
+            )
+
+        def test_vv_posedit_format_ter_force_asterisk(self):
+            pos = Interval(
+                start=AAPosition(base=1, aa="*"),
+                end=AAPosition(base=1, aa="*"),
+            )
+
+            pe = VVPosEdit(
+                pos,
+                AARefAlt(ref="*", alt="*"),
+            )
+
+            self.assertEqual(
+                pe.format(
+                    {
+                        "p_3_letter": True,
+                        "p_term_asterisk": True,
+                    }
+                ),
+                "*=",
+            )
+
 
 class TestPVCFtoHGVS(unittest.TestCase):
 
@@ -855,6 +994,7 @@ class TestPVCFtoHGVS(unittest.TestCase):
         with self.assertRaises(PseudoVCF2HGVSError):
             pvcf_to_hgvs(query, selected_assembly="GRCh38", normalization_direction=3,
                           reverse_normalizer=self.mock_reverse, validator=self.mock_validator)
+
 
 if __name__ == '__main__':
     unittest.main()

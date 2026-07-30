@@ -276,6 +276,74 @@ class TestGene2Transcripts(unittest.TestCase):
             "No gene symbol submitted.",
         )
 
+    def test_symbol_valid_hgnc_id_lowercase(self):
+        """Exercise lowercase HGNC handling."""
+        results = self.vv.gene2transcripts(
+            "hgnc:2197",
+            lovd_syntax_check=True,
+        )
+
+        assert results["current_symbol"] == "COL1A1"
+        assert results["hgnc"] == "HGNC:2197"
+        assert results["lovd_messages"] is not None
+
+    def test_symbol_valid_hgnc_id_whitespace(self):
+        """Exercise whitespace stripping before HGNC conversion."""
+        results = self.vv.gene2transcripts("   HGNC:2197   ")
+
+        assert results["current_symbol"] == "COL1A1"
+        assert results["hgnc"] == "HGNC:2197"
+
+    def test_symbol_numeric_hgnc_whitespace(self):
+        """Exercise whitespace + integer HGNC conversion."""
+        results = self.vv.gene2transcripts("   2197   ")
+
+        assert results["current_symbol"] == "COL1A1"
+        assert results["hgnc"] == "HGNC:2197"
+
+    def test_select_transcripts_select(self):
+        """Exercise the 'select' transcript filter."""
+        output = self.vv.gene2transcripts(
+            "BRAF",
+            select_transcripts="select",
+        )
+
+        assert len(output["transcripts"]) >= 1
+
+        for tx in output["transcripts"]:
+            ann = tx["annotations"]
+            assert (
+                    ann.get("mane_select")
+                    or ann.get("refseq_select")
+                    or ann.get("ensembl_select")
+            )
+
+    def test_select_transcripts_empty_json(self):
+        """Exercise parsing of an empty JSON transcript list."""
+        output = self.vv.gene2transcripts(
+            "COL1A1",
+            select_transcripts="[]",
+        )
+
+        assert output["transcripts"] == []
+
+    def test_noncoding_transcript(self):
+        """Exercise an NR_ transcript."""
+        output = self.vv.gene2transcripts("NR_002196.2")
+
+        assert "transcripts" in output
+        assert output["current_symbol"] is not None
+
+    def test_lrg_identifier(self):
+        """
+        Replace LRG_199 with an LRG known to exist in your VVTA.
+        This exercises the LRG lookup path.
+        """
+        output = self.vv.gene2transcripts("LRG_199")
+
+        assert "transcripts" in output
+        assert output["current_symbol"] is not None
+
 
 # Copyright (C) 2016-2026 VariantValidator Contributors
 # This file is part of VariantValidator and is distributed under the
