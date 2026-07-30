@@ -24,12 +24,10 @@ VariantValidator can be accessed through several interfaces, allowing you to cho
 
 A local installation provides access to the complete VariantValidator software suite, including:
 
-- VariantValidator
-- VariantFormatter
-- gene2transcripts
-- hgvs2reference
-- Python API
-- Command-line interface (CLI)
+- VariantValidator CLI and Python API
+- VariantFormatter CLI and Python API
+- gene2transcripts CLI and Python API
+- hgvs2reference CLI and Python API
 
 Installation instructions are provided in the [Installation Guide](../installation/index.md).
 
@@ -106,6 +104,7 @@ The `hgvs2reference` tool retrieves reference sequences corresponding to support
 
 Topics include:
 
+- [hgvs2reference CLI](cli/hgvs2reference_cli.md)
 - [hgvs2reference Python API](python-api/hgvs2reference_python.md)
 - [Supported Input Formats](reference/supported_inputs.md)
 
@@ -149,7 +148,8 @@ If you encounter problems:
 | [VariantFormatter Python API](python-api/variantformatter_python.md) | Format and convert supported sequence variant descriptions from Python. |
 | [gene2transcripts CLI](cli/gene2transcripts_cli.md) | Retrieve transcript information for genes from the command line. |
 | [gene2transcripts Python API](python-api/gene2transcripts_python.md) | Retrieve transcript information for genes from Python. |
-| [hgvs2reference Python API](python-api/hgvs2reference_python.md) | Retrieve reference sequences from supported HGVS sequence variant descriptions. |
+| [hgvs2reference CLI](cli/hgvs2reference_cli.md) | Retrieve reference sequences from supported HGVS sequence variant descriptions from the command line. |
+| [hgvs2reference Python API](python-api/hgvs2reference_python.md) | Retrieve reference sequences from supported HGVS sequence variant descriptions from Python. |
 | [Supported Input Formats](reference/supported_inputs.md) | Supported HGVS and non-HGVS input formats accepted throughout the software suite. |
 | [Output Formats](reference/output_formats.md) | Output formats returned by the VariantValidator software suite. |
 | [Transcript Selection](reference/transcript_selection.md) | Transcript selection strategies and transcript models. |
