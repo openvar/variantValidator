@@ -2,6 +2,7 @@
 
 import logging
 import os
+from functools import lru_cache
 from configparser import ConfigParser
 
 import vvhgvs
@@ -40,6 +41,216 @@ class InitialisationError(Exception):
     """Raised when the Validator cannot be initialised."""
     pass
 
+
+class CachedSeqFetcher:
+    """
+    LRU cache wrapper for SeqFetcher.
+
+    This class implements the Decorator pattern around SeqFetcher.
+    Only the most frequently repeated sequence lookup is cached using
+    functools.lru_cache(); all other methods and attributes are
+    transparently delegated to the wrapped SeqFetcher.
+
+    The cache exists solely within the current Python process and is
+    discarded when the process exits.
+    """
+
+    def __init__(self, sf):
+        """
+        Wrap an existing SeqFetcher.
+
+        Parameters
+        ----------
+        sf
+            An instantiated SeqFetcher object.
+        """
+        self._sf = sf
+
+    def __getattr__(self, name):
+        """
+        Delegate all uncached methods and attributes to the wrapped
+        SeqFetcher.
+
+        Python only calls __getattr__ when an attribute is not found on
+        CachedSeqFetcher itself. Consequently, only the methods
+        explicitly implemented below are intercepted and cached;
+        everything else behaves exactly as if the original SeqFetcher
+        were being used directly.
+        """
+        return getattr(self._sf, name)
+
+    @lru_cache(maxsize=32768)
+    def fetch_seq(self, ac, start_i=None, end_i=None):
+        """
+        Retrieve a sequence or sequence slice.
+
+        The cache key is formed from the accession, start coordinate
+        and end coordinate. Repeated requests for the same sequence
+        slice are therefore served directly from memory rather than
+        performing another SeqRepo lookup.
+        """
+        return self._sf.fetch_seq(ac, start_i, end_i)
+
+    def clear_caches(self):
+        """
+        Clear every LRU cache maintained by this wrapper.
+
+        This is primarily intended for:
+            * benchmarking cold versus warm cache performance;
+            * releasing cached sequence slices;
+            * forcing fresh sequence lookups.
+        """
+        self.fetch_seq.cache_clear()
+
+    def cache_info(self):
+        """
+        Return cache statistics for every cached method.
+
+        Each entry contains the standard functools CacheInfo tuple:
+            hits
+            misses
+            maxsize
+            currsize
+
+        This method is intended for benchmarking and determining
+        whether the cache provides sufficient benefit to justify its
+        memory usage.
+        """
+        return {
+            "fetch_seq": self.fetch_seq.cache_info(),
+        }
+
+
+class CachedHDP:
+    """
+    LRU cache wrapper for the HGVS data provider.
+
+    This class implements the Decorator pattern around the HGVS UTA data
+    provider. Only the most frequently repeated database lookups are
+    cached using functools.lru_cache(); all other methods and attributes
+    are transparently delegated to the wrapped provider.
+
+    The cache exists solely within the current Python process and is
+    discarded when the process exits.
+    """
+
+    def __init__(self, hdp):
+        """
+        Wrap an existing HGVS data provider.
+
+        Parameters
+        ----------
+        hdp
+            An instantiated HGVS data provider returned by
+            vvhgvs.dataproviders.uta.connect().
+        """
+        self._hdp = hdp
+
+    def __getattr__(self, name):
+        """
+        Delegate all uncached methods and attributes to the wrapped
+        HGVS data provider.
+
+        Python only calls __getattr__ when an attribute is not found on
+        CachedHDP itself. Consequently, only the methods explicitly
+        implemented below are intercepted and cached; everything else
+        behaves exactly as if the original HGVS data provider were being
+        used directly.
+        """
+        return getattr(self._hdp, name)
+
+    @lru_cache(maxsize=8192)
+    def get_tx_identity_info(self, tx_ac):
+        """
+        Retrieve transcript identity information for a transcript
+        accession.
+
+        This is the most frequently repeated HDP lookup performed by
+        VariantValidator and therefore has the largest cache.
+        """
+        return self._hdp.get_tx_identity_info(tx_ac)
+
+    @lru_cache(maxsize=4096)
+    def get_tx_for_gene(self, gene):
+        """
+        Retrieve all mapped transcripts associated with an HGNC gene
+        symbol.
+        """
+        return self._hdp.get_tx_for_gene(gene)
+
+    @lru_cache(maxsize=4096)
+    def get_pro_ac_for_tx_ac(self, tx_ac):
+        """
+        Retrieve the associated protein accession for a transcript
+        accession.
+        """
+        return self._hdp.get_pro_ac_for_tx_ac(tx_ac)
+
+    @lru_cache(maxsize=4096)
+    def get_tx_exons(self, tx_ac, alt_ac, alt_aln_method):
+        """
+        Retrieve transcript exon structures for a transcript/genome
+        alignment.
+        """
+        return self._hdp.get_tx_exons(tx_ac, alt_ac, alt_aln_method)
+
+    @lru_cache(maxsize=2048)
+    def get_gene_info(self, gene):
+        """
+        Retrieve HGNC gene information for a gene symbol.
+        """
+        return self._hdp.get_gene_info(gene)
+
+    @lru_cache(maxsize=4096)
+    def get_tx_mapping_options(self, tx_ac, gap_warn=False):
+        """
+        Retrieve all genomic mapping options for a transcript.
+
+        The gap_warn argument forms part of the cache key, meaning
+        cached results for gap_warn=True and gap_warn=False remain
+        independent.
+        """
+        return self._hdp.get_tx_mapping_options(tx_ac, gap_warn)
+
+    def clear_caches(self):
+        """
+        Clear every LRU cache maintained by this wrapper.
+
+        This is primarily intended for:
+            * benchmarking cold versus warm cache performance;
+            * releasing cached objects;
+            * forcing fresh database lookups after updating the
+              underlying transcript database.
+        """
+        self.get_tx_identity_info.cache_clear()
+        self.get_tx_for_gene.cache_clear()
+        self.get_pro_ac_for_tx_ac.cache_clear()
+        self.get_tx_exons.cache_clear()
+        self.get_gene_info.cache_clear()
+        self.get_tx_mapping_options.cache_clear()
+
+    def cache_info(self):
+        """
+        Return cache statistics for every cached method.
+
+        Each entry contains the standard functools CacheInfo tuple:
+            hits
+            misses
+            maxsize
+            currsize
+
+        This method is intended for benchmarking and determining
+        whether each cache provides sufficient benefit to justify its
+        memory usage.
+        """
+        return {
+            "get_tx_identity_info": self.get_tx_identity_info.cache_info(),
+            "get_tx_for_gene": self.get_tx_for_gene.cache_info(),
+            "get_pro_ac_for_tx_ac": self.get_pro_ac_for_tx_ac.cache_info(),
+            "get_tx_exons": self.get_tx_exons.cache_info(),
+            "get_gene_info": self.get_gene_info.cache_info(),
+            "get_tx_mapping_options": self.get_tx_mapping_options.cache_info(),
+        }
 
 class Mixin:
     """
@@ -236,9 +447,17 @@ class Mixin:
         # HGVS data provider
         # --------------------------------------------------------------
 
-        self.hdp = vvhgvs.dataproviders.uta.connect(
-            pooling=True,
-        )
+        # Create the HGVS data provider.
+        self.hdp = vvhgvs.dataproviders.uta.connect(pooling=True)
+
+        # Wrap the HGVS data provider with the LRU cache layer.
+        #
+        # CachedHDP intercepts only the high-frequency database lookups and
+        # caches their results. All other methods and attributes are delegated
+        # transparently to the original HGVS data provider via __getattr__().
+        #
+        # To disable all HDP caching, simply comment out the line below.
+        self.hdp = CachedHDP(self.hdp)
 
         self.utaSchema = str(
             self.hdp.data_version()
@@ -282,6 +501,15 @@ class Mixin:
         self.sf = vvhgvs.dataproviders.seqfetcher.SeqFetcher(
             self.check_same_thread,
         )
+
+        # Wrap the SeqFetcher with the LRU cache layer.
+        #
+        # CachedSeqFetcher intercepts sequence fetches and caches the returned
+        # sequence slices. All other methods and attributes are transparently
+        # delegated to the original SeqFetcher via __getattr__().
+        #
+        # To disable all SeqFetcher caching, simply comment out the line below.
+        self.sf = CachedSeqFetcher(self.sf)
 
         # --------------------------------------------------------------
         # Persistent alignment-specific normalizers
