@@ -288,6 +288,14 @@ class Mixin:
         """
 
         # --------------------------------------------------------------
+        # HGVS global configuration
+        # --------------------------------------------------------------
+
+        vvhgvs.global_config.uta.pool_max = 25
+        vvhgvs.global_config.formatting.max_ref_length = 1000000
+        vvhgvs.global_config.lru_cache.maxsize = 1000
+
+        # --------------------------------------------------------------
         # Configuration
         # --------------------------------------------------------------
 
@@ -437,13 +445,6 @@ class Mixin:
         self.no_norm_evm = None
 
         # --------------------------------------------------------------
-        # HGVS global configuration
-        # --------------------------------------------------------------
-
-        vvhgvs.global_config.uta.pool_max = 25
-        vvhgvs.global_config.formatting.max_ref_length = 1000000
-
-        # --------------------------------------------------------------
         # HGVS data provider
         # --------------------------------------------------------------
 
@@ -457,7 +458,7 @@ class Mixin:
         # transparently to the original HGVS data provider via __getattr__().
         #
         # To disable all HDP caching, simply comment out the line below.
-        self.hdp = CachedHDP(self.hdp)
+        # self.hdp = CachedHDP(self.hdp)
 
         self.utaSchema = str(
             self.hdp.data_version()
