@@ -15,6 +15,65 @@ from VariantValidator.settings import (
 CONFIG_DIR = settings.get_config_dir()
 
 
+def test_environment_cache_overrides(monkeypatch):
+    """
+    Verify that cache settings are correctly overridden by
+    environment variables.
+    """
+    monkeypatch.setenv("VV_DB_GET_CACHE", "true")
+    monkeypatch.setenv("VV_DB_GET_CACHE_SIZE", "12345")
+
+    monkeypatch.setenv("SEQFETCHER_CACHE", "false")
+    monkeypatch.setenv("SEQFETCHER_CACHE_SIZE", "54321")
+
+    monkeypatch.setenv("vvHGVS_HDP_CACHE", "false")
+    monkeypatch.setenv("vvHGVS_HDP_CACHE_SIZE", "999")
+
+    importlib.reload(settings)
+
+    assert settings.vvDB_GET_CACHE is True
+    assert settings.vvDB_GET_CACHE_SIZE == 12345
+
+    assert settings.SEQFETCHER_CACHE is False
+    assert settings.SEQFETCHER_CACHE_SIZE == 54321
+
+    assert settings.vvHGVS_HDP_CACHE is False
+    assert settings.vvHGVS_HDP_CACHE_SIZE == 999
+
+def test_environment_test_config_override(monkeypatch):
+    """
+    Verify that the VariantValidator configuration file location can
+    be overridden using VARIANTVALIDATOR_TEST_CONFIG.
+    """
+    monkeypatch.setenv(
+        "VARIANTVALIDATOR_TEST_CONFIG",
+        "/tmp/test_variantvalidator.ini",
+    )
+
+    importlib.reload(settings)
+
+    assert (
+        settings.get_config_dir()
+        == "/tmp/test_variantvalidator.ini"
+    )
+
+def test_get_config_dir_default(monkeypatch):
+    """
+    Verify the default VariantValidator configuration directory is
+    returned when no environment override is present.
+    """
+    monkeypatch.delenv(
+        "VARIANTVALIDATOR_TEST_CONFIG",
+        raising=False,
+    )
+
+    importlib.reload(settings)
+
+    assert settings.get_config_dir().endswith(
+        ".variantvalidator"
+    )
+
+
 class TestSettings(TestCase):
     def test_config_dir_exists(self):
         assert os.path.exists(CONFIG_DIR)

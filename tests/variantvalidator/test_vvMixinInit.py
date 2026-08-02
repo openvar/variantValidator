@@ -7,7 +7,9 @@ from VariantValidator.modules.vvMixinInit import (
     Mixin,
     InitialisationError,
 )
-from VariantValidator import version
+from VariantValidator import version, settings
+from VariantValidator.validator import Validator
+
 
 
 class TestVVMixinInit(TestCase):
@@ -327,6 +329,45 @@ class TestVVMixinInit(TestCase):
             "postgresql://user:pass@localhost:5432/uta/uta_1",
             os.environ["UTA_DB_URL"],
         )
+
+def test_seqfetcher_cache_enabled(monkeypatch):
+    monkeypatch.setattr(settings, "SEQFETCHER_CACHE", True)
+    monkeypatch.setattr(
+        settings,
+        "SEQFETCHER_CACHE_SIZE",
+        32768,
+    )
+
+    validator = Validator()
+
+    assert (
+        validator.sf.fetch_seq.cache_info().maxsize
+        == settings.SEQFETCHER_CACHE_SIZE
+    )
+
+
+def test_hdp_cache_disabled(monkeypatch):
+    monkeypatch.setattr(settings, "vvHGVS_HDP_CACHE", False)
+
+    validator = Validator()
+
+    assert validator.hdp.get_seq.cache_info().maxsize == 0
+
+
+def test_hdp_cache_enabled(monkeypatch):
+    monkeypatch.setattr(settings, "vvHGVS_HDP_CACHE", True)
+    monkeypatch.setattr(
+        settings,
+        "vvHGVS_HDP_CACHE_SIZE",
+        1000,
+    )
+
+    validator = Validator()
+
+    assert (
+        validator.hdp.get_seq.cache_info().maxsize
+        == settings.vvHGVS_HDP_CACHE_SIZE
+    )
 
 # Copyright (C) 2016-2026 VariantValidator Contributors
 # This file is part of VariantValidator and is distributed under the

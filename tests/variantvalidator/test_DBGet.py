@@ -9,24 +9,12 @@ from VariantValidator.modules.vvDBGet import (
     _CACHE_MISS,
     _get_cached,
     _set_cached,
-    clear_get_cache,
 )
 
 
 def make_db():
     db = Mixin.__new__(Mixin)
     return db
-
-
-@pytest.fixture(autouse=True)
-def reset_db_get_cache(monkeypatch):
-    clear_get_cache()
-    monkeypatch.setattr(settings, "vvDB_GET_CACHE", True)
-    monkeypatch.setattr(settings, "vvDB_GET_CACHE_SIZE", 10000)
-
-    yield
-
-    clear_get_cache()
 
 
 def test_execute_fetchone_success():
@@ -337,23 +325,14 @@ def test_cache_set_and_get():
 def test_cache_disabled(monkeypatch):
     monkeypatch.setattr(settings, "vvDB_GET_CACHE", False)
 
+    before = len(DB_GET_CACHE)
+
     key = ("test", "A")
 
     _set_cached(key, "value")
 
-    assert key not in DB_GET_CACHE
+    assert len(DB_GET_CACHE) == before
     assert _get_cached(key) is _CACHE_MISS
-
-
-def test_cache_clear():
-    _set_cached(("test", "A"), "A")
-    _set_cached(("test", "B"), "B")
-
-    assert len(DB_GET_CACHE) == 2
-
-    clear_get_cache()
-
-    assert len(DB_GET_CACHE) == 0
 
 
 def test_cache_respects_maximum_size(monkeypatch):
@@ -422,12 +401,6 @@ def test_cache_hit_refreshes_lru_order(monkeypatch):
             "LRG_1p1",
         ),
         (
-            "get_lrg_data_from_lrg_id",
-            "LRG_1",
-            ["data"],
-            ["data"],
-        ),
-        (
             "get_stable_gene_id_info",
             "GENE1",
             ["stable"],
@@ -450,6 +423,15 @@ def test_cached_getters_only_query_database_once(
     assert method(argument) == expected
 
     db.execute.assert_called_once()
+
+def test_get_lrg_data_from_lrg_id_queries_database_each_time():
+    db = make_db()
+    db.execute = MagicMock(return_value=["data"])
+
+    assert db.get_lrg_data_from_lrg_id("LRG_1") == ["data"]
+    assert db.get_lrg_data_from_lrg_id("LRG_1") == ["data"]
+
+    assert db.execute.call_count == 2
 
 
 def test_cached_getter_queries_again_when_cache_disabled(

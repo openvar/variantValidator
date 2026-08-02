@@ -41,10 +41,6 @@ def _set_cached(key, value):
     return value
 
 
-def clear_get_cache():
-    DB_GET_CACHE.clear()
-
-
 class Mixin(vvDBInit.Mixin):
     """
     Most of the functions in DBGet generate queries for retrieving data
@@ -260,14 +256,22 @@ class Mixin(vvDBInit.Mixin):
         )
 
     def get_gene_symbol_from_refseq_id(self, refseq_id):
+        key = ("gene_symbol_from_refseq_id", refseq_id)
+        cached = _get_cached(key)
+
+        if cached is not _CACHE_MISS:
+            return cached
+
         query = (
             "SELECT hgncSymbol FROM refSeqGene_loci "
             "WHERE refSeqGeneID = %s"
         )
-        return self.execute(
+        result = self.execute(
             query,
             (refseq_id,),
         )[0]
+
+        return _set_cached(key, result)
 
     def get_refseq_id_from_lrg_id(self, lrg_id):
         query = (
@@ -375,22 +379,14 @@ class Mixin(vvDBInit.Mixin):
         return _set_cached(key, result)
 
     def get_lrg_data_from_lrg_id(self, lrg_id):
-        key = ("lrg_data_from_lrg_id", lrg_id)
-        cached = _get_cached(key)
-
-        if cached is not _CACHE_MISS:
-            return cached
-
         query = (
             "SELECT * FROM LRG_RSG_lookup "
             "WHERE lrgID = %s"
         )
-        result = self.execute(
+        return self.execute(
             query,
             (lrg_id,),
         )
-
-        return _set_cached(key, result)
 
     def get_transcript_info_for_gene(self, gene_symbol):
         query = (
@@ -470,14 +466,22 @@ class Mixin(vvDBInit.Mixin):
         return _set_cached(key, result)
 
     def get_stable_gene_id_from_hgnc_id(self, hgnc_id):
+        key = ("stable_gene_id_from_hgnc_id", hgnc_id)
+        cached = _get_cached(key)
+
+        if cached is not _CACHE_MISS:
+            return cached
+
         query = (
             "SELECT * FROM stableGeneIds "
             "WHERE hgnc_id = %s"
         )
-        return self.execute(
+        result = self.execute(
             query,
             (hgnc_id,),
         )
+
+        return _set_cached(key, result)
 
     def get_transcripts_from_annotations(self, statement):
         query = (
@@ -557,18 +561,29 @@ class Mixin(vvDBInit.Mixin):
             lrg_data = self.get_lrg_data_from_lrg_id(
                 lrg_id
             )
-            lrg_status = str(lrg_data[4])
 
-            if lrg_status == "public":
-                report_urls["lrg"] = (
-                    "http://ftp.ebi.ac.uk/pub/"
-                    f"databases/lrgex/{lrg_id}.xml"
-                )
-            else:
-                report_urls["lrg"] = (
-                    "http://ftp.ebi.ac.uk/pub/databases/"
-                    f"lrgex/pending/{lrg_id}.xml"
-                )
+            # LRG identifiers may not have a corresponding lookup
+            # record in the database. In this case execute() returns
+            # ["none", "No data"], so only attempt to determine the
+            # publication status when a valid row has been returned.
+            if (
+                lrg_data
+                and lrg_data[0] != "none"
+                and len(lrg_data) > 4
+            ):
+                lrg_status = str(lrg_data[4])
+
+                if lrg_status == "public":
+                    report_urls["lrg"] = (
+                        "http://ftp.ebi.ac.uk/pub/"
+                        f"databases/lrgex/{lrg_id}.xml"
+                    )
+                else:
+                    report_urls["lrg"] = (
+                        "http://ftp.ebi.ac.uk/pub/"
+                        "databases/lrgex/pending/"
+                        f"{lrg_id}.xml"
+                    )
 
         # Ensembl.
         if selected_assembly == "grch37":

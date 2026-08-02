@@ -2,6 +2,7 @@
 
 import logging
 import os
+from functools import lru_cache
 from configparser import ConfigParser
 
 import vvhgvs
@@ -41,6 +42,56 @@ class InitialisationError(Exception):
     pass
 
 
+class CachedSeqFetcher:
+    """
+    LRU cache wrapper for SeqFetcher.
+
+    This class implements the Decorator pattern around SeqFetcher.
+    Only the most frequently repeated sequence lookup is cached using
+    functools.lru_cache(); all other methods and attributes are
+    transparently delegated to the wrapped SeqFetcher.
+
+    The cache exists solely within the current Python process and is
+    discarded when the process exits.
+    """
+
+    def __init__(self, sf):
+        """
+        Wrap an existing SeqFetcher.
+
+        Parameters
+        ----------
+        sf
+            An instantiated SeqFetcher object.
+        """
+        self._sf = sf
+
+    def __getattr__(self, name):
+        """
+        Delegate all uncached methods and attributes to the wrapped
+        SeqFetcher.
+
+        Python only calls __getattr__ when an attribute is not found on
+        CachedSeqFetcher itself. Consequently, only the methods
+        explicitly implemented below are intercepted and cached;
+        everything else behaves exactly as if the original SeqFetcher
+        were being used directly.
+        """
+        return getattr(self._sf, name)
+
+    @lru_cache(maxsize=settings.SEQFETCHER_CACHE_SIZE)
+    def fetch_seq(self, ac, start_i=None, end_i=None):
+        """
+        Retrieve a sequence or sequence slice.
+
+        The cache key is formed from the accession, start coordinate
+        and end coordinate. Repeated requests for the same sequence
+        slice are therefore served directly from memory rather than
+        performing another SeqRepo lookup.
+        """
+        return self._sf.fetch_seq(ac, start_i, end_i)
+
+
 class Mixin:
     """
     Initialise the persistent VariantValidator infrastructure.
@@ -75,6 +126,18 @@ class Mixin:
         seqrepo_db:
             HGVS_SEQREPO_DIR.split('/')[-1]
         """
+
+        # --------------------------------------------------------------
+        # HGVS global configuration
+        # --------------------------------------------------------------
+
+        vvhgvs.global_config.uta.pool_max = 25
+        vvhgvs.global_config.formatting.max_ref_length = 1000000
+
+        if settings.vvHGVS_HDP_CACHE:
+            vvhgvs.global_config.lru_cache.maxsize = settings.vvHGVS_HDP_CACHE_SIZE
+        else:
+            vvhgvs.global_config.lru_cache.maxsize = 0
 
         # --------------------------------------------------------------
         # Configuration
@@ -226,19 +289,11 @@ class Mixin:
         self.no_norm_evm = None
 
         # --------------------------------------------------------------
-        # HGVS global configuration
+        # HGVS data providers
         # --------------------------------------------------------------
 
-        vvhgvs.global_config.uta.pool_max = 25
-        vvhgvs.global_config.formatting.max_ref_length = 1000000
-
-        # --------------------------------------------------------------
-        # HGVS data provider
-        # --------------------------------------------------------------
-
-        self.hdp = vvhgvs.dataproviders.uta.connect(
-            pooling=True,
-        )
+        # Create the HGVS data provider.
+        self.hdp = vvhgvs.dataproviders.uta.connect(pooling=True)
 
         self.utaSchema = str(
             self.hdp.data_version()
@@ -282,6 +337,16 @@ class Mixin:
         self.sf = vvhgvs.dataproviders.seqfetcher.SeqFetcher(
             self.check_same_thread,
         )
+
+        # Wrap the SeqFetcher with the LRU cache layer.
+        #
+        # CachedSeqFetcher intercepts sequence fetches and caches the returned
+        # sequence slices. All other methods and attributes are transparently
+        # delegated to the original SeqFetcher via __getattr__().
+        #
+        # To disable all SeqFetcher caching, simply comment out the line below.
+        if settings.SEQFETCHER_CACHE:
+            self.sf = CachedSeqFetcher(self.sf)
 
         # --------------------------------------------------------------
         # Persistent alignment-specific normalizers
