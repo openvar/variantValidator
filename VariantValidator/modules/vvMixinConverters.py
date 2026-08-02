@@ -1610,6 +1610,10 @@ class Mixin(vvMixinInit.Mixin):
             hgvs_genomic.posedit.edit.alt = hgvs_genomic.posedit.edit.ref
 
         if hgvs_genomic.posedit.edit.type == 'ins' and utilise_gap_code:
+
+            if stored_hgvs_c.posedit.edit.type == "dup":
+                stored_hgvs_c = hgvs_dup_to_delins(stored_hgvs_c)
+
             try:
                 # Can move ins variants (and in doing so break
                 # mid base == original bases assumption)
@@ -1656,7 +1660,7 @@ class Mixin(vvMixinInit.Mixin):
 
             except AttributeError as e:
                 if "'Dup' object has no attribute 'alt'" in str(e):
-                    logger.error(
+                    logger.exception(
                         "Code triggered previously in very poor alignment so not "
                         "able to fully test, refer to test_inputs.py tests "
                         "test_alt_gapping_bug: hgvs_genomic: %s, "
