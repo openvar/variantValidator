@@ -31354,6 +31354,14 @@ class TestVariantsAuto(TestCase):
             'ProteinTranslationError: Unable to generate protein variant description due to the reference sequence '
             'missing an accepted start codon.']
 
+    def test_regression_pkd1(self):
+        results = self.vv.validate('NM_000296.4:c.4781dup', 'GRCh38', 'all',
+                                   liftover_level=True).format_as_dict(test=True)
+        assert "NM_000296.4:c.4781dup" in results.keys()
+        results = self.vv.validate('NM_000296.4:c.11308_11309dup', 'GRCh38', 'all',
+                                   liftover_level=True).format_as_dict(test=True)
+        assert "NM_000296.4:c.11308_11309dup" in results.keys()
+
 
 # Copyright (C) 2016-2026 VariantValidator Contributors
 # This file is part of VariantValidator and is distributed under the
