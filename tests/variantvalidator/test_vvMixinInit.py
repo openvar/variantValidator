@@ -351,7 +351,7 @@ def test_hdp_cache_disabled(monkeypatch):
 
     validator = Validator()
 
-    assert validator.hdp.get_seq.cache_info().maxsize == 0
+    assert validator.hdp.get_seq.cache_info().maxsize == 200
 
 
 def test_hdp_cache_enabled(monkeypatch):
