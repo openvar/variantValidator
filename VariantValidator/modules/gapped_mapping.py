@@ -3283,6 +3283,11 @@ class GapMapper:
                 and remapped_start.offset == 0
                 and stored_edit.ref == remapped_edit.ref
         ):
+            # Sort Alt = None
+            if remapped_edit.alt is None:
+                if remapped_edit.type == "del":
+                    remapped_edit.alt = ""
+
             # Preserve sequence associated with the offset when the round trip
             # removed the offset without changing the reference.
             remapped_edit.alt += stored_edit.ref[:stored_start.offset]

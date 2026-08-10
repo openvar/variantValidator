@@ -7292,6 +7292,37 @@ class TestVFvariantsAuto(object):
             },
         }
 
+    def test_gap_deletion_alt_none_regression(self):
+        variant = "NC_000011.9:g.111742146delG"
+
+        results = vf.FormatVariant(
+            variant,
+            "GRCh37",
+            vfo,
+            "refseq",
+            "NM_001352418.1",
+            checkOnly="tx",
+            liftover=False,
+            legacy_genomic_structure=False,
+        )
+        results = results.stucture_data()
+
+        transcript = results[variant]["hgvs_t_and_p"]["NM_001352418.1"]
+
+        assert transcript["t_hgvs"] == "NM_001352418.1:c.59_61="
+
+        assert transcript["gapped_alignment_warning"] == (
+            "GappedAlignmentWarning: Submitted description does not represent "
+            "a true variant because it is an artefact of aligning "
+            "NM_001352418.1 with NC_000011.9 (genome build GRCh37)"
+        )
+
+        assert transcript["gap_statement"] == (
+            "GappedAlignmentWarning: NM_001352418.1 contains 1 fewer bases "
+            "between c.60_61 than NC_000011.9"
+        )
+
+        assert transcript["transcript_variant_error"] is None
 
 # Copyright (C) 2016-2026 VariantValidator Contributors
 # This file is part of VariantValidator and is distributed under the
