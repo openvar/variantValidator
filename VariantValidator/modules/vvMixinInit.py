@@ -137,7 +137,7 @@ class Mixin:
         if settings.vvHGVS_HDP_CACHE:
             vvhgvs.global_config.lru_cache.maxsize = settings.vvHGVS_HDP_CACHE_SIZE
         else:
-            vvhgvs.global_config.lru_cache.maxsize = 0
+            vvhgvs.global_config.lru_cache.maxsize = 200  # Default vvHGVS cache size.
 
         # --------------------------------------------------------------
         # Configuration
