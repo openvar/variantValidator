@@ -2410,6 +2410,12 @@ class Mixin(vvMixinInit.Mixin):
         """
         Automatically maps genomic positions onto all overlapping transcripts.
         """
+
+        logger.info(f"Mapping {hgvs_genomic} to relevant transcripts with alt_aln_method {alt_aln_method}")
+
+        if hgvs_genomic.type == 'm':
+            hgvs_genomic.type = 'g'
+
         # The two region queries differ by one base at each boundary.
         # Combine both to avoid missing transcripts at either end.
         rts_list = self.hdp.get_tx_for_region(
@@ -2418,6 +2424,8 @@ class Mixin(vvMixinInit.Mixin):
             hgvs_genomic.posedit.pos.start.base - 1,
             hgvs_genomic.posedit.pos.end.base - 1
         )
+
+        logger.info(f"rts_list: {rts_list}")
 
         rts_dict = {
             tx_dat['tx_ac']: tx_dat['alt_strand']
@@ -2430,6 +2438,8 @@ class Mixin(vvMixinInit.Mixin):
             hgvs_genomic.posedit.pos.start.base,
             hgvs_genomic.posedit.pos.end.base
         )
+
+        logger.info(f"rts_list_2: {rts_list_2}")
 
         for tx_dat in rts_list_2:
             rts_dict[tx_dat['tx_ac']] = tx_dat['alt_strand']
@@ -2446,6 +2456,8 @@ class Mixin(vvMixinInit.Mixin):
                 and "select" not in select_transcripts
         ):
             rts = self.transcript_filter(rts, select_transcripts)
+
+        logger.info(f"rts: {rts}")
 
         # Prepare insertion as a forced delins for mappings where HGVS insertion
         # handling otherwise fails.
@@ -2522,7 +2534,8 @@ class Mixin(vvMixinInit.Mixin):
                     tx_ac
                 )
 
-            except vvhgvs.exceptions.HGVSError:
+            except vvhgvs.exceptions.HGVSError as e:
+                logger.info(f"HGVS error: {e}")
                 curr_genomic = (
                     hgvs_genomic_forced_delins
                     if hgvs_genomic_forced_delins is not None
@@ -2534,7 +2547,8 @@ class Mixin(vvMixinInit.Mixin):
                         curr_genomic,
                         tx_ac
                     )
-                except vvhgvs.exceptions.HGVSError:
+                except vvhgvs.exceptions.HGVSError as e:
+                    logger.info(f"HGVS error: {e}")
                     continue
 
             except Exception as err:
