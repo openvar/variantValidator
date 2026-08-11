@@ -1,16 +1,16 @@
-
-def methyl_syntax(my_variant):
-    """
+def methyl_syntax(
+        my_variant
+):
+    '''
     Remove and store a methylation syntax suffix before HGVS object parsing.
 
-    :param my_variant:
+    :param my_variant object:
     :return: Updated variant if methylation syntax is detected, otherwise None.
-    """
+    '''
     quibble = my_variant.quibble
 
     if "|" not in quibble:
         return None
-
     if "|gom" in quibble:
         my_variant.reformat_output = "|gom"
     elif "|lom" in quibble:

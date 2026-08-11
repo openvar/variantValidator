@@ -1,21 +1,6 @@
-"""
-exon_numbering.py Module
-
-Authors: Katie Williams (@kwi11iams) and Katherine Winfield (@kjwinfield)
-
-This code will ultimately aim to provide exon numbering information for
-VariantValidator.
-
-See exon_numbering.md markdown for a full description on how this
-module operates.
-
-Use exon_numbering_tests.py for automated testing of this module.
-"""
-
 # Import vv_hgvs modules
 import vvhgvs
 import vvhgvs.exceptions
-
 
 def _find_exon(position, exon_structure):
     """
@@ -58,9 +43,7 @@ def _find_exon(position, exon_structure):
                 return f'{exon["exon_number"] - 1}i'
 
         return None
-
     return None
-
 
 def finds_exon_number(variant, validator):
     """
@@ -71,13 +54,11 @@ def finds_exon_number(variant, validator):
     :return: dictionary containing start/end exon or intron numbers for each
              aligned chromosomal or gene reference sequence
     """
-
     response_dictionary = validator.gene2transcripts(
         variant,
         validator,
         bypass_web_searches=True
     )
-
     # Find the transcript record corresponding to the submitted transcript.
     transcript_info = None
 
@@ -100,8 +81,7 @@ def finds_exon_number(variant, validator):
 
     start_position = hgvs_transcript.posedit.pos.start
     end_position = hgvs_transcript.posedit.pos.end
-
-    exon_start_end_positions = {}
+    exon_start_and_end_positions = {}
 
     for accession, transcript_data in exon_structure_dict.items():
         exon_structure = transcript_data["exon_structure"]
@@ -122,13 +102,12 @@ def finds_exon_number(variant, validator):
         if end_exon is None:
             end_exon = "cannot be calculated"
 
-        exon_start_end_positions[accession] = {
+        exon_start_and_end_positions[accession] = {
             "start_exon": start_exon,
             "end_exon": end_exon,
         }
 
-    return exon_start_end_positions
-
+    return exon_start_and_end_positions
 
 # Copyright (C) 2016-2026 VariantValidator Contributors
 # This file is part of VariantValidator and is distributed under the

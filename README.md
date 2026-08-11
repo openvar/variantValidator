@@ -52,7 +52,7 @@ Community engagement and collaboration with partner projects play a vital role i
 
 ---
 
-## Features
+## Key Features
 
 VariantValidator provides comprehensive support for validating, mapping and formatting genetic sequence variant descriptions.
 
