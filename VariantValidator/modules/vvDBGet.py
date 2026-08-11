@@ -6,7 +6,6 @@ from VariantValidator import settings
 from .utils import handleCursor
 from . import vvDBInit
 
-
 logger = logging.getLogger(__name__)
 
 LRG_TX_LINK = {}
@@ -41,13 +40,14 @@ def _set_cached(key, value):
     return value
 
 
-class Mixin(vvDBInit.Mixin):
+class Mixin(
+    vvDBInit.Mixin):
     """
     Most of the functions in DBGet generate queries for retrieving data
     from the databases.
     """
 
-    @handleCursor
+    @handleCursor  # Decorate
     def execute(self, *query_args):
         attempts = 3
 
@@ -59,7 +59,7 @@ class Mixin(vvDBInit.Mixin):
                 cursor.execute(*query_args)
                 row = cursor.fetchone()
 
-                if row is None:
+                if row is None: # Blank result
                     logger.debug(
                         "No data returned from query %s",
                         query_args,
@@ -109,7 +109,7 @@ class Mixin(vvDBInit.Mixin):
             except Exception:
                 pass
 
-    @handleCursor
+    @handleCursor # Decorated
     def execute_all(self, *query_args):
         attempts = 3
 
@@ -177,7 +177,8 @@ class Mixin(vvDBInit.Mixin):
             (gene_symbol,),
         )
 
-    def get_transcript_description(self, transcript_id):
+    def get_transcript_description(self,
+                                   transcript_id):
         key = ("transcript_description", transcript_id)
         cached = _get_cached(key)
 
@@ -388,7 +389,8 @@ class Mixin(vvDBInit.Mixin):
             (lrg_id,),
         )
 
-    def get_transcript_info_for_gene(self, gene_symbol):
+    def get_transcript_info_for_gene(self,
+                                     gene_symbol):
         query = (
             "SELECT refSeqID, description, transcriptVariant, "
             "currentVersion, hgncSymbol, utaSymbol, updated, "
@@ -444,7 +446,7 @@ class Mixin(vvDBInit.Mixin):
         )
 
     def get_all_transcript_id(self):
-        query = "SELECT refSeqID FROM transcript_info"
+        query = 'SELECT refSeqID FROM transcript_info'
         return self.execute_all(query)
 
     def get_stable_gene_id_info(self, hgnc_symbol):
@@ -501,24 +503,27 @@ class Mixin(vvDBInit.Mixin):
         return self.execute(query)
 
     # Direct methods (GET).
-    def get_uta_symbol(self, gene_symbol):
+    def get_uta_symbol(self,
+                       gene_symbol):
         # Return the UTA gene symbol when an HGNC gene symbol is input.
         return str(
             self.get_uta(gene_symbol)[0]
         )
 
-    def get_hgnc_symbol(self, gene_symbol):
+    def get_hgnc_symbol(self,
+                        gene_symbol):
         # Return the HGNC gene symbol when a UTA gene symbol is input.
         return str(
             self.get_hgnc(gene_symbol)[0]
         )
 
     # From external.py.
-    def get_urls(self, dict_out):
+    def get_urls(self,
+                 dict_out):
         """
         Provide direct links to reference sequence records.
         """
-        report_urls = {}
+        report_urls={} # Blank dict
 
         transcript_variant = dict_out["hgvs_transcript_variant"]
         transcript_accession = transcript_variant.split(":", 1)[0]
@@ -571,14 +576,15 @@ class Mixin(vvDBInit.Mixin):
                 and lrg_data[0] != "none"
                 and len(lrg_data) > 4
             ):
-                lrg_status = str(lrg_data[4])
+                lrg_status = str(
+                    lrg_data[4])
 
                 if lrg_status == "public":
                     report_urls["lrg"] = (
                         "http://ftp.ebi.ac.uk/pub/"
                         f"databases/lrgex/{lrg_id}.xml"
                     )
-                else:
+                else: # else
                     report_urls["lrg"] = (
                         "http://ftp.ebi.ac.uk/pub/"
                         "databases/lrgex/pending/"
@@ -615,8 +621,7 @@ class Mixin(vvDBInit.Mixin):
                     "Homo_sapiens/Transcript/ProteinSummary?"
                     f"db=core;p={protein_accession}"
                 )
-
-        return report_urls
+        return report_urls # return
 
 
 # Copyright (C) 2016-2026 VariantValidator Contributors

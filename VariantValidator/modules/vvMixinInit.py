@@ -1,9 +1,7 @@
-# -*- coding: utf-8 -*-
-
 import logging
-import os
 from functools import lru_cache
 from configparser import ConfigParser
+import os
 
 import vvhgvs
 import vvhgvs.assemblymapper
@@ -101,7 +99,8 @@ class Mixin:
     variant validations.
     """
 
-    def __init__(self):
+    def __init__(
+            self):
         """
         Initialise Validator configuration and persistent infrastructure.
 
@@ -179,7 +178,7 @@ class Mixin:
         # SeqRepo configuration
         # --------------------------------------------------------------
 
-        self.seqrepoVersion = config["seqrepo"]["version"]
+        self.seqrepoVersion = config["seqrepo"]["version"] # Get config
 
         require_threading = config["seqrepo"]["require_threading"]
 
@@ -227,14 +226,13 @@ class Mixin:
 
         self.vvdbVersion = config["mysql"]["version"]
 
-        self.dbConfig = {
+        self.dbConfig = { # Set configuration
             "user": config["mysql"]["user"],
             "password": config["mysql"]["password"],
             "host": config["mysql"]["host"],
             "port": int(config["mysql"]["port"]),
             "database": config["mysql"]["database"],
-            "raise_on_warnings": True,
-        }
+            "raise_on_warnings": True}
 
         mysql_unix_socket = config.get(
             "mysql",
@@ -321,8 +319,7 @@ class Mixin:
 
         self.lose_vm = vvhgvs.variantmapper.VariantMapper(
             self.hdp,
-            replace_reference=True,
-            prevalidation_level=None,
+            replace_reference=True, prevalidation_level=None,
         )
 
         self.nr_vm = vvhgvs.variantmapper.VariantMapper(
@@ -335,8 +332,7 @@ class Mixin:
         # --------------------------------------------------------------
 
         self.sf = vvhgvs.dataproviders.seqfetcher.SeqFetcher(
-            self.check_same_thread,
-        )
+            self.check_same_thread)
 
         # Wrap the SeqFetcher with the LRU cache layer.
         #
@@ -406,15 +402,13 @@ class Mixin:
             self.hdp,
             cross_boundaries=False,
             shuffle_direction=5,
-            alt_aln_method=self.alt_aln_method,
-        )
+            alt_aln_method=self.alt_aln_method)
 
         self.hn = vvhgvs.normalizer.Normalizer(
             self.hdp,
             cross_boundaries=False,
             shuffle_direction=3,
-            alt_aln_method=self.alt_aln_method,
-        )
+            alt_aln_method=self.alt_aln_method)
 
         self.merge_normalizer = vvhgvs.normalizer.Normalizer(
             self.hdp,
@@ -423,8 +417,7 @@ class Mixin:
                 vvhgvs.global_config.normalizer.shuffle_direction
             ),
             alt_aln_method=self.alt_aln_method,
-            validate=False,
-        )
+            validate=False)
 
         self.reverse_merge_normalizer = (
             vvhgvs.normalizer.Normalizer(
@@ -433,18 +426,16 @@ class Mixin:
                 shuffle_direction=5,
                 alt_aln_method=self.alt_aln_method,
                 validate=False,
-            )
-        )
+            ))
 
         self.no_norm_evm = vvhgvs.assemblymapper.AssemblyMapper(
             self.hdp,
             assembly_name=self.primary_assembly,
             alt_aln_method=self.alt_aln_method,
-            normalize=False,
-            replace_reference=True,
-        )
+            normalize=False, replace_reference=True)
 
-    def __del__(self):
+    def __del__(
+            self):
         if getattr(self, "pool", None):
             self.pool = None
 
@@ -452,13 +443,12 @@ class Mixin:
         """
         Return VariantValidator configuration/version information.
         """
-        return {
+        return { # Create return
             "variantvalidator_version": self.version,
             "variantvalidator_hgvs_version": self.hgvsVersion,
             "vvta_version": self.utaSchema,
             "vvseqrepo_db": self.seqrepoPath,
-            "vvdb_version": self.vvdbVersion,
-        }
+            "vvdb_version": self.vvdbVersion}
 
     def myc_to_p(self, hgvs_transcript, evm, re_to_p, hn):
         logger.info(
@@ -502,8 +492,9 @@ class Mixin:
                 "",
                 "",
             )
-            p = evm.c_to_p(cod)
-            associated_protein_accession = p.ac
+            p = evm.c_to_p(
+                cod)
+            associated_protein_accession = p.ac # Set accession
 
         nucleotide_not_equal = edit_type != "identity"
 
@@ -609,8 +600,8 @@ class Mixin:
                     residue_one,
                 )
 
-            else:
-                try:
+            else: # Else
+                try: # Map with evm
                     hgvs_protein = evm.c_to_p(
                         hgvs_transcript
                     )
@@ -622,7 +613,7 @@ class Mixin:
                         ),
                     )
 
-                except IndexError as e:
+                except IndexError as e: # Dups affected
                     if (
                             "string index out of range" in str(e)
                             and edit_type == "dup"
@@ -689,7 +680,7 @@ class Mixin:
                     )
                 )
 
-            return hgvs_transcript_to_hgvs_protein
+            return hgvs_transcript_to_hgvs_protein # Return
 
         logger.info(
             "Passing %s into VV handled c_to_p mapping",
@@ -742,7 +733,7 @@ class Mixin:
         shifts = ""
         not_delins = False
 
-        try:
+        try: # map with evm
             shifts = evm.c_to_p(
                 hgvs_transcript
             )
@@ -769,7 +760,7 @@ class Mixin:
                 not_delins = True
 
         except Exception:
-            not_delins = False
+            not_delins = False # Dop not set
 
         if not_delins:
             hgvs_transcript_to_hgvs_protein[
@@ -876,7 +867,7 @@ class Mixin:
                     residue_one,
                 )
 
-            else:
+            else: # else
                 hgvs_protein = _tot_unc(
                     associated_protein_accession
                 )
@@ -885,7 +876,7 @@ class Mixin:
                 "hgvs_protein"
             ] = hgvs_protein
 
-            return hgvs_transcript_to_hgvs_protein
+            return hgvs_transcript_to_hgvs_protein # return
 
         logger.info(
             "Variant is not intronic and is not fully UTR, "
@@ -898,20 +889,20 @@ class Mixin:
             hgvs_transcript.ac
         )
 
-        cds_start = inf[3]
+        cds_start = inf[3] # set start and end  of CDS
         cds_end = inf[4]
 
-        try:
+        try: # Detch the sequence
             ref_seq = self.sf.fetch_seq(
                 hgvs_naughty.ac
             )
 
-        except Exception as e:
+        except Exception as error:
             hgvs_transcript_to_hgvs_protein[
                 "error"
-            ] = str(e)
+            ] = str(error)
 
-            return hgvs_transcript_to_hgvs_protein
+            return hgvs_transcript_to_hgvs_protein # Return early
 
         var_seq = utils.n_inversion(
             ref_seq,
@@ -1005,14 +996,14 @@ class Mixin:
 
             return hgvs_transcript_to_hgvs_protein
 
-        try:
+        try: # translate
             prot_var_seq = utils.translate(
                 var_seq,
                 cds_start,
                 modified_aa,
             )
 
-        except IndexError:
+        except IndexError: # index error
             hgvs_transcript_to_hgvs_protein["error"] = (
                 "ProteinTranslationError: Cannot generate a "
                 "protein without an identifiable in-frame "
@@ -1026,7 +1017,7 @@ class Mixin:
                 associated_protein_accession
             )
 
-            return hgvs_transcript_to_hgvs_protein
+            return hgvs_transcript_to_hgvs_protein # return
 
         except KeyError:
             hgvs_transcript_to_hgvs_protein["error"] = (
@@ -1042,7 +1033,7 @@ class Mixin:
                 associated_protein_accession
             )
 
-            return hgvs_transcript_to_hgvs_protein
+            return hgvs_transcript_to_hgvs_protein # return
 
         no_start_err = (
             "ProteinTranslationError: Unable to generate protein "
@@ -1082,7 +1073,7 @@ class Mixin:
                 associated_protein_accession
             )
 
-            return hgvs_transcript_to_hgvs_protein
+            return hgvs_transcript_to_hgvs_protein # return
 
         if prot_var_seq == "error":
             if (
@@ -1125,12 +1116,12 @@ class Mixin:
                     residue_one,
                 )
 
-            else:
+            else: # else
                 hgvs_transcript_to_hgvs_protein[
                     "error"
                 ] = no_start_err
 
-            return hgvs_transcript_to_hgvs_protein
+            return hgvs_transcript_to_hgvs_protein # return
 
         if (
                 (
@@ -1191,7 +1182,7 @@ class Mixin:
                 prot_var_seq,
             )
 
-        else:
+        else: # else
             logger.info(
                 "passing %s translations to pro_delins_info "
                 "function",
@@ -1350,7 +1341,7 @@ class Mixin:
                     "hgvs_protein"
                 ] = hgvs_protein
 
-                return hgvs_transcript_to_hgvs_protein
+                return hgvs_transcript_to_hgvs_protein # return
 
         if pro_inv_info["error"] == "true":
             hgvs_transcript_to_hgvs_protein["error"] = (
@@ -1678,7 +1669,7 @@ class Mixin:
                         nucleotide_not_equal=nucleotide_not_equal,
                     )
 
-                else:
+                else: # else
                     posedit = VVPosEdit(
                         pos=Interval(
                             start=AAPosition(
@@ -1698,7 +1689,7 @@ class Mixin:
                         nucleotide_not_equal=nucleotide_not_equal,
                     )
 
-            else:
+            else: # else
                 posedit = VVPosEdit(
                     pos=Interval(
                         start=AAPosition(
@@ -1718,7 +1709,7 @@ class Mixin:
                     nucleotide_not_equal=nucleotide_not_equal,
                 )
 
-        else:
+        else: # else
             if prot_ins_seq == prot_del_seq + prot_del_seq:
                 posedit = VVPosEdit(
                     pos=Interval(
@@ -1785,7 +1776,7 @@ class Mixin:
                         nucleotide_not_equal=nucleotide_not_equal,
                     )
 
-                else:
+                else: # else
                     posedit = VVPosEdit(
                         pos=Interval(
                             start=AAPosition(
@@ -1831,7 +1822,7 @@ class Mixin:
                     nucleotide_not_equal=nucleotide_not_equal,
                 )
 
-            else:
+            else: # else
                 posedit = VVPosEdit(
                     pos=Interval(
                         start=AAPosition(
@@ -1859,7 +1850,7 @@ class Mixin:
             "hgvs_protein"
         ] = hgvs_protein
 
-        return hgvs_transcript_to_hgvs_protein
+        return hgvs_transcript_to_hgvs_protein # return
 
     def revcomp(self, bases):
         """

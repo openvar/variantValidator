@@ -22,10 +22,8 @@ class TestExonNumbering(
 
         raise last_exc
 
-    '''
-    Class TextExonNumbering automates running the tests, and reports failure 
-    if the output is not what is expected
-    '''
+    # Class TextExonNumbering automates running the tests, and reports failure if
+    # the output is not what is expected
     def test_1(
             self):
         results = self.vv.validate("NM_007294.3:c.1067A>G", 'GRCh38', 'all').format_as_dict(test=True)
@@ -125,8 +123,7 @@ class TestExonNumbering(
                 }
             }
 
-    def test_4a(
-            self):
+    def test_4a(self):
         results = self.vv.validate("NM_000088.3:c.589-1G>T", 'GRCh38', 'all').format_as_dict(test=True)
         results = results['NM_000088.3:c.589-1G>T']['variant_exonic_positions']
         print(results)
@@ -419,8 +416,9 @@ class TestExonNumbering(
             }
         }
 
-if __name__ == "__main__": # direct run
-    unittest.main() # Direct run
+
+if __name__ == "__main__": # Run
+    unittest.main() # Run
 
 
 # Copyright (C) 2016-2026 VariantValidator Contributors

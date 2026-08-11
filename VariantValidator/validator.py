@@ -1,19 +1,20 @@
 from .modules import vvMixinCore as vvMixinCore
 
-
-class Validator(vvMixinCore.Mixin):
-    """
-    #Mixins are used to split this very large, complex object over multiple files.
-    #There is a logical chain to it, though:
-    # vvMixinInit
-    #     v
-    # vvMixinConverters
-    #     v
-    # vvMixinCore
-    #     v
-    # Validator    <- this object.
-    """
-    pass
+class Validator(
+    vvMixinCore.Mixin
+):
+    '''
+    Mixins are used to split this very large, complex object over multiple files.
+    There is a logical chain to it, though:
+    vvMixinInit
+         v
+    vvMixinConverters
+         v
+     vvMixinCore
+         v
+     Validator    <- this object.
+    '''
+    pass  # Object contains no additional methods or attributes beyond those provided by the mixins.
 
 
 # Copyright (C) 2016-2026 VariantValidator Contributors

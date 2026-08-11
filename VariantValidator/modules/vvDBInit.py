@@ -25,10 +25,9 @@ try:
 except ModuleNotFoundError:
     MySQLConnectionPool = None
 
-
 class Mixin:
     """
-    A mixin containing the database initialisation routines.
+    A mixin containing the database initialisation routines
     """
 
     def __init__(self, db_config):
@@ -36,9 +35,9 @@ class Mixin:
         self.dbConfig = db_config
         self.init_db()
 
-    def __del__(self):
-        if getattr(self, "pool", None):
-            self.pool = None
+    def __del__(
+            self):
+        if getattr(self, "pool", None): self.pool = None
 
     def init_db(self):
         """

@@ -1,11 +1,4 @@
-"""
-A variety of functions that convert parser hgvs objects into VCF component parts
-Each function has a slightly difference emphasis
-"""
-
-# Import modules
-import re
-import copy
+import copy, re
 from . import seq_data
 from . import utils
 from . import hgvs_position_utils
@@ -24,11 +17,9 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-# Database connections and hgvs objects are now passed from VariantValidator.py
-
-# Error handling
+# Custom error handling
 class PseudoVCF2HGVSError(Exception):
-    pass
+    pass  # Pass exception
 
 class VVPosEdit(PosEdit):
     "override class for posedit to get VV specific formatting"
@@ -592,619 +583,272 @@ def hgvs_to_delins_hgvs(hgvs_object, hp, hn, allow_fix=False):
     # Create the object directly via vcfcp_to_hgvs_obj
     return vcfcp_to_hgvs_obj({"pos": v_pos, "ref": v_ref, "alt": v_alt}, hgvs_object)
 
+def _select_pvcf_normalizer(normalization_direction, reverse_normalizer, validator):
+    """Return the normalizer for the requested VCF normalisation direction."""
+    return {3: validator.hn, 5: reverse_normalizer}[normalization_direction]
+
+def _pvcf_to_hgvs_input(query):
+    """Convert pseudo-VCF input to an HGVS-like substitution description."""
+    query = query.replace(":", "-")
+    vcf_elements = query.split("-")
+    if re.search(r"-\d+-[GATC]+-[GATC]+", query):
+        return f"{vcf_elements[0]}:{vcf_elements[1]}{vcf_elements[2]}>{vcf_elements[3]}"
+    if re.search(r"-\d+-[GATC]+-", query):
+        return f"{vcf_elements[0]}:{vcf_elements[1]}{vcf_elements[2]}>{vcf_elements[2]}"
+    raise PseudoVCF2HGVSError("Unsupported format: VCF specification 4.1 or later")
+
+def _resolve_pvcf_accession(accession, selected_assembly, validator):
+    """Resolve a pseudo-VCF chromosome/LRG identifier to an accession."""
+    if accession.startswith(("NC_", "NG_", "NW_", "NT_")):
+        return accession
+    if re.fullmatch(r"LRG_\d+", accession):
+        return validator.db.get_refseq_id_from_lrg_id(accession)
+    chr_num = accession.strip().upper()
+    if chr_num.startswith("CHR"):
+        chr_num = chr_num[3:]
+    accession = seq_data.get_accession(chr_num, selected_assembly)
+    if accession is None: # Accession is not set
+        raise PseudoVCF2HGVSError(
+            f"{chr_num} is not part of genome build {selected_assembly} or is not supported"
+        )
+    return accession
+
+def _pvcf_get_alleles(position_and_edit):
+    """Extract reference and alternate alleles from a pseudo-VCF edit."""
+    match = re.search(r"([GATCgatc]+)>([GATCgatc]+)", position_and_edit)
+    if match is None:
+        raise PseudoVCF2HGVSError("Unsupported format: VCF specification 4.1 or later!")
+    return match.groups()
+
+def _pvcf_build_simple_hgvs(accession, ref_type, position_and_edit):
+    """Build an HGVS object for a single-base pseudo-VCF substitution."""
+    match = re.fullmatch(r"(\d+)(?:_(\d+))?([GATCgatc])>([GATCgatc])", position_and_edit)
+    if match is None:
+        raise PseudoVCF2HGVSError(
+            f"Unable to parse pseudo-VCF substitution: {position_and_edit}"
+        )
+    start, end, ref, alt = match.groups()
+    return hgvs_delins_parts_to_hgvs_obj(
+        accession, ref_type, int(start), ref, alt,
+        end=int(end) if end is not None else None,
+    )
+
+def _pvcf_build_multibase_hgvs(accession, ref_type, position_and_edit):
+    """Build an HGVS object for a multi-base pseudo-VCF edit."""
+    ref, alt = _pvcf_get_alleles(position_and_edit)
+    not_sub = f"{accession}{ref_type}{position_and_edit}"
+    if re.search(r"[0-9]+_[0-9]+", not_sub):
+        beginning_string, middle_string = not_sub.split(":", 1)
+        middle_string = middle_string.split("_", 1)[0]
+        not_sub = f"{beginning_string}:{middle_string}{ref}>{alt}"
+
+    ref_ac, _, remainder = not_sub.partition(":")
+    hgvs_ref_type, _, posedit = remainder.partition(".")
+    pos_ref, _, insert = posedit.partition(">")
+    match = re.search(r"([0-9]+)([GATCgatc]+)", pos_ref)
+    if match is None:
+        raise PseudoVCF2HGVSError(f"Unable to parse reference sequence from {not_sub}")
+
+    delete = match.group(2)
+    starts = posedit.split(delete, 1)[0]
+    temporary = hgvs_delins_parts_to_hgvs_obj(
+        ref_ac, hgvs_ref_type, starts, delete[0], insert
+    )
+    temporary.posedit.edit.ref = delete
+    start = temporary.posedit.pos.start
+
+    if isinstance(start, BaseOffsetPosition):
+        if start.offset < 0:
+            end = BaseOffsetPosition(
+                base=start.base, offset=-start.offset + len(delete), datum=start.datum
+            )
+        else: # Make base offset position
+            end = BaseOffsetPosition(
+                base=start.base, offset=start.offset + len(delete) - 1, datum=start.datum
+            )
+    else: # Make simple position
+        end = SimplePosition(base=start.base + len(delete) - 1)
+
+    return hgvs_obj_from_existing_edit(
+        ref_ac, hgvs_ref_type, start,
+        vvhgvs.edit.NARefAlt(ref=delete, alt=insert), end=end,
+    )
+
+def _pvcf_build_hgvs_object(accession, ref_type, position_and_edit):
+    """Build a pseudo-VCF HGVS object while preserving HGVS position objects."""
+    ref, alt = _pvcf_get_alleles(position_and_edit)
+    if len(ref) == 1 and len(alt) == 1 and "," not in position_and_edit:
+        return _pvcf_build_simple_hgvs(accession, ref_type, position_and_edit)
+    return _pvcf_build_multibase_hgvs(accession, ref_type, position_and_edit)
+
 def pvcf_to_hgvs(query, selected_assembly, normalization_direction, reverse_normalizer, validator):
-    """
-    :param query: pseudo_vcf string
-    :param selected_assembly:
-    :param normalization_direction: normalization direction an integer, 5 or 3.
-    :param reverse_normalizer:
-    :param validator:
-    :return:
-    """
-    # Set normalizer
-    selected_normalizer = None
-    if normalization_direction == 3:
-        selected_normalizer = validator.hn
-    if normalization_direction == 5:
-        selected_normalizer = reverse_normalizer
+    """Convert a pseudo-VCF description to an HGVS object."""
+    selected_normalizer = _select_pvcf_normalizer(
+        normalization_direction, reverse_normalizer, validator
+    )
+    query = _pvcf_to_hgvs_input(query)
+    accession, position_and_edit = query.split(":", 1)
+    accession = _resolve_pvcf_accession(accession, selected_assembly, validator)
+    hgvs_object = _pvcf_build_hgvs_object(accession, ":g.", position_and_edit)
+    return selected_normalizer.normalize(hgvs_object)
 
-    # Gel stye pVCF
-    query = query.replace(':', '-')
-    pre_input = copy.deepcopy(query)
-    vcf_elements = pre_input.split('-')
+def _hgvs_vcf_sequence(hgvs, sf, report_mode=False):
+    """Convert an HGVS edit to VCF position/ref/alt components."""
+    edit = hgvs.posedit.edit
+    position = hgvs.posedit.pos
+    edit_type = edit.type
 
-    # VCF type 1
-    if re.search(r'-\d+-[GATC]+-[GATC]+', query):
-        query = '%s:%s%s>%s' % (vcf_elements[0], vcf_elements[1], vcf_elements[2], vcf_elements[3])
-    elif re.search(r'-\d+-[GATC]+-', query):
-        query = '%s:%s%s>%s' % (vcf_elements[0], vcf_elements[1], vcf_elements[2], vcf_elements[2])
-    else:
-        raise PseudoVCF2HGVSError('Unsupported format: VCF specification 4.1 or later')
+    if edit_type == "identity":
+        return str(position.start), edit.ref, edit.ref
+    if edit_type == "ins":
+        end = int(position.end.base)
+        start = int(position.start.base)
+        ref_seq = sf.fetch_seq(hgvs.ac, start - 1, end - 1)
+        return start, ref_seq, ref_seq + edit.alt
+    if edit_type == "sub":
+        return str(position), edit.ref, edit.alt
+    if edit_type == "del":
+        end = int(position.end.base)
+        start = int(position.start.base)
+        adj_start = start - 2
+        if report_mode and adj_start < 0:
+            ref_seq = sf.fetch_seq(hgvs.ac, start, end + 1)
+            return "1", ref_seq, ref_seq[-1]
+        ref_seq = sf.fetch_seq(hgvs.ac, adj_start, end)
+        return str(start - 1), ref_seq, ref_seq[0]
+    if edit_type == "inv":
+        start = int(position.start.base)
+        end = int(position.end.base)
+        ref_seq = getattr(edit, "ref", None)
+        if not ref_seq:
+            ref_seq = sf.fetch_seq(hgvs.ac, start - 1, end)
+        return str(start), ref_seq, utils.simple_dna_revcomp(ref_seq)
+    if edit_type == "delins":
+        start = int(position.start.base)
+        end = int(position.end.base)
+        ins_seq = edit.alt or ""
+        if report_mode:
+            ref_seq = sf.fetch_seq(hgvs.ac, start - 1, end)
+            return str(start), ref_seq, ins_seq
+        ref_seq = sf.fetch_seq(hgvs.ac, start - 2, end)
+        return str(start - 1), ref_seq, ref_seq[0] + ins_seq
+    if edit_type == "dup":
+        end = int(position.end.base)
+        start = int(position.start.base)
+        ref_seq = sf.fetch_seq(hgvs.ac, start - 2, end)
+        if report_mode:
+            return str(start - 1), ref_seq[0], ref_seq
+        return str(start - 1), ref_seq, ref_seq + edit.ref
+    return "", "", ""
 
-    # Chr16:2099572TC>T
-    try:
-        input_list = query.split(':')
-        position_and_edit = input_list[1]
-        if not query.startswith(("NC_", "NG_", "NW_", "NT_")) and not re.fullmatch(r"LRG_\d+", query):
-            chr_num = input_list[0].strip().upper()
-            if chr_num.startswith("CHR"):
-                chr_num = chr_num[3:]
-            # Use selected assembly
-            accession = seq_data.get_accession(chr_num, selected_assembly)
-            if accession is None:
-                error = chr_num + ' is not part of genome build ' + selected_assembly + ' or is not supported'
-                raise PseudoVCF2HGVSError(error)
-        else:
-            accession = input_list[0]
+def _hgvs2vcf_chromosome(hgvs, primary_assembly):
+    return seq_data.get_chr_num_ucsc(hgvs.ac, primary_assembly) or hgvs.ac
 
-        # Assign reference sequence type
-        ref_type = ':g.'
-        if 'LRG_' in accession:
-            accession = validator.db.get_refseq_id_from_lrg_id(accession)
+def _report_vcf_chromosomes(hgvs, primary_assembly):
+    if primary_assembly == "All":
+        gen_name_map = {"GRCh37": "grch37", "hg19": "hg19", "GRCh38": "grch38", "hg38": "hg38"}
+        chrs = {}
+        for genome, output_name in gen_name_map.items():
+            if not seq_data.is_supported_for_mapping(hgvs.ac, genome):
+                continue
+            chrom = (
+                seq_data.get_chr_num_refseq(hgvs.ac, genome)
+                if genome.startswith("GRC")
+                else seq_data.get_chr_num_ucsc(hgvs.ac, genome)
+            )
+            chrs[output_name] = chrom or hgvs.ac
+        return "", "", chrs
 
-        # Reformat the variant
-        query = str(accession) + ref_type + str(position_and_edit)
-    except Exception as e:
-        error = str(e)
-        raise PseudoVCF2HGVSError(error)
+    ucsc_pa = ""
+    grc_pa = ""
+    if "GRC" in primary_assembly:
+        if "37" in primary_assembly:
+            ucsc_pa = "hg19"
+            grc_pa = primary_assembly # inherits
+        if "38" in primary_assembly:
+            ucsc_pa = "hg38"
+            grc_pa = primary_assembly # inherits
+    else: # When hg formart us used rather than GRCh
+        if "19" in primary_assembly:
+            ucsc_pa = primary_assembly # inherits
+            grc_pa = "GRCh37"
+        if "38" in primary_assembly:
+            ucsc_pa = primary_assembly # inherits
+            grc_pa = "GRCh38"
 
-    # Find not_sub type in input e.g. GGGG>G
-    not_sub = copy.deepcopy(query)
-    not_sub_find = re.compile(r"([GATCgatc]+)>([GATCgatc]+)")
-    if not_sub_find.search(not_sub):
-        try:
-            # If the length of either side of the substitution delimer (>) is >1
-            matches = not_sub_find.search(not_sub)
-            if len(matches.group(1)) > 1 or len(matches.group(2)) > 1 or re.search(
-                    r"([GATCgatc]+)>([GATCgatc]+),([GATCgatc]+)", query):
-                # Search for and remove range
-                range = re.compile(r"([0-9]+)_([0-9]+)")
-                if range.search(not_sub):
-                    m = not_sub_find.search(not_sub)
-                    start = m.group(1)
-                    delete = m.group(2)
-                    beginning_string, middle_string = not_sub.split(':')
-                    middle_string = middle_string.split('_')[0]
-                    end_string = start + '>' + delete
-                    not_sub = beginning_string + ':' + middle_string + end_string
-                # Split description
-                ref_ac, _sep, remainder = not_sub.partition(':')
-                ref_type, _sep, posedit = remainder.partition('.')
-                pos_ref, _sep, insert = posedit.partition('>')
-                # Split remainder using matches
-                r = re.compile(r"([0-9]+)([GATCgatc]+)")
-                try:
-                    m = r.search(pos_ref)
-                    delete = m.group(2)
-                    starts = posedit.split(delete)[0]
-                    hgvs_re_try = hgvs_delins_parts_to_hgvs_obj(
-                            ref_ac,
-                            ref_type,
-                            starts, delete[0], insert)
-                    hgvs_re_try.posedit.edit.ref = delete
-                    start_pos = str(hgvs_re_try.posedit.pos.start)
-                    end_pos = None
-                    if '-' in start_pos:
-                        base, offset = start_pos.split('-')
-                        new_offset = 0 - int(offset) + (len(delete))
-                        end_pos = base + '-' + str(new_offset)
-                    elif '+' in start_pos:
-                        base, offset = start_pos.split('+')
-                        new_offset = 0 + int(offset) + (len(delete) - 1)
-                        end_pos = base + '+' + str(new_offset)
-                    else:
-                        end_pos = int(start_pos) + (len(delete) - 1)
-                except Exception as e:
-                    error = str(e)
-                    raise PseudoVCF2HGVSError(error)
+    return (
+        seq_data.get_chr_num_ucsc(hgvs.ac, ucsc_pa) or hgvs.ac,
+        seq_data.get_chr_num_refseq(hgvs.ac, grc_pa) or hgvs.ac,
+        {},
+    )
 
-                # Parse into hgvs object
-                try:
-                    hgvs_not_delins = hgvs_delins_parts_to_hgvs_obj(
-                            ref_ac, ref_type, start_pos,
-                            delete, insert,
-                            end=end_pos)
-                except vvhgvs.exceptions.HGVSError as e:
-                    error = str(e)
-                    raise PseudoVCF2HGVSError(error)
-
-                # HGVS will deal with the errors
-                hgvs_object = hgvs_not_delins
-            else:
-                # we know that this should be a sub type variant, and so ends with R>A,
-                # where R and A is 1 base of ref or alt respectivly (since the second
-                # match did not trigger).
-                start = position_and_edit[:-4]
-                if '_' in position_and_edit[:-3]:
-                    start, _sep, end = position_and_edit.partition('_')
-                hgvs_object =  hgvs_delins_parts_to_hgvs_obj(
-                        str(accession),
-                        ref_type,
-                        int(start),
-                        position_and_edit[-3],
-                        position_and_edit[-1])
-
-        except Exception as e:
-            error = str(e)
-            raise PseudoVCF2HGVSError(error)
-    else:
-        # we should not get here! if we can we need to handle it
-        raise PseudoVCF2HGVSError('Unsupported format: VCF specification 4.1 or later!')
-
-    # Normalize
-    hgvs_object = selected_normalizer.normalize(hgvs_object)
-    # return
-    return hgvs_object
-
+def _add_vcf_flanks(hgvs, sf, pos, ref, alt, extra_flank_bases):
+    if extra_flank_bases <= 0:
+        return pos, ref, alt
+    original_pos = pos
+    pos = str(int(pos) - extra_flank_bases)
+    left_flank = sf.fetch_seq(hgvs.ac, int(pos) - 1, int(original_pos) - 1)
+    right_flank = sf.fetch_seq(
+        hgvs.ac,
+        int(original_pos) + len(ref) - 1,
+        int(original_pos) + len(ref) - 1 + extra_flank_bases,
+    )
+    return pos, left_flank + ref + right_flank, left_flank + alt + right_flank
 
 def hgvs2vcf(hgvs_genomic, primary_assembly, reverse_normalizer, sf, extra_flank_bases=0):
-    """
-    Simple conversion which ensures identity is as 5 prime as possible by adding an extra 5
-    prime base. Necessary for most gap handling situations
+    """Convert HGVS to the standard VCF representation."""
+    normalized = (
+        hgvs_genomic
+        if reverse_normalizer is None
+        else reverse_normalizer.normalize(hgvs_genomic)
+    )
+    chrom = _hgvs2vcf_chromosome(normalized, primary_assembly)
+    pos, ref, alt = _hgvs_vcf_sequence(normalized, sf)
 
-    :param hgvs_genomic:
-    :param primary_assembly:
-    :param reverse_normalizer:
-    :param sf:
-    :return:
-    """
-    hgvs_genomic_variant = hgvs_genomic
-    # Reverse normalize hgvs_genomic_variant: NOTE will replace ref
-    if reverse_normalizer is None:
-        reverse_normalized_hgvs_genomic = hgvs_genomic_variant
-    else:
-        reverse_normalized_hgvs_genomic = reverse_normalizer.normalize(hgvs_genomic_variant)
-    # hgvs_genomic_5pr = copy.deepcopy(reverse_normalized_hgvs_genomic)
-
-    # Chr
-    chr = seq_data.get_chr_num_ucsc(reverse_normalized_hgvs_genomic.ac, primary_assembly)
-    if chr is not None:
-        pass
-    else:
-        chr = reverse_normalized_hgvs_genomic.ac
-
-    # Identity
-    if reverse_normalized_hgvs_genomic.posedit.edit.type == 'identity':
-        pos = str(reverse_normalized_hgvs_genomic.posedit.pos.start)
-        ref = reverse_normalized_hgvs_genomic.posedit.edit.ref
-        alt = reverse_normalized_hgvs_genomic.posedit.edit.ref
-
-    # Insertions
-    elif reverse_normalized_hgvs_genomic.posedit.edit.type == 'ins':
-        end = int(reverse_normalized_hgvs_genomic.posedit.pos.end.base)
-        start = int(reverse_normalized_hgvs_genomic.posedit.pos.start.base)
-        alt_start = start - 1  #
-        # Recover sequences
-        ref_seq = sf.fetch_seq(reverse_normalized_hgvs_genomic.ac, alt_start, end - 1)
-        ins_seq = reverse_normalized_hgvs_genomic.posedit.edit.alt
-        # Assemble
-        pos = start
-        ref = ref_seq
-        alt = ref_seq + ins_seq
-
-    # Substitutions
-    elif reverse_normalized_hgvs_genomic.posedit.edit.type == 'sub':
-        ref = reverse_normalized_hgvs_genomic.posedit.edit.ref
-        alt = reverse_normalized_hgvs_genomic.posedit.edit.alt
-        pos = str(reverse_normalized_hgvs_genomic.posedit.pos)
-
-    # Deletions
-    elif reverse_normalized_hgvs_genomic.posedit.edit.type == 'del':
-        end = int(reverse_normalized_hgvs_genomic.posedit.pos.end.base)
-        start = int(reverse_normalized_hgvs_genomic.posedit.pos.start.base)
-        adj_start = start - 2
-        start = start - 1
-        # Recover sequences
-        hgvs_del_seq_w_pre_base = sf.fetch_seq(
-                reverse_normalized_hgvs_genomic.ac,
-                adj_start, end)
-        pos = str(start)
-        ref = hgvs_del_seq_w_pre_base
-        alt = hgvs_del_seq_w_pre_base[0]
-
-    # inv
-    elif reverse_normalized_hgvs_genomic.posedit.edit.type == 'inv':
-        end = int(reverse_normalized_hgvs_genomic.posedit.pos.end.base)
-        start = int(reverse_normalized_hgvs_genomic.posedit.pos.start.base)
-        adj_start = start - 1
-
-        # Use the reference sequence already available on the HGVS object where
-        # possible. Sequence retrieval is only required when ref is unavailable.
-        try:
-            vcf_del_seq = reverse_normalized_hgvs_genomic.posedit.edit.ref
-        except AttributeError:
-            vcf_del_seq = None
-
-        if not vcf_del_seq:
-            vcf_del_seq = sf.fetch_seq(
-                reverse_normalized_hgvs_genomic.ac,
-                adj_start,
-                end
-            )
-
-        # Assemble
-        pos = str(start)
-        ref = vcf_del_seq
-        alt = utils.simple_dna_revcomp(vcf_del_seq)
-
-    # Delins
-    elif reverse_normalized_hgvs_genomic.posedit.edit.type == 'delins':
-        end = int(reverse_normalized_hgvs_genomic.posedit.pos.end.base)
-        start = int(reverse_normalized_hgvs_genomic.posedit.pos.start.base)
-        adj_start = start - 2
-
-        ins_seq = reverse_normalized_hgvs_genomic.posedit.edit.alt or ''
-
-        vcf_del_seq = sf.fetch_seq(
-            reverse_normalized_hgvs_genomic.ac,
-            adj_start,
-            end
-        )
-
-        pos = str(start - 1)
-        ref = vcf_del_seq
-        alt = vcf_del_seq[0] + ins_seq
-
-    # Duplications
-    elif reverse_normalized_hgvs_genomic.posedit.edit.type == 'dup':
-        end = int(reverse_normalized_hgvs_genomic.posedit.pos.end.base)  #
-        start = int(reverse_normalized_hgvs_genomic.posedit.pos.start.base)
-        adj_start = start - 2  #
-        start = start - 1  #
-        # Recover sequences
-        dup_seq = reverse_normalized_hgvs_genomic.posedit.edit.ref
-        vcf_ref_seq = sf.fetch_seq(reverse_normalized_hgvs_genomic.ac, adj_start, end)
-        # Assemble
-        pos = str(start)
-        ref = vcf_ref_seq
-        alt = vcf_ref_seq + dup_seq
-    else:
-        chr = ''
-        ref = ''
-        alt = ''
-        pos = ''
-
-    # ensure as 5' as possible
-    if chr != '' and pos != '' and ref != '' and alt != '':
-        if len(ref) > 1:
-            if reverse_normalized_hgvs_genomic.posedit.edit.type == 'identity':
-                pos = int(pos) - 1
-                prev = sf.fetch_seq(reverse_normalized_hgvs_genomic.ac, pos - 1, pos)
-                pos = str(pos)
-                ref = prev + ref
-                alt = prev + alt
-
-    # Add flank bases if requested
-    if extra_flank_bases > 0:
-        original_pos = pos
-        pos = str(int(pos) - extra_flank_bases)
-        left_flank = sf.fetch_seq(reverse_normalized_hgvs_genomic.ac, int(pos) - 1, int(original_pos) - 1)
-        right_flank = sf.fetch_seq(reverse_normalized_hgvs_genomic.ac, int(original_pos) + len(ref) - 1,
-                                   int(original_pos) + len(ref) - 1 + extra_flank_bases)
-        ref = left_flank + ref + right_flank
-        alt = left_flank + alt + right_flank
-
-    # Dictionary the VCF
-    vcf_dict = {'chr': chr, 'pos': pos, 'ref': ref, 'alt': alt, 'normalized_hgvs': reverse_normalized_hgvs_genomic}
-    return vcf_dict
-
+    if chrom and pos and ref and alt and len(ref) > 1:
+        if normalized.posedit.edit.type == "identity":
+            pos_int = int(pos) - 1
+            previous = sf.fetch_seq(normalized.ac, pos_int - 1, pos_int)
+            pos = str(pos_int)
+            ref = previous + ref
+            alt = previous + alt
+    pos, ref, alt = _add_vcf_flanks(normalized, sf, pos, ref, alt, extra_flank_bases)
+    return {"chr": chrom, "pos": pos, "ref": ref, "alt": alt, "normalized_hgvs": normalized}
 
 def report_hgvs2vcf(hgvs_genomic, primary_assembly, reverse_normalizer, sf):
-    """
-    Used to report the Most true representation of the VCF i.e. 5 prime normalized but no
-    additional bases added. NOTE: no gap handling capabilities
+    """Return the report VCF representation without additional flank bases."""
+    normalized = reverse_normalizer.normalize(hgvs_genomic)
+    ucsc_chr, grc_chr, chrs = _report_vcf_chromosomes(normalized, primary_assembly)
+    pos, ref, alt = _hgvs_vcf_sequence(normalized, sf, report_mode=True)
+    return {
+        "pos": str(pos),
+        "ref": ref,
+        "alt": alt,
+        "ucsc_chr": ucsc_chr,
+        "grc_chr": grc_chr,
+        "normalized_hgvs": normalized,
+        "chrs_by_genome": chrs,
+    }
 
-    :param hgvs_genomic:
-    :param primary_assembly:
-    :param reverse_normalizer:
-    :param sf:
-    :return:
-    """
-
-    hgvs_genomic_variant = hgvs_genomic
-
-    # Reverse normalize hgvs_genomic_variant: NOTE will replace ref
-    reverse_normalized_hgvs_genomic = reverse_normalizer.normalize(hgvs_genomic_variant)
-
-    ucsc_pa = ''
-    grc_pa = ''
-    ucsc_chr = ''
-    grc_chr = ''
-    chrs = {}
-    # Sort the primary assemblies or go through all valid assemblies
-    if primary_assembly == 'All':
-        # return all valid genome builds on our report output list
-        gen_name_map = {
-            'GRCh37':'grch37',
-            'hg19':'hg19',
-            'GRCh38':'grch38',
-            'hg38':'hg38'}
-
-        genomes = ['GRCh37','hg19','GRCh38','hg38']
-        for genome in genomes:
-            if not seq_data.is_supported_for_mapping(hgvs_genomic_variant.ac, genome):
-                continue
-            if genome.startswith('GRC'):
-                chrom = seq_data.get_chr_num_refseq(
-                        reverse_normalized_hgvs_genomic.ac,
-                        genome)
-            else:
-                chrom = seq_data.get_chr_num_ucsc(
-                        reverse_normalized_hgvs_genomic.ac,
-                        genome)
-            if chrom is None:
-                chrom = hgvs_genomic_variant.ac
-            chrs[gen_name_map[genome]]=chrom
-    else:
-        if 'GRC' in primary_assembly:
-            if '37' in primary_assembly:
-                ucsc_pa = 'hg19'
-                grc_pa = primary_assembly
-            if '38' in primary_assembly:
-                ucsc_pa = 'hg38'
-                grc_pa = primary_assembly
-        else:
-            if '19' in primary_assembly:
-                ucsc_pa = primary_assembly
-                grc_pa = 'GRCh37'
-            if '38' in primary_assembly:
-                ucsc_pa = primary_assembly
-                grc_pa = 'GRCh38'
-        # UCSC Chr
-        ucsc_chr = seq_data.get_chr_num_ucsc(reverse_normalized_hgvs_genomic.ac, ucsc_pa)
-        if ucsc_chr is not None:
-            pass
-        else:
-            ucsc_chr = reverse_normalized_hgvs_genomic.ac
-
-        # GRC Chr
-        grc_chr = seq_data.get_chr_num_refseq(reverse_normalized_hgvs_genomic.ac, grc_pa)
-        if grc_chr is not None:
-            pass
-        else:
-            grc_chr = reverse_normalized_hgvs_genomic.ac
-
-    # Identity
-    if reverse_normalized_hgvs_genomic.posedit.edit.type == 'identity':
-        pos = str(reverse_normalized_hgvs_genomic.posedit.pos.start)
-        ref = reverse_normalized_hgvs_genomic.posedit.edit.ref
-        alt = reverse_normalized_hgvs_genomic.posedit.edit.ref
-
-    # Insertions
-    elif reverse_normalized_hgvs_genomic.posedit.edit.type == 'ins':
-        end = int(reverse_normalized_hgvs_genomic.posedit.pos.end.base)
-        start = int(reverse_normalized_hgvs_genomic.posedit.pos.start.base)
-        alt_start = start - 1  #
-        # Recover sequences
-        ref_seq = sf.fetch_seq(reverse_normalized_hgvs_genomic.ac, alt_start, end - 1)
-        ins_seq = reverse_normalized_hgvs_genomic.posedit.edit.alt
-        # Assemble
-        pos = start
-        ref = ref_seq
-        alt = ref_seq + ins_seq
-
-    # Substitutions
-    elif reverse_normalized_hgvs_genomic.posedit.edit.type == 'sub':
-        ref = reverse_normalized_hgvs_genomic.posedit.edit.ref
-        alt = reverse_normalized_hgvs_genomic.posedit.edit.alt
-        pos = str(reverse_normalized_hgvs_genomic.posedit.pos)
-
-    # Deletions
-    elif reverse_normalized_hgvs_genomic.posedit.edit.type == 'del':
-        end = int(reverse_normalized_hgvs_genomic.posedit.pos.end.base)
-        start = int(reverse_normalized_hgvs_genomic.posedit.pos.start.base)
-        adj_start = start - 2
-        start = start - 1
-        # Recover sequences
-        if adj_start >= 0:
-            hgvs_del_seq_w_pre_base = sf.fetch_seq(
-                    reverse_normalized_hgvs_genomic.ac,
-                    adj_start, end)
-            ref = hgvs_del_seq_w_pre_base
-            alt = hgvs_del_seq_w_pre_base[0]
-            pos = str(start)
-        else:
-            hgvs_del_seq_w_post_base = sf.fetch_seq(
-                    reverse_normalized_hgvs_genomic.ac,
-                    start, end + 1)
-            ref = hgvs_del_seq_w_post_base
-            alt = hgvs_del_seq_w_post_base[-1]
-            pos = "1"
-
-    # inv
-    elif reverse_normalized_hgvs_genomic.posedit.edit.type == 'inv':
-        end = int(reverse_normalized_hgvs_genomic.posedit.pos.end.base)
-        start = int(reverse_normalized_hgvs_genomic.posedit.pos.start.base)
-        adj_start = start - 1
-
-        # Use the existing reference sequence where available, avoiding the
-        # relatively expensive sequence fetch.
-        try:
-            vcf_del_seq = reverse_normalized_hgvs_genomic.posedit.edit.ref
-        except AttributeError:
-            vcf_del_seq = None
-
-        if not vcf_del_seq:
-            vcf_del_seq = sf.fetch_seq(
-                reverse_normalized_hgvs_genomic.ac,
-                adj_start,
-                end
-            )
-
-        # Assemble
-        pos = str(start)
-        ref = vcf_del_seq
-        alt = utils.simple_dna_revcomp(vcf_del_seq)
-
-    # Delins
-    elif reverse_normalized_hgvs_genomic.posedit.edit.type == 'delins':
-        start = int(reverse_normalized_hgvs_genomic.posedit.pos.start.base)
-        end = int(reverse_normalized_hgvs_genomic.posedit.pos.end.base)
-
-        ins_seq = reverse_normalized_hgvs_genomic.posedit.edit.alt or ''
-
-        vcf_del_seq = sf.fetch_seq(
-            reverse_normalized_hgvs_genomic.ac,
-            start - 1,
-            end
+def pos_lock_hgvs2vcf(hgvs_genomic,
+                      primary_assembly,
+                      reverse_normalizer,
+                      sf):
+    """Return an in-situ VCF representation without normalisation."""
+    if hgvs_genomic.posedit.edit.ref == "":
+        hgvs_genomic.posedit.edit.ref = sf.fetch_seq(
+            hgvs_genomic.ac,
+            hgvs_genomic.posedit.pos.start.base - 1,
+            hgvs_genomic.posedit.pos.end.base,
         )
 
-        pos = str(start)
-        ref = vcf_del_seq
-        alt = ins_seq
+    normalized = hgvs_genomic
+    if normalized.posedit.edit.type == "identity" and not normalized.posedit.edit.ref:
+        normalized = reverse_normalizer.normalize(normalized)
 
-    # Duplications
-    elif reverse_normalized_hgvs_genomic.posedit.edit.type == 'dup':
-        end = int(reverse_normalized_hgvs_genomic.posedit.pos.end.base)  #
-        start = int(reverse_normalized_hgvs_genomic.posedit.pos.start.base)
-        adj_start = start - 2  #
-        start = start - 1  #
-        # Recover sequences
-        vcf_ref_seq = sf.fetch_seq(reverse_normalized_hgvs_genomic.ac, adj_start, end)
-        # Assemble
-        pos = str(start)
-        ref = vcf_ref_seq[0]
-        alt = vcf_ref_seq
-    else:
-        ref = ''
-        alt = ''
-        pos = ''
-
-    # Dictionary the VCF
-    vcf_dict = {'pos': str(pos), 'ref': ref, 'alt': alt, 'ucsc_chr': ucsc_chr, 'grc_chr': grc_chr,
-                'normalized_hgvs': reverse_normalized_hgvs_genomic,'chrs_by_genome':chrs}
-    return vcf_dict
-
-
-def pos_lock_hgvs2vcf(hgvs_genomic, primary_assembly, reverse_normalizer, sf):
-    """
-    No normalization at all. No additional bases added. Simply returns an in-situ VCF
-    :param hgvs_genomic:
-    :param primary_assembly:
-    :param reverse_normalizer:
-    :param sf:
-    :return:
-    """
-    # Replace reference manually
-    if hgvs_genomic.posedit.edit.ref == '':
-        hgvs_genomic.posedit.edit.ref = sf.fetch_seq(hgvs_genomic.ac, hgvs_genomic.posedit.pos.start.base - 1,
-                                                     hgvs_genomic.posedit.pos.end.base)
-
-    reverse_normalized_hgvs_genomic = hgvs_genomic
-    if reverse_normalized_hgvs_genomic.posedit.edit.type == 'identity' and len(
-            reverse_normalized_hgvs_genomic.posedit.edit.ref) == 0:
-        reverse_normalized_hgvs_genomic = reverse_normalizer.normalize(reverse_normalized_hgvs_genomic)
-
-    # hgvs_genomic_5pr = copy.deepcopy(reverse_normalized_hgvs_genomic)
-
-    # Chr
-    chr = seq_data.get_chr_num_ucsc(reverse_normalized_hgvs_genomic.ac, primary_assembly)
-    if chr is not None:
-        pass
-    else:
-        chr = reverse_normalized_hgvs_genomic.ac
-
-    # Identity
-    if reverse_normalized_hgvs_genomic.posedit.edit.type == 'identity':
-        pos = str(reverse_normalized_hgvs_genomic.posedit.pos.start)
-        ref = reverse_normalized_hgvs_genomic.posedit.edit.ref
-        alt = reverse_normalized_hgvs_genomic.posedit.edit.ref
-
-    # Insertions
-    elif reverse_normalized_hgvs_genomic.posedit.edit.type == 'ins':
-        end = int(reverse_normalized_hgvs_genomic.posedit.pos.end.base)
-        start = int(reverse_normalized_hgvs_genomic.posedit.pos.start.base)
-        alt_start = start - 1  #
-        # Recover sequences
-        ref_seq = sf.fetch_seq(reverse_normalized_hgvs_genomic.ac, alt_start, end - 1)
-        ins_seq = reverse_normalized_hgvs_genomic.posedit.edit.alt
-        # Assemble
-        pos = start
-        ref = ref_seq
-        alt = ref_seq + ins_seq
-
-    # Substitutions
-    elif reverse_normalized_hgvs_genomic.posedit.edit.type == 'sub':
-        ref = reverse_normalized_hgvs_genomic.posedit.edit.ref
-        alt = reverse_normalized_hgvs_genomic.posedit.edit.alt
-        pos = str(reverse_normalized_hgvs_genomic.posedit.pos)
-
-    # Deletions
-    elif reverse_normalized_hgvs_genomic.posedit.edit.type == 'del':
-        end = int(reverse_normalized_hgvs_genomic.posedit.pos.end.base)
-        start = int(reverse_normalized_hgvs_genomic.posedit.pos.start.base)
-        adj_start = start - 2
-        start = start - 1
-        # Recover sequences
-        hgvs_del_seq_w_pre_base = sf.fetch_seq(
-                reverse_normalized_hgvs_genomic.ac,
-                adj_start, end)
-        # Assemble
-        pos = str(start)
-        ref = hgvs_del_seq_w_pre_base
-        alt = hgvs_del_seq_w_pre_base[0]
-
-    # inv
-    elif reverse_normalized_hgvs_genomic.posedit.edit.type == 'inv':
-        start = int(reverse_normalized_hgvs_genomic.posedit.pos.start.base)
-        end = int(reverse_normalized_hgvs_genomic.posedit.pos.end.base)
-
-        try:
-            vcf_del_seq = reverse_normalized_hgvs_genomic.posedit.edit.ref
-        except AttributeError:
-            vcf_del_seq = None
-
-        if not vcf_del_seq:
-            vcf_del_seq = sf.fetch_seq(
-                reverse_normalized_hgvs_genomic.ac,
-                start - 1,
-                end
-            )
-
-        # Assemble
-        pos = str(start)
-        ref = vcf_del_seq
-        alt = utils.simple_dna_revcomp(vcf_del_seq)
-
-    # Delins
-    elif reverse_normalized_hgvs_genomic.posedit.edit.type == 'delins':
-        start = int(reverse_normalized_hgvs_genomic.posedit.pos.start.base)
-        end = int(reverse_normalized_hgvs_genomic.posedit.pos.end.base)
-        adj_start = start - 2
-
-        ins_seq = reverse_normalized_hgvs_genomic.posedit.edit.alt or ''
-
-        vcf_del_seq = sf.fetch_seq(
-            reverse_normalized_hgvs_genomic.ac,
-            adj_start,
-            end
-        )
-
-        pos = str(start - 1)
-        ref = vcf_del_seq
-        alt = vcf_del_seq[0] + ins_seq
-
-    # Duplications
-    elif reverse_normalized_hgvs_genomic.posedit.edit.type == 'dup':
-        end = int(reverse_normalized_hgvs_genomic.posedit.pos.end.base)  #
-        start = int(reverse_normalized_hgvs_genomic.posedit.pos.start.base)
-        adj_start = start - 2  #
-        start = start - 1  #
-        # Recover sequences
-        dup_seq = reverse_normalized_hgvs_genomic.posedit.edit.ref
-        vcf_ref_seq = sf.fetch_seq(reverse_normalized_hgvs_genomic.ac, adj_start, end)
-        # Assemble
-        pos = str(start)
-        ref = vcf_ref_seq
-        alt = vcf_ref_seq + dup_seq
-    else:
-        chr = ''
-        ref = ''
-        alt = ''
-        pos = ''
-
-    vcf_dict = {'chr': chr, 'pos': pos, 'ref': ref, 'alt': alt, 'normalized_hgvs': reverse_normalized_hgvs_genomic}
-    return vcf_dict
+    chrom = _hgvs2vcf_chromosome(normalized, primary_assembly)
+    pos, ref, alt = _hgvs_vcf_sequence(normalized, sf)
+    return {"chr": chrom, "pos": pos, "ref": ref, "alt": alt, "normalized_hgvs": normalized}
 
 def pre_push_vcf_tx_g_map_fix(
         norm_hgvs_transcript,
@@ -1413,6 +1057,105 @@ def pre_push_vcf_tx_g_map_fix(
     return hgvs_genomic_n_assembled
 
 
+def _prepare_hard_hgvs(
+        hgvs_genomic,
+        primary_assembly,
+        normalizer,
+        hn,
+        sf,
+        vm,
+        tx_ac,
+        map_dat,
+        alt_aln_method,
+        genomic_ac,
+        mapped_g,
+        pre_norm,
+):
+    """Prepare the HGVS object and initial VCF components for hard pushing.
+
+    The left and right push algorithms deliberately remain separate. This
+    helper only handles their identical input preparation and VCF conversion.
+    """
+    if hgvs_genomic.type == "c":
+        hgvs_genomic = vm.c_to_n(hgvs_genomic)
+
+    if pre_norm:
+        normalized_hgvs_genomic = pre_norm
+    else:
+        normalized_hgvs_genomic = normalizer.normalize(hgvs_genomic)
+
+    if hgvs_genomic.type != "g":
+        normalized_hgvs_genomic = pre_push_vcf_tx_g_map_fix(
+            normalized_hgvs_genomic,
+            hgvs_genomic,
+            genomic_ac,
+            vm,
+            hn,
+            sf,
+            mapped_g,
+        )
+
+    if hgvs_genomic.type == "g":
+        chrom = seq_data.get_chr_num_ucsc(
+            normalized_hgvs_genomic.ac,
+            primary_assembly,
+        ) or normalized_hgvs_genomic.ac
+    else:
+        chrom = normalized_hgvs_genomic.ac
+
+    pos, ref, alt = _hgvs_vcf_sequence(normalized_hgvs_genomic, sf)
+    if not (pos and ref and alt):
+        chrom = ""
+
+    return (
+        hgvs_genomic,
+        normalized_hgvs_genomic,
+        chrom,
+        pos,
+        ref,
+        alt,
+    )
+
+
+def _hard_exon_boundary(
+        map_dat,
+        tx_ac,
+        hgvs_ac,
+        genomic_ac,
+        alt_aln_method,
+        pos,
+        direction,
+):
+    """Return the exon boundary used by a hard push.
+
+    ``direction`` is ``right`` for the 3-prime boundary and ``left`` for
+    the 5-prime boundary. The mapping column selection is unchanged from
+    the original hard push implementations.
+    """
+    if genomic_ac is False:
+        exon_set = map_dat.mapped_exons(
+            tx_ac,
+            hgvs_ac,
+            alt_aln_method=alt_aln_method,
+        )
+        start_column, end_column = 7, 8
+    else:
+        exon_set = map_dat.mapped_exons(
+            hgvs_ac,
+            genomic_ac,
+            alt_aln_method=alt_aln_method,
+        )
+        start_column, end_column = 5, 6
+
+    for exon in exon_set:
+        if int(exon[start_column]) + 1 <= int(pos) <= int(exon[end_column]):
+            if direction == "right":
+                return int(exon[end_column])
+            return int(exon[start_column] + 1)
+
+    return None
+
+
 def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, sf, tx_ac, map_dat, alt_aln_method, hp, vm,
                         mrg, genomic_ac=False, mapped_g=False, pre_norm=False):
     """
@@ -1428,138 +1171,33 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
     :param alt_aln_method:
     :param hp:
     :param vm:
+    :param mrg:
     :param genomic_ac: Genomic ac when transcirpt var is input *Must* be false for genomic var
     :return:
     """
-    if hgvs_genomic.type == 'g':
-        # Reverse normalize input prior to convert: NOTE will replace ref
-        if pre_norm:
-            normalized_hgvs_genomic = pre_norm
-        else:
-            normalized_hgvs_genomic = hn.normalize(hgvs_genomic)
-    else:
-        # c. must be in n. format
-        if hgvs_genomic.type == 'c':
-            hgvs_genomic = vm.c_to_n(hgvs_genomic)
-        if pre_norm:
-            normalized_hgvs_genomic = pre_norm
-        else:
-            normalized_hgvs_genomic = hn.normalize(hgvs_genomic)
-        normalized_hgvs_genomic = pre_push_vcf_tx_g_map_fix(
-                normalized_hgvs_genomic,
-                hgvs_genomic,
-                genomic_ac,
-                vm,
-                hn,# normaliser
-                sf,# seq_fetcher
-                mapped_g)
+    (
+        hgvs_genomic,
+        normalized_hgvs_genomic,
+        chr,
+        pos,
+        ref,
+        alt,
+    ) = _prepare_hard_hgvs(
+        hgvs_genomic,
+        primary_assembly,
+        hn,
+        hn,
+        sf,
+        vm,
+        tx_ac,
+        map_dat,
+        alt_aln_method,
+        genomic_ac,
+        mapped_g,
+        pre_norm,
+    )
 
-    # Chr
-    if hgvs_genomic.type == 'g':
-        chr = seq_data.get_chr_num_ucsc(normalized_hgvs_genomic.ac, primary_assembly)
-        if chr is None:
-           chr = normalized_hgvs_genomic.ac
-    else:
-        chr = normalized_hgvs_genomic.ac
-
-    # identity
-    if normalized_hgvs_genomic.posedit.edit.type == 'identity':
-        pos = str(normalized_hgvs_genomic.posedit.pos.start)
-        ref = normalized_hgvs_genomic.posedit.edit.ref
-        alt = normalized_hgvs_genomic.posedit.edit.ref
-
-    # Insertions
-    elif normalized_hgvs_genomic.posedit.edit.type == 'ins':
-        end = int(normalized_hgvs_genomic.posedit.pos.end.base)
-        start = int(normalized_hgvs_genomic.posedit.pos.start.base)
-        alt_start = start - 1  #
-        # Recover sequences
-        ref_seq = sf.fetch_seq(normalized_hgvs_genomic.ac, alt_start, end - 1)
-        ins_seq = normalized_hgvs_genomic.posedit.edit.alt
-        # Assemble
-        pos = start
-        ref = ref_seq
-        alt = ref_seq + ins_seq
-
-    # Substitutions
-    elif normalized_hgvs_genomic.posedit.edit.type == 'sub':
-        ref = normalized_hgvs_genomic.posedit.edit.ref
-        alt = normalized_hgvs_genomic.posedit.edit.alt
-        pos = str(normalized_hgvs_genomic.posedit.pos)
-
-    # Deletions
-    elif normalized_hgvs_genomic.posedit.edit.type == 'del':
-        end = int(normalized_hgvs_genomic.posedit.pos.end.base)
-        start = int(normalized_hgvs_genomic.posedit.pos.start.base)
-        adj_start = start - 2
-        start = start - 1
-        # Recover sequences
-        hgvs_del_seq_w_adj_start = sf.fetch_seq(normalized_hgvs_genomic.ac, adj_start, end)
-        # Assemble
-        pos = str(start)
-        ref = hgvs_del_seq_w_adj_start
-        alt = hgvs_del_seq_w_adj_start[0]
-
-    # inv
-    elif normalized_hgvs_genomic.posedit.edit.type == 'inv':
-        start = int(normalized_hgvs_genomic.posedit.pos.start.base)
-        end = int(normalized_hgvs_genomic.posedit.pos.end.base)
-
-        try:
-            vcf_del_seq = normalized_hgvs_genomic.posedit.edit.ref
-        except AttributeError:
-            vcf_del_seq = None
-
-        if not vcf_del_seq:
-            vcf_del_seq = sf.fetch_seq(
-                normalized_hgvs_genomic.ac,
-                start - 1,
-                end
-            )
-
-        # Assemble
-        pos = str(start)
-        ref = vcf_del_seq
-        alt = utils.simple_dna_revcomp(vcf_del_seq)
-
-    # Delins
-    elif normalized_hgvs_genomic.posedit.edit.type == 'delins':
-        start = int(normalized_hgvs_genomic.posedit.pos.start.base)
-        end = int(normalized_hgvs_genomic.posedit.pos.end.base)
-        adj_start = start - 2
-
-        ins_seq = normalized_hgvs_genomic.posedit.edit.alt or ''
-
-        vcf_del_seq = sf.fetch_seq(
-            normalized_hgvs_genomic.ac,
-            adj_start,
-            end
-        )
-
-        pos = str(start - 1)
-        ref = vcf_del_seq
-        alt = vcf_del_seq[0] + ins_seq
-
-    # Duplications
-    elif normalized_hgvs_genomic.posedit.edit.type == 'dup':
-        end = int(normalized_hgvs_genomic.posedit.pos.end.base)  #
-        start = int(normalized_hgvs_genomic.posedit.pos.start.base)
-        adj_start = start - 2  #
-        start = start - 1  #
-        # Recover sequences
-        dup_seq = normalized_hgvs_genomic.posedit.edit.ref
-        vcf_ref_seq = sf.fetch_seq(normalized_hgvs_genomic.ac, adj_start, end)
-        # Assemble
-        pos = str(start)
-        ref = vcf_ref_seq
-        alt = vcf_ref_seq + dup_seq
-    else:
-        chr = ''
-        ref = ''
-        alt = ''
-        pos = ''
-
-    # ADD SURROUNDING BASES
+    # Add surrounding bases
     # If possible, capture and alt variant that spans the gap
     merged_variant = False
     pre_merged_variant = False
@@ -1567,27 +1205,18 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
     identifying_g_variant = False
     needs_a_push = False
 
-    if chr != '' and pos != '' and ref != '' and alt != '':
+    if chr != "" and pos != "" and ref != "" and alt != "":
 
-        # Set exon boundary
-        if genomic_ac is False:
-            # Find the boundaries at the genomic level for the current exon
-            exon_set = map_dat.mapped_exons(
-                    tx_ac, hgvs_genomic.ac, alt_aln_method=alt_aln_method)
-            exon_end_genomic = None
-            for exon in exon_set:
-                if int(exon[7]) + 1 <= int(pos) <= int(exon[8]):
-                    exon_end_genomic = int(exon[8])
-                    break
-        else:
-            # Trick the system using transcript positions
-            exon_set = map_dat.mapped_exons(
-                    hgvs_genomic.ac, genomic_ac, alt_aln_method=alt_aln_method)
-            exon_end_genomic = None
-            for exon in exon_set:
-                if int(exon[5]) + 1 <= int(pos) <= int(exon[6]):
-                    exon_end_genomic = int(exon[6])
-                    break
+        # Set exon boundary.
+        exon_end_genomic = _hard_exon_boundary(
+            map_dat,
+            tx_ac,
+            hgvs_genomic.ac,
+            genomic_ac,
+            alt_aln_method,
+            pos,
+            "right",
+        )
 
         # Set loop variables for extending the push
         push_ref = ref
@@ -1640,7 +1269,8 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
                 if hgvs_genomic.type != "g":
                     normlize_check_mapped = vm.n_to_g(normlize_check_variant, genomic_ac)
                 else:
-                    normlize_check_mapped = vm.g_to_n(normlize_check_variant, tx_ac, alt_aln_method)
+                    normlize_check_mapped = vm.g_to_n(normlize_check_variant,
+                                                      tx_ac, alt_aln_method)
 
             # Catch out-of-bounds errors
             except vvhgvs.exceptions.HGVSInvalidIntervalError:
@@ -2100,164 +1730,57 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
             ref = push_ref
             alt = push_alt
 
-    # Dictionary the VCF
+    # Dictionary VCF
     vcf_dict = {'chr': chr, 'pos': pos, 'ref': ref, 'alt': alt, 'normalized_hgvs': normalized_hgvs_genomic,
                 'merged_variant': merged_variant, 'identifying_variant': identifying_variant,
                 'pre_merged_variant': pre_merged_variant, 'identifying_g_variant': identifying_g_variant}
     str_hgvs = vcfcp_to_hgvsstr(vcf_dict, hgvs_genomic)
     vcf_dict['str_hgvs'] = str_hgvs
     vcf_dict['needs_a_push'] = needs_a_push
-    return vcf_dict
+    return vcf_dict # Return dict
 
 def hard_left_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, sf, tx_ac, map_dat, alt_aln_method,
-                       hp, vm, mrg, genomic_ac=False, mapped_g=False, pre_norm=False ):
+                       hp, vm, mrg, genomic_ac=False, mapped_g=False, pre_norm=False):
     """
-    Designed specifically for gap handling.
-    hard left pushes as 5 prime as possible and adds additional bases
-    :param hgvs_genomic:
-    :param primary_assembly:
-    :param hn:
-    :param reverse_normalizer:
-    :param sf:
-    :param tx_ac:
+    Designed specifically for gap handling - hard left pushes as 5 prime as possible and adds additional bases
+    :param hgvs_genomic
+    :param primary_assembly
+    :param hn
+    :param reverse_normalizer
+    :param sf
+    :param tx_ac
     :param map_dat: cached fetcher/store for transcript mapping data
-    :param alt_aln_method:
-    :param hp:
-    :param vm:
-    :param genomic_ac:
+    :param alt_aln_method
+    :param hp
+    :param vm
+    :param mrg
+    :param genomic_ac
     :param mapped_g: genomic mapping, used if a transcript type is input
-    :return:
+    :return
     """
-    if hgvs_genomic.type == 'g':
-        # Reverse normalize input prior to convert: NOTE will replace ref
-        if pre_norm:
-            reverse_normalized_hgvs_genomic = pre_norm
-        else:
-            reverse_normalized_hgvs_genomic = reverse_normalizer.normalize(hgvs_genomic)
-    else:
-        # c. must be in n. format
-        if hgvs_genomic.type == 'c':
-            hgvs_genomic = vm.c_to_n(hgvs_genomic)
-        if pre_norm:
-            reverse_normalized_hgvs_genomic = pre_norm
-        else:
-            reverse_normalized_hgvs_genomic = reverse_normalizer.normalize(hgvs_genomic)
-        reverse_normalized_hgvs_genomic = pre_push_vcf_tx_g_map_fix(
-                reverse_normalized_hgvs_genomic,
-                hgvs_genomic,
-                genomic_ac,
-                vm,
-                hn,# normaliser
-                sf,# seq_fetcher
-                mapped_g)
+    (
+        hgvs_genomic,
+        reverse_normalized_hgvs_genomic,
+        chr,
+        pos,
+        ref,
+        alt,
+    ) = _prepare_hard_hgvs(
+        hgvs_genomic,
+        primary_assembly,
+        reverse_normalizer,
+        hn,
+        sf,
+        vm,
+        tx_ac,
+        map_dat,
+        alt_aln_method,
+        genomic_ac,
+        mapped_g,
+        pre_norm,
+    )
 
-    # Chr
-    if hgvs_genomic.type == 'g':
-        chr = seq_data.get_chr_num_ucsc(reverse_normalized_hgvs_genomic.ac, primary_assembly)
-        if chr is None:
-           chr = reverse_normalized_hgvs_genomic.ac
-    else:
-        chr = reverse_normalized_hgvs_genomic.ac
-
-    # Identity
-    if reverse_normalized_hgvs_genomic.posedit.edit.type == 'identity':
-        pos = str(reverse_normalized_hgvs_genomic.posedit.pos.start)
-        ref = reverse_normalized_hgvs_genomic.posedit.edit.ref
-        alt = reverse_normalized_hgvs_genomic.posedit.edit.ref
-
-    # Insertions
-    elif reverse_normalized_hgvs_genomic.posedit.edit.type == 'ins':
-        end = int(reverse_normalized_hgvs_genomic.posedit.pos.end.base)
-        start = int(reverse_normalized_hgvs_genomic.posedit.pos.start.base)
-        alt_start = start - 1  #
-        # Recover sequences
-        ref_seq = sf.fetch_seq(reverse_normalized_hgvs_genomic.ac, alt_start, end - 1)
-        ins_seq = reverse_normalized_hgvs_genomic.posedit.edit.alt
-        # Assemble
-        pos = start
-        ref = ref_seq
-        alt = ref_seq + ins_seq
-
-    # Substitutions
-    elif reverse_normalized_hgvs_genomic.posedit.edit.type == 'sub':
-        ref = reverse_normalized_hgvs_genomic.posedit.edit.ref
-        alt = reverse_normalized_hgvs_genomic.posedit.edit.alt
-        pos = str(reverse_normalized_hgvs_genomic.posedit.pos)
-
-    # Deletions
-    elif reverse_normalized_hgvs_genomic.posedit.edit.type == 'del':
-        end = int(reverse_normalized_hgvs_genomic.posedit.pos.end.base)
-        start = int(reverse_normalized_hgvs_genomic.posedit.pos.start.base)
-        adj_start = start - 2
-        start = start - 1
-        # Recover sequences
-        hgvs_del_seq_w_pre_base = sf.fetch_seq(reverse_normalized_hgvs_genomic.ac, adj_start, end)
-        # Assemble
-        pos = str(start)
-        ref = hgvs_del_seq_w_pre_base
-        alt = hgvs_del_seq_w_pre_base[0]
-
-    # inv
-    elif reverse_normalized_hgvs_genomic.posedit.edit.type == 'inv':
-        start = int(reverse_normalized_hgvs_genomic.posedit.pos.start.base)
-        end = int(reverse_normalized_hgvs_genomic.posedit.pos.end.base)
-
-        try:
-            vcf_del_seq = reverse_normalized_hgvs_genomic.posedit.edit.ref
-        except AttributeError:
-            vcf_del_seq = None
-
-        if not vcf_del_seq:
-            vcf_del_seq = sf.fetch_seq(
-                reverse_normalized_hgvs_genomic.ac,
-                start - 1,
-                end
-            )
-
-        # Assemble
-        pos = str(start)
-        ref = vcf_del_seq
-        alt = utils.simple_dna_revcomp(vcf_del_seq)
-
-    # Delins
-    elif reverse_normalized_hgvs_genomic.posedit.edit.type == 'delins':
-        start = int(reverse_normalized_hgvs_genomic.posedit.pos.start.base)
-        end = int(reverse_normalized_hgvs_genomic.posedit.pos.end.base)
-        adj_start = start - 2
-
-        ins_seq = reverse_normalized_hgvs_genomic.posedit.edit.alt or ''
-
-        vcf_del_seq = sf.fetch_seq(
-            reverse_normalized_hgvs_genomic.ac,
-            adj_start,
-            end
-        )
-
-        # Assemble
-        pos = str(start - 1)
-        ref = vcf_del_seq
-        alt = vcf_del_seq[0] + ins_seq
-
-    # Duplications
-    elif reverse_normalized_hgvs_genomic.posedit.edit.type == 'dup':
-        end = int(reverse_normalized_hgvs_genomic.posedit.pos.end.base)  #
-        start = int(reverse_normalized_hgvs_genomic.posedit.pos.start.base)
-        adj_start = start - 2  #
-        start = start - 1  #
-        # Recover sequences
-        dup_seq = reverse_normalized_hgvs_genomic.posedit.edit.ref
-        vcf_ref_seq = sf.fetch_seq(reverse_normalized_hgvs_genomic.ac, adj_start, end)
-        # Assemble
-        pos = str(start)
-        ref = vcf_ref_seq
-        alt = vcf_ref_seq + dup_seq
-    else:
-        chr = ''
-        ref = ''
-        alt = ''
-        pos = ''
-
-    # ADD SURROUNDING BASES
+    # Add surrounding bases
     # If possible, capture and alt variant that spans the gap
     merged_variant = False
     pre_merged_variant = False
@@ -2265,26 +1788,20 @@ def hard_left_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, s
     identifying_g_variant = False
     needs_a_push = False
 
-    if chr != '' and pos != '' and ref != '' and alt != '':
-        # Set exon boundary
-        if genomic_ac is False:
-            # Find the boundaries at the genomic level for the current exon
-            exon_set = map_dat.mapped_exons(
-                    tx_ac, hgvs_genomic.ac, alt_aln_method=alt_aln_method)
-            exon_start_genomic = None
-            for exon in exon_set:
-                if int(exon[7]) + 1 <= int(pos) <= int(exon[8]):
-                    exon_start_genomic = int(exon[7] + 1)
-                    break
-        else:
-            # Trick the system using transcript positions
-            exon_set = map_dat.mapped_exons(
-                    hgvs_genomic.ac, genomic_ac, alt_aln_method=alt_aln_method)
-            exon_start_genomic = None
-            for exon in exon_set:
-                if int(exon[5]) + 1 <= int(pos) <= int(exon[6]):
-                    exon_start_genomic = int(exon[5] + 1)
-                    break
+    if (chr != ''
+            and pos != ''
+            and ref != ''
+            and alt != ''):
+        # Set exon boundary.
+        exon_start_genomic = _hard_exon_boundary(
+            map_dat,
+            tx_ac,
+            hgvs_genomic.ac,
+            genomic_ac,
+            alt_aln_method,
+            pos,
+            "left",
+        )
 
         # Set loop variables for extending the push
         push_ref = ref
@@ -2319,7 +1836,8 @@ def hard_left_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, s
                 if hgvs_genomic.type != "g":
                     normlize_check_mapped = vm.n_to_g(normlize_check_variant, genomic_ac)
                 else:
-                    normlize_check_mapped = vm.g_to_n(normlize_check_variant, tx_ac, alt_aln_method)
+                    normlize_check_mapped = vm.g_to_n(normlize_check_variant,
+                                                      tx_ac, alt_aln_method)
             # Catch out-of-bounds errors
             except vvhgvs.exceptions.HGVSInvalidIntervalError:
                 needs_a_push = False
@@ -2789,17 +2307,17 @@ def hard_left_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, s
             ref = push_ref
             alt = push_alt
 
-    # Dictionary the VCF
+    # Dictionary VCF
     vcf_dict = {'chr': chr, 'pos': pos, 'ref': ref, 'alt': alt, 'normalized_hgvs': reverse_normalized_hgvs_genomic,
                 'merged_variant': merged_variant, 'identifying_variant': identifying_variant,
                 'pre_merged_variant': pre_merged_variant, 'identifying_g_variant': identifying_g_variant}
     str_hgvs = vcfcp_to_hgvsstr(vcf_dict, hgvs_genomic)
     vcf_dict['str_hgvs'] = str_hgvs
     vcf_dict['needs_a_push'] = needs_a_push
-    return vcf_dict
+    return vcf_dict # Return dict
 
-
-def hgvs_ref_alt(hgvs_variant, sf):
+def hgvs_ref_alt(hgvs_variant,
+                 sf):
     edit = hgvs_variant.posedit.edit
     edit_type = edit.type
 
@@ -2807,52 +2325,46 @@ def hgvs_ref_alt(hgvs_variant, sf):
     if edit_type == 'identity':
         ref = edit.ref
         alt = edit.ref
-
-    # Insertions
+    # Ins
     elif edit_type == 'ins':
         end = hgvs_variant.posedit.pos.end.base
         start = hgvs_variant.posedit.pos.start.base
         alt_start = start - 1
 
-        # Recover sequences
+        # Recover sequence
         ref_seq = sf.fetch_seq(hgvs_variant.ac, alt_start, end)
         ins_seq = edit.alt
 
-        # Assemble
-        ref = ref_seq
-        alt = ref_seq[:1] + ins_seq + ref_seq[-1:]
-
-    # Substitutions
+        # Assemble vcf
+        ref = ref_seq # stays equivalent
+        alt = (ref_seq[:1] +
+               ins_seq +
+               ref_seq[-1:])
+    # Subs
     elif edit_type == 'sub':
         ref = edit.ref
         alt = edit.alt
-
-    # Deletions
+    # Dels
     elif edit_type == 'del':
         ref = edit.ref
-        alt = ''
-
-    # Inversions
+        alt = ""
+    # Invs
     elif edit_type == 'inv':
         ref = edit.ref
         alt = utils.simple_dna_revcomp(ref)
-
-    # Delins
+    # Delins variants
     elif edit_type == 'delins':
         ref = edit.ref
         alt = edit.alt
-
-    # Duplications
+    # Dups
     elif edit_type == 'dup':
         ref = edit.ref
         alt = edit.ref + edit.ref
 
-    else:
-        ref = ''
-        alt = ''
-
+    else: # Not defined
+        ref = ""
+        alt = ""
     return {'ref': ref, 'alt': alt}
-
 
 def incomplete_alignment_mapping_t_to_g(validator, variant):
     output = None
