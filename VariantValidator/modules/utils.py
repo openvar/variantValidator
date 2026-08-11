@@ -1,10 +1,10 @@
-import requests
-import functools
-import logging
 import re
-import copy
+import requests
+import logging
 from VariantValidator.modules import seq_data
+import functools
 import time
+import copy
 
 logger = logging.getLogger(__name__)
 
@@ -39,6 +39,7 @@ PROT_TRANSLATION_DICT_SEL['TGA'] = 'U'
 
 DNA_TRANS_TBL = str.maketrans("ACTG", "TGAC")
 
+
 def simple_dna_revcomp(dna):
     """
     Simplest possible reverse compliment, for use on validated input and
@@ -51,30 +52,32 @@ def simple_dna_revcomp(dna):
     """
     return dna.upper().translate(DNA_TRANS_TBL)[::-1]
 
-def handleCursor(func):
+
+def handleCursor(
+        func):
     """
-    Decorator function for handling opening and closing cursors.
+    Decorator function for handling opening and closing cursors
     """
-    @functools.wraps(func)
-    def wrapper(self, *args, **kwargs):
-        out = func(self, *args, **kwargs)
-        return out
-    return wrapper
+    @functools.wraps(func) # Wrapped function
+    def wrapper(self,
+                *args,
+                **kwargs):
+        out = func(self,
+                   *args,
+                   **kwargs)
+        return out # return inner
+    return wrapper # return outer
 
 
-def hgnc_rest(path):
+def hgnc_rest(
+        path):
     """
     Fires requests to the HGNC REST API.
     """
 
-    data = {
-        'record': '',
-        'error': 'false'
-    }
+    data = {'record': '', 'error': 'false'}
 
-    headers = {
-        'Accept': 'application/json',
-    }
+    headers = {'Accept': 'application/json'}
 
     domain = 'http://rest.genenames.org'
     url = domain + path
@@ -228,7 +231,7 @@ def ensembl_rest(id, endpoint, genome, options=False):
         )
     )
     logger.warning(data['error'])
-    return data
+    return data # return
 
 
 def ensembl_tark(id, endpoint, options=False):
@@ -317,10 +320,11 @@ def ensembl_tark(id, endpoint, options=False):
     return data
 
 
-def valstr(hgvs_variant):
-    """
+def valstr(
+        hgvs_variant):
+    '''
     format nucleotide descriptions to not display reference base and return a string
-    """
+    '''
     try:
         hgvs_variant.ac
     except AttributeError:
@@ -328,20 +332,26 @@ def valstr(hgvs_variant):
     return str(remove_reference(hgvs_variant))
 
 
-def single_letter_protein(hgvs_protein):
-    """
-    format protein description into single letter aa code
-    """
+def single_letter_protein(
+        hgvs_protein):
+    '''
+    format protein description into single letter aa code.
+    '''
 
-    return hgvs_protein.format({'p_3_letter': False})
+    return hgvs_protein.format(
+        {'p_3_letter': False}
+    )
 
 
-def remove_reference(hgvs_nucleotide):
-    """
+def remove_reference(
+        hgvs_nucleotide):
+    '''
     format nucleotide descriptions to not display reference base, and return a string
-    """
-    hgvs_nucleotide_refless = hgvs_nucleotide.format({'max_ref_length': 0})
-    return hgvs_nucleotide_refless
+    '''
+    hgvs_nucleotide_refless = hgvs_nucleotide.format(
+        {'max_ref_length': 0}
+    )
+    return hgvs_nucleotide_refless # return
 
 
 def remove_reference_string(variant_string):
@@ -367,12 +377,12 @@ def remove_reference_string(variant_string):
 
 
 def user_input(query):
-    """
+    '''
     Collect the input from the form and convert to an HGVS-readable string.
 
     Removes brackets and contained information where applicable, identifies
     the variant type, and returns the formatted variant and type.
-    """
+    '''
     raw_variant = query.strip()
 
     # Identify HGVS variant type
@@ -383,7 +393,7 @@ def user_input(query):
             break
 
     if variant_type is not None:
-        variant = raw_variant
+        variant = raw_variant # set
 
         # Remove redundant gene symbol from nucleotide descriptions
         if variant_type in (':g.', ':r.', ':n.', ':c.') and '(' in raw_variant:
@@ -398,277 +408,255 @@ def user_input(query):
     return 'invalid'
 
 
-def pro_inv_info(prot_ref_seq, prot_var_seq):
-    """
-    Function which predicts the protein effect of c. inversions
-    """
+def pro_inv_info(prot_ref_seq,
+                 prot_var_seq):
+    '''
+    Function which predicts the protein effect of c. inversions.
+    '''
     logger.info("pro_inv_info function called")
-    info = {
-        'variant': 'true',
-        'prot_del_seq': '',
-        'prot_ins_seq': '',
-        'edit_start': 0,
-        'edit_end': 0,
-        'terminate': 'false',
-        'ter_pos': 0,
-        'error': 'false'
-    }
+    info = { # Set info
+        "variant": "true",
+        "prot_del_seq": "",
+        "prot_ins_seq": "",
+        "edit_start": 0,
+        "edit_end": 0,
+        "terminate": "false",
+        "ter_pos": 0,
+        "error": "false"}
 
-    # Is there actually any variation?
-    if prot_ref_seq == prot_var_seq:
+    if prot_ref_seq == prot_var_seq: # Is there any variation?
         info['variant'] = 'identity'
         return info
-    else:
-        # Deal with terminations
-        if '*' in prot_var_seq:
-            # Set the termination reporter to true
-            info['terminate'] = 'true'
-            # The termination position will be equal to the length of the variant sequence because it's a TERMINATOR!!!
-            info['ter_pos'] = len(prot_var_seq)
-            # cut the ref sequence to == size
-            prot_ref_seq = prot_ref_seq[0:info['ter_pos']]
-            prot_var_seq = prot_var_seq[0:info['ter_pos']]
 
-            # Whether terminated or not, the sequences should now be the same length
-            # Unless the termination codon has been disrupted
-            if len(prot_var_seq) < len(prot_ref_seq):
-                info['error'] = 'true'
-                return info
-            else:
-                # Set the counter
-                aa_counter = 0
+    # Deal with terminations.
+    if '*' in prot_var_seq:
+        info["terminate"] = 'true'
+        info['ter_pos'] = (
+            len(prot_var_seq))
 
-                # Make list copies of the sequences to gather the required info
-                ref = list(prot_ref_seq)
-                var = list(prot_var_seq)
+        # Cut the reference and variant sequences to the termination position.
+        prot_ref_seq = prot_ref_seq[:info['ter_pos']]
+        prot_var_seq = prot_var_seq[:info['ter_pos']]
 
-                # Loop through ref list to find the first missmatch position
-                for aa in ref:
-                    if ref[aa_counter] == var[aa_counter]:
-                        aa_counter = aa_counter + 1
-                    else:
-                        break
+        # The sequences should now be the same length unless the
+        # termination codon has been disrupted.
+        if (len(prot_var_seq)
+                < len(prot_ref_seq)):
+            info['error'] = \
+                'true'
+            return info # return
 
-                # Enter the start position
-                info['edit_start'] = aa_counter + 1
-                # Remove those elements form the list
-                del ref[0:aa_counter]
-                del var[0:aa_counter]
+        aa_counter = 0 # Find the first mismatch from the start.
 
-                # the sequences should now be the same length
-                # Except if the termination codon was removed
-                if len(ref) > len(var):
-                    info['error'] = 'true'
-                    return info
-                else:
-                    # Reset the aa_counter but to go backwards
-                    aa_counter = 0
-                    # reverse the lists
-                    ref = ref[::-1]
-                    var = var[::-1]
+        while (
+                aa_counter < len(prot_ref_seq)
+                and prot_ref_seq[aa_counter] == prot_var_seq[aa_counter]
+        ):
+            aa_counter += 1
 
-                    # Reverse loop through ref list to find the first missmatch position
-                    for aa in ref:
-                        if var[aa_counter] == r'\*':
-                            break
-                        if aa == var[aa_counter]:
-                            aa_counter = aa_counter + 1
-                        else:
-                            break
+        info['edit_start'] \
+            = aa_counter + 1
 
-                    # Remove those elements form the list
-                    del ref[0:aa_counter]
-                    del var[0:aa_counter]
-                    # re-reverse the lists
-                    ref = ref[::-1]
-                    var = var[::-1]
+        ref = prot_ref_seq[aa_counter:]
+        var = prot_var_seq[aa_counter:]
 
-                    # If the var is > ref, the ter has been removed, need to re-add ter to each
-                    if len(ref) < len(var):
-                        ref.append('*')
-                        if prot_var_seq[-1] == '*':
-                            var.append('*')
-                    # the sequences should now be the same length
-                    # Except if the ter was removed
-                    if len(ref) > len(var):
-                        info['error'] = 'true'
-                        return info
-                    else:
-                        # Enter the sequences
-                        info['prot_del_seq'] = ''.join(ref)
-                        info['prot_ins_seq'] = ''.join(var)
-                        info['edit_end'] = info['edit_start'] + len(ref) - 1
-                        return info
+        aa_counter = 0 # Find the first mismatch from the end.
+
+        while aa_counter < len(ref) and aa_counter < len(var):
+            if var[-(aa_counter + 1)] == r'\*':
+                break # break
+
+            if ref[-(aa_counter + 1)] == var[-(aa_counter + 1)]:
+                aa_counter += 1
+            else: # else break
+                break # break
+
+        if aa_counter:
+            ref = ref[:-aa_counter]
+            var = var[:-aa_counter]
+
+        # If the variant is longer, the termination has been removed.
+        if (len(ref)
+                < len(var)):
+            ref += '*'
+
+            if (prot_var_seq[-1]
+                    == '*'):
+                var += '*'
+
+        # The sequences should now be the same length unless the
+        # termination has been removed.
+        if (len(ref) >
+                len(var)):
+            info['error'] = \
+                'true'
+            return info # return
+
+        info['prot_del_seq'] = ref
+        info['prot_ins_seq'] = var
+        info['edit_end'] = (
+                info['edit_start'] +
+                len(ref) - 1)
+
+        return info # return
 
 
 def pro_delins_info(prot_ref_seq, prot_var_seq, in_frame=False):
-    logger.info(f"pro_delins_info function called")
-    info = {
-            'variant': 'true',
-            'prot_del_seq': '',
-            'prot_ins_seq': '',
-            'edit_start': 0,
-            'edit_end': 0,
-            'terminate': 'false',
-            'ter_pos': 0,
-            'error': 'false'
-            }
+    logger.info('pro_delins_info function called')
 
-    # Is there actually any variation?
-    if prot_ref_seq == prot_var_seq:
+    info = { # set info
+        "variant": "true",
+        "prot_del_seq": "",
+        "prot_ins_seq": "",
+        "edit_start": 0,
+        "edit_end": 0,
+        "terminate": "false",
+        "ter_pos": 0,
+        "error": "false"}
+
+    if prot_ref_seq == prot_var_seq: # Is there actually any variation?
         info['variant'] = 'identity'
         return info
-    else:
-        # Deal with terminations (Cannot be used as a marker for the delins pathway because in frame deletions have Ter
-        if '*' in prot_var_seq:
-            # Set the termination reporter to true
-            info['terminate'] = 'true'
 
-            # Set the terminal pos dependant on the shortest sequence
-            # This is where we look for in-frame deletions / delins that can be shortened to a simple del/delins
-            if len(prot_var_seq) <= len(prot_ref_seq):
+    # Deal with terminations.
+    if '*' in prot_var_seq:
+        info["terminate"] = 'true'
 
-                # Look for early termination rather than just deletions. These params may need to be altered.
-                if in_frame is not False and in_frame == (len(prot_var_seq) - len(prot_ref_seq)):
-                    info['ter_pos'] = len(prot_ref_seq)
-
-                else:
-                    # This code deals with the early termination out of frame variants
-                    if prot_var_seq[-1] == "*":
-                        info['ter_pos'] = len(prot_var_seq)
-                    # Otherwise, if no termination, we carry on as normal
-                    else:
-                        info['ter_pos'] = len(prot_ref_seq)
+        # Set the terminal position according to the shortest sequence.
+        if len(prot_var_seq) <= len(prot_ref_seq):
+            if (
+                in_frame is not False
+                and in_frame == len(prot_var_seq) - len(prot_ref_seq)
+            ):
+                info['ter_pos'] = len(prot_ref_seq)
+            elif prot_var_seq[-1] == '*':
+                info['ter_pos'] = (
+                    len(prot_var_seq))
             else:
-                info['ter_pos'] = len(prot_var_seq)
+                info['ter_pos'] = len(prot_ref_seq)
+        else:
+            info['ter_pos'] = (
+                len(prot_var_seq))
 
-            # cut the ref sequence to == size
-            prot_ref_seq = prot_ref_seq[0:info['ter_pos']]
-            prot_var_seq = prot_var_seq[0:info['ter_pos']]
+        prot_ref_seq = prot_ref_seq[:info['ter_pos']]
+        prot_var_seq = prot_var_seq[:info['ter_pos']]
 
-            # Set the counter
-            aa_counter = 0
-            # Make list copies of the sequences to gather the required info
-            ref = list(prot_ref_seq)
-            var = list(prot_var_seq)
-            # Loop through ref list to find the first missmatch position
-            for aa in ref:
-                if ref[aa_counter] == var[aa_counter]:
-                    aa_counter = aa_counter + 1
-                else:
-                    break
+        aa_counter = 0 # Find the first mismatch from the start.
 
-            # Enter the start position
-            info['edit_start'] = aa_counter + 1
+        while (
+            aa_counter < len(prot_ref_seq)
+            and prot_ref_seq[aa_counter] == prot_var_seq[aa_counter]
+        ):
+            aa_counter += 1
 
-            # Remove those elements form the list
-            del ref[0:aa_counter]
-            del var[0:aa_counter]
+        info['edit_start'] = aa_counter + 1 # increase count
 
-            # Reset the aa_counter but to go backwards
-            aa_counter = 0
-            # reverse the lists
-            ref = ref[::-1]
-            var = var[::-1]
-            # Reverse loop through ref list to find the first missmatch position
-            for aa in ref:
-                try:
-                    if var[aa_counter] == r'\*':
-                        break
-                except IndexError:
-                    break
-                if aa == var[aa_counter]:
-                    aa_counter = aa_counter + 1
-                else:
-                    break
-            # Remove those elements form the list
-            del ref[0:aa_counter]
-            del var[0:aa_counter]
-            # re-reverse the lists
-            ref = ref[::-1]
-            var = var[::-1]
+        ref = prot_ref_seq[aa_counter:]
+        var = prot_var_seq[aa_counter:]
 
-            # Enter the sequences
-            info['prot_del_seq'] = ''.join(ref)
-            info['prot_ins_seq'] = ''.join(var)
-            info['edit_end'] = info['edit_start'] + len(ref) - 1
-            return info
+        aa_counter = 0 # Find the first mismatch from the end.
+
+        while aa_counter < len(ref) and aa_counter < len(var):
+            if var[-(aa_counter + 1)] == r'\*':
+                break # break
+
+            if ref[-(aa_counter + 1)] == var[-(aa_counter + 1)]:
+                aa_counter += 1
+            else: # else
+                break # break
+
+        if aa_counter:
+            ref = ref[:-aa_counter]
+            var = var[:-aa_counter]
+
+        info['prot_del_seq'] = ref
+        info['prot_ins_seq'] = var
+        info['edit_end'] = (
+                info['edit_start'] + len(ref) - 1)
+
+        return info # return
 
 
-def translate(ed_seq, cds_start, modified_aa=None, tolerate_no_stop_cds=False):
-    """
-    Translate c. reference sequences, including those that have been modified
-    must have the CDS in the specified position
-    """
-    ed_seq = ed_seq.strip()
-    # Ensure the starting codon is in the correct position
-    met = ed_seq[cds_start:cds_start + 3]
-    met = met.upper() #this should be redundant with all inputs upper case
+_TRANSLATION_START_CODONS = {
+    'ATG',
+    'TTG',
+    'CTG',
+    'GTG',
+    'ATT',
+    'ATC',
+    'ATA',
+    'ACG',
+}
 
-    """
-    >>> mito_table.start_codons
-    ['ATT', 'ATC', 'ATA', 'ATG', 'GTG']
-    """
-    if met not in ['ATG', 'TTG', 'CTG', 'GTG', 'ATT', 'ATC', 'ATA', 'ACG']:
-        translation = 'error'
-        return translation
+_TRANSLATION_STOPS = {'TAA', 'TAG', 'TGA'}
+_TRANSLATION_STOPS_SEC = {'TAA', 'TAG'}
 
-    # Remove the 5 prime UTR
+
+def translate(
+        ed_seq,
+        cds_start,
+        modified_aa=None,
+        tolerate_no_stop_cds=False,
+):
+    '''
+    Translate a c. reference sequence, including modified sequences.
+
+    The CDS must start at the specified position.
+    '''
+    ed_seq = ed_seq.strip() # remove trailing whitespace
+    met = ed_seq[cds_start:cds_start
+                           + 3]
+
+    if met not in _TRANSLATION_START_CODONS:
+        return 'error'
+
     coding_sequence = ed_seq[cds_start:].upper()
-    if modified_aa == "Sec":
+
+    if modified_aa == 'Sec':
         use_dict = PROT_TRANSLATION_DICT_SEL
-        stops = ['TAA', 'TAG']
+        stops = _TRANSLATION_STOPS_SEC
     else:
         use_dict = PROT_TRANSLATION_DICT
-        stops = ['TAA', 'TAG', 'TGA']
+        stops = _TRANSLATION_STOPS
 
-    # Translate
-    if len(coding_sequence) % 3:
-        last_codon_end = int(len(coding_sequence)/3) * 3
-    else:
-        last_codon_end = len(coding_sequence)
-    codon_list = [coding_sequence[i:i+3] for i in range(0, last_codon_end, 3)]
+    coding_length = len(coding_sequence) - len(coding_sequence) % 3
     translation = []
-    for codon in codon_list:
+
+    for i in range(0, coding_length, 3):
+        codon = coding_sequence[i:i + 3]
         translation.append(use_dict[codon])
+
         if codon in stops:
-            break
+            break # break
+
     if translation[-1] != '*':
         if not tolerate_no_stop_cds:
-            # Add Polyadenylation stop codon completing bases to relevant
-            # transcripts
             spare_end = len(coding_sequence) % 3
-            if spare_end and coding_sequence[-spare_end:] in ['T','TA']:
+
+            if spare_end and coding_sequence[-spare_end:] in ('T', 'TA'):
                 translation.append('*')
             else:
                 raise IndexError('No stop CDS')
+
         translation.append('X')
 
-    return "".join(translation)
+    return ''.join(translation)
 
 
 _aacode_1_to_3 = {
-    'A': 'Ala', 'C': 'Cys', 'D': 'Asp', 'E': 'Glu',
-    'F': 'Phe', 'G': 'Gly', 'H': 'His', 'I': 'Ile',
-    'K': 'Lys', 'L': 'Leu', 'M': 'Met', 'N': 'Asn',
-    'P': 'Pro', 'Q': 'Gln', 'R': 'Arg', 'S': 'Ser',
-    'T': 'Thr', 'V': 'Val', 'W': 'Trp', 'Y': 'Tyr',
-    '*': 'Ter', 'U': 'Sec'
+    "A": "Ala", "C": "Cys", "D": "Asp", "E": "Glu",
+    "F": "Phe", "G": "Gly", "H": "His", "I": "Ile",
+    "K": "Lys", "L": "Leu", "M": "Met", "N": "Asn",
+    "P": "Pro", "Q": "Gln", "R": "Arg", "S": "Ser",
+    "T": "Thr", "V": "Val", "W": "Trp", "Y": "Tyr",
+    "*": "Ter", "U": "Sec"
 }
 
 def one_to_three(seq):
     """
-    Convert single letter amino acid code to 3 letter code
+    Convert single-letter amino acid codes to three-letter codes.
     """
-
-    oned = list(seq)
-    out = []
-    for aa in oned:
-        get_value = _aacode_1_to_3.get(aa)
-        out.append(get_value)
-
-    threed_up = ''.join(out)
-    return threed_up
+    return ''.join(_aacode_1_to_3.get(aa) for aa in seq)
 
 
 _aacode_3_to_1 = {
@@ -680,31 +668,32 @@ _aacode_3_to_1 = {
     'Ter': '*', 'Sec': 'U'
 }
 def three_to_one(seq):
-
-    threed = [seq[i:i + 3] for i in range(0, len(seq), 3)]
-    out = []
-
-    for aa in threed:
-        get_value = _aacode_3_to_1.get(aa)
-        out.append(get_value)
-
-    oned_up = ''.join(out)
-    return oned_up
+    '''
+    Convert three-letter amino acid codes to single-letter codes.
+    '''
+    return ''.join(
+        _aacode_3_to_1.get(seq[i:i + 3])
+        for i in range(0, len(seq), 3)
+    )
 
 
-# n. Inversions - This comes from VariantValidator, not validation!!!!
-def n_inversion(ref_seq, del_seq, inv_seq, interval_start, interval_end):
-    """
-    Takes a reference sequence and inverts the specified position
-    """
-    # Use string indexing to check whether the sequences are the same
-    test = ref_seq[interval_start - 1:interval_end]
-    if test == del_seq:
-        sequence = ref_seq[0:interval_start - 1] + inv_seq + ref_seq[interval_end:]
-        return sequence
-    else:
-        sequence = 'error'
-        return sequence
+# n. Inversions - This comes from VariantValidator, not validation
+def n_inversion(ref_seq,
+                del_seq,
+                inv_seq,
+                interval_start,
+                interval_end):
+    '''
+    Take a reference sequence and invert the specified position.
+    '''
+    if ref_seq[interval_start - 1:interval_end] != del_seq:
+        return 'error'
+
+    return (
+        ref_seq[:interval_start - 1]
+        + inv_seq
+        + ref_seq[interval_end:]
+    )
 
 
 def get_exon_boundary_list(variant, validator):
@@ -765,28 +754,34 @@ def get_exon_boundary_list(variant, validator):
         raise ExonMappingError(f"{transcript} is not a valid transcript reference sequence ID")
 
 
-# Custom Exceptions
-class VariantValidatorError(Exception):
+# Custom Exceptions.
+class VariantValidatorError(
+    Exception):
+    pass # pass
+
+
+class mergeHGVSerror(
+    Exception):
+    pass # pass
+
+
+class alleleVariantError(
+    Exception):
+    pass # pass
+
+
+class DatabaseConnectionError(
+    Exception):
     pass
 
 
-class mergeHGVSerror(Exception):
+class ObsoleteSeqError(
+    Exception):
     pass
 
 
-class alleleVariantError(Exception):
-    pass
-
-
-class DatabaseConnectionError(Exception):
-    pass
-
-
-class ObsoleteSeqError(Exception):
-    pass
-
-
-class ExonMappingError(Exception):
+class ExonMappingError(
+    Exception):
     pass
 
 WARNING_CODE_MAP = {

@@ -1,8 +1,5 @@
 # VariantValidator .gitignore
 
-# Development scripts
-VariantValidator/vvTest.py
-
 # Python bytecode
 *.pyc
 __pycache__/
@@ -21,7 +18,6 @@ dist/
 htmlcov/
 .pytest_cache/
 .mypy_cache/
-VariantValidator/testing/outputs*
 
 # MkDocs
 site/
@@ -31,16 +27,13 @@ site/
 
 # Temporary files
 *.bak
-temp.py
+*.tmp
+*.swp
 
-# Local databases
+# Local databases and data
 seqrepo/
 Users/
 *.sql
-validator_2021-07-21.sql
-VVTA_2021_2_noseq.psql.gz
 
-# LOVD HGVS Syntax Checker runtime files
-VariantValidator/php/
 # LOVD HGVS Syntax Checker runtime files
 VariantValidator/php/

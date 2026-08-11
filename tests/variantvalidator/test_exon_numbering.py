@@ -1,13 +1,9 @@
-"""
-Exon_numbering_tests
-Authors: Katie Williams (@kwi11iams) and Katherine Winfield (@kjwinfield)
-This code runs tests on the module exon_numbering.py to check the outputs are as expected
-"""
 from VariantValidator import Validator
 import time
 import unittest
 
-class TestExonNumbering(unittest.TestCase):
+class TestExonNumbering(
+    unittest.TestCase):
 
     @classmethod
     def setup_class(cls):
@@ -26,11 +22,10 @@ class TestExonNumbering(unittest.TestCase):
 
         raise last_exc
 
-    """
-    Class TextExonNumbering automates running the tests, and reports failure if
-    the output is not what is expected
-    """
-    def test_1(self):
+    # Class TextExonNumbering automates running the tests, and reports failure if
+    # the output is not what is expected
+    def test_1(
+            self):
         results = self.vv.validate("NM_007294.3:c.1067A>G", 'GRCh38', 'all').format_as_dict(test=True)
         results = results['NM_007294.3:c.1067A>G']['variant_exonic_positions']
         print(results)
@@ -49,7 +44,8 @@ class TestExonNumbering(unittest.TestCase):
             },
         }
 
-    def test_2(self):
+    def test_2(
+            self):
         results = self.vv.validate("NM_000088.3:c.642+1G>A", 'GRCh38', 'all').format_as_dict(test=True)
         results = results['NM_000088.3:c.642+1G>A']['variant_exonic_positions']
         print(results)
@@ -87,7 +83,8 @@ class TestExonNumbering(unittest.TestCase):
                 }
             }
 
-    def test_3(self):
+    def test_3(
+            self):
         results = self.vv.validate("NM_000094.3:c.6751-3_6751-2del", 'GRCh38', 'all').format_as_dict(test=True)
         results = results['NM_000094.3:c.6751-3_6751-2del']['variant_exonic_positions']
         print(results)
@@ -106,7 +103,8 @@ class TestExonNumbering(unittest.TestCase):
                 }
             }
 
-    def test_4(self):
+    def test_4(
+            self):
         results = self.vv.validate("NM_000088.3:c.589G>T", 'GRCh38', 'all').format_as_dict(test=True)
         results = results['NM_000088.3:c.589G>T']['variant_exonic_positions']
         print(results)
@@ -144,7 +142,8 @@ class TestExonNumbering(unittest.TestCase):
                 }
             }
 
-    def test_5(self):
+    def test_5(
+            self):
         results = self.vv.validate("NM_000088.3:c.642del", 'GRCh38', 'all').format_as_dict(test=True)
         results = results['NM_000088.3:c.642del']['variant_exonic_positions']
         print(results)
@@ -163,7 +162,8 @@ class TestExonNumbering(unittest.TestCase):
                 }
             }
 
-    def test_6(self):
+    def test_6(
+            self):
         results = self.vv.validate("NM_000088.3:c.642+5_643-25del", 'GRCh38', 'all').format_as_dict(test=True)
         results = results['NM_000088.3:c.642+5_643-25del']['variant_exonic_positions']
         print(results)
@@ -417,8 +417,8 @@ class TestExonNumbering(unittest.TestCase):
         }
 
 
-if __name__ == "__main__":
-    unittest.main()
+if __name__ == "__main__": # Run
+    unittest.main() # Run
 
 
 # Copyright (C) 2016-2026 VariantValidator Contributors
