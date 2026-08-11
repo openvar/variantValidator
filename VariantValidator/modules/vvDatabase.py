@@ -14,20 +14,20 @@ logger = logging.getLogger(__name__)
 
 class Database(vvDBInsert.Mixin):
     """
-    This class contains and handles the MySQL connections for the VariantValidator database.
-
-    It now uses mixins, and the order of inheritance is
-    vvDBInit.Mixin
-       v
-    vvDBGet.Mixin
-       v
-    vvDBInsert.Mixin
-       v
-    vvDatabase
+    # This class contains and handles the MySQL connections for the VariantValidator database.
+    # 
+    # It now uses mixins, and the order of inheritance is
+    # vvDBInit.Mixin
+    #    v
+    # vvDBGet.Mixin
+    #    v
+    # vvDBInsert.Mixin
+    #    v
+    # vvDatabase
     """
 
     # From dbquery
-    @handleCursor
+    @handleCursor  # Decorated function
     def query_with_fetchone(self, entry):
         # Connect and create cursor
         conn = self.get_conn()
@@ -44,24 +44,24 @@ class Database(vvDBInsert.Mixin):
         cursor.execute(query, (entry,))
         row = cursor.fetchone()
 
-        if row is None:
-            row = ['none', 'No data']
+        if row is None: # Nothing found
+            row = ['none',
+                   'No data']
             logger.debug("No data returned from query %s", query)
 
         cursor.close()
         conn.close()
 
-        return row
+        return row # return
 
-    # From data
     def data_add(self, accession, validator, genome_build=None):
         """
         Add accurate transcript descriptions to the database.
 
-        :param accession:
-        :param validator:
-        :param genome_build:
-        :return:
+        :param accession
+        :param validator
+        :param genome_build
+        :return
         """
         self.update_transcript_info_record(
             accession,
@@ -69,7 +69,8 @@ class Database(vvDBInsert.Mixin):
             genome_build=genome_build
         )
 
-        entry = self.in_entries(accession, 'transcript_info')
+        entry = self.in_entries(accession,
+                                'transcript_info')
         i = 1
 
         while i in range(10):
@@ -80,38 +81,40 @@ class Database(vvDBInsert.Mixin):
             time.sleep(2)
             entry = self.in_entries(accession, 'transcript_info')
 
-        return entry
+        return entry # return
 
-    def in_entries(self, entry, table):
+    def in_entries(self,
+                   entry,
+                   table):
         """
         Retrieve transcript information.
 
-        :param entry:
-        :param table:
-        :return:
+        :param entry: transcript entry
+        :param table: database table
+        :return: transcript information
         """
-        data = {}
+        if table != "transcript_info":
+            return {}
 
-        if table == 'transcript_info':
-            row = self.query_with_fetchone(entry)
+        row = self.query_with_fetchone(entry)
 
-            if row[0] == 'error':
-                data['error'] = row[0]
-                data['description'] = row[1]
-            elif row[0] == 'none':
-                data['none'] = row[0]
-                data['description'] = row[1]
-            else:
-                data['accession'] = row[0]
-                data['description'] = row[1]
-                data['variant'] = row[2]
-                data['version'] = row[3]
-                data['hgnc_symbol'] = row[4]
-                data['uta_symbol'] = row[5]
-                data['updated'] = row[6]
-                data['expiry'] = row[7]
+        if row[0] in ("error", "none"):
+            return {
+                row[0]: row[0],
+                "description": row[1],
+            }
 
-        return data
+        fields = (
+            "accession",
+            "description",
+            "variant",
+            "version",
+            "hgnc_symbol",
+            "uta_symbol",
+            "updated",
+            "expiry",
+        )
+        return dict(zip(fields, row))
 
     def update_gene_stable_identifiers(self, symbol):
         # First perform a search against the input gene symbol or the symbol
@@ -511,7 +514,7 @@ class Database(vvDBInsert.Mixin):
         Get information from UTA.
         """
         if kwargs.get("test") is not True:
-            try:
+            try: # look in VVTA
                 uta_info = validator.hdp.get_tx_identity_info(
                     version
                 )
@@ -597,7 +600,7 @@ class Database(vvDBInsert.Mixin):
                 query_info,
                 table,
             )
-        else:
+        else: # data is found
             self.update(
                 version,
                 query_info,
@@ -609,12 +612,13 @@ class Database(vvDBInsert.Mixin):
             rsg_data[2]
         )
 
-        if entry_exists[0] == 'none':
+        if entry_exists[0] == "none":
             self.insert_refseq_gene_data(rsg_data)
-        else:
+        else: # Data found
             self.update_refseq_gene_data(rsg_data)
 
-    def update_lrg_rs_lookup(self, lrg_rs_lookup):
+    def update_lrg_rs_lookup(self,
+                             lrg_rs_lookup):
         rsg_id = self.get_refseq_id_from_lrg_id(lrg_rs_lookup[0])
 
         if rsg_id == 'none':
@@ -628,13 +632,16 @@ class Database(vvDBInsert.Mixin):
         if rst_id == 'none':
             self.insert_lrg_transcript_data(lrgtx_to_rst_id)
 
-    def update_lrg_p_rs_p_lookup(self, lrg_p, rs_p):
+    def update_lrg_p_rs_p_lookup(self,
+                                 lrg_p,
+                                 rs_p):
         rsp_id = self.get_refseq_protein_id_from_lrg_protein_id(lrg_p)
 
         if rsp_id == 'none':
             self.insert_lrg_protein_data(lrg_p, rs_p)
 
-    def ref_type_assign(self, accession):
+    def ref_type_assign(self,
+                        accession):
         if accession.startswith(('NC_', 'NG_', 'NT_', 'NW_')):
             return ':g.'
 

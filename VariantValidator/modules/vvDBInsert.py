@@ -2,13 +2,17 @@ from .utils import handleCursor
 from . import vvDBGet
 
 
-class Mixin(vvDBGet.Mixin):
+class Mixin(
+    vvDBGet.Mixin):
     """
-    This object is a function container for inserting objects into the database.
+    Object is a function container for inserting objects into the database.
     """
 
-    @handleCursor
-    def insert(self, entry, data, table):
+    @handleCursor  # Decorated function
+    def insert(self,
+               entry,
+               data,
+               table):
         # Connect and create cursor
         conn = self.get_conn()
         cursor = self.get_cursor(conn)
@@ -34,16 +38,16 @@ class Mixin(vvDBGet.Mixin):
 
         if cursor.lastrowid:
             success = "true"
-        else:
+        else: # Error
             success = "Unknown error"
 
         conn.commit()
         cursor.close()
         conn.close()
 
-        return success
+        return success # return
 
-    @handleCursor
+    @handleCursor  # Decorated function
     def insert_refseq_gene_data(self, rsg_data):
         # Connect and create cursor
         conn = self.get_conn()
@@ -75,16 +79,16 @@ class Mixin(vvDBGet.Mixin):
 
         if cursor.lastrowid:
             success = "true"
-        else:
+        else: # Error
             success = "Unknown error"
 
         conn.commit()
         cursor.close()
         conn.close()
 
-        return success
+        return success  # return
 
-    @handleCursor
+    @handleCursor  # Decorated function
     def insert_refseq_gene_id_from_lrg_id(self, lrg_rs_lookup):
         # Connect and create cursor
         conn = self.get_conn()
@@ -107,16 +111,16 @@ class Mixin(vvDBGet.Mixin):
 
         if cursor.lastrowid:
             success = "true"
-        else:
+        else: # Error
             success = "Unknown error"
 
         conn.commit()
         cursor.close()
         conn.close()
 
-        return success
+        return success # return
 
-    @handleCursor
+    @handleCursor  # Decorated function
     def insert_lrg_transcript_data(self, lrgtx_to_rst_id):
         # Connect and create cursor
         conn = self.get_conn()
@@ -137,16 +141,16 @@ class Mixin(vvDBGet.Mixin):
 
         if cursor.lastrowid:
             success = "true"
-        else:
+        else: # Errro
             success = "Unknown error"
 
         conn.commit()
         cursor.close()
         conn.close()
 
-        return success
+        return success # Return
 
-    @handleCursor
+    @handleCursor  # Decorated function
     def insert_lrg_protein_data(self, lrg_p, rs_p):
         # Connect and create cursor
         conn = self.get_conn()
@@ -164,16 +168,16 @@ class Mixin(vvDBGet.Mixin):
 
         if cursor.lastrowid:
             success = "true"
-        else:
+        else: # Error
             success = "Unknown error"
 
         conn.commit()
         cursor.close()
         conn.close()
 
-        return success
+        return success # Return
 
-    @handleCursor
+    @handleCursor  # Decorated function
     def insert_gene_stable_ids(self, data):
         # Connect and create cursor
         conn = self.get_conn()
@@ -210,7 +214,7 @@ class Mixin(vvDBGet.Mixin):
 
         return success
 
-    @handleCursor
+    @handleCursor  # Decorated function
     def update(self, entry, data):
         # Connect and create cursor
         conn = self.get_conn()
@@ -240,7 +244,7 @@ class Mixin(vvDBGet.Mixin):
 
         return "true"
 
-    @handleCursor
+    @handleCursor  # Decorated function
     def update_refseq_gene_data(self, rsg_data):
         # Connect and create cursor
         conn = self.get_conn()
@@ -265,7 +269,7 @@ class Mixin(vvDBGet.Mixin):
 
         return "true"
 
-    @handleCursor
+    @handleCursor  # Decorated function
     def update_gene_stable_ids(self, gene_stable_ids):
         # Connect and create cursor
         conn = self.get_conn()
@@ -297,7 +301,7 @@ class Mixin(vvDBGet.Mixin):
 
         return "true"
 
-    @handleCursor
+    @handleCursor  # Decorated function
     def update_db_version(self, db_version):
         # Connect and create cursor
         conn = self.get_conn()
