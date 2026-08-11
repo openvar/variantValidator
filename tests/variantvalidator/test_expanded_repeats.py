@@ -1,63 +1,34 @@
-"""
-expanded_repeats_tests
-Authors: Robert Wilson (@RSWilson1) and Rebecca Locke (@rklocke)
-This code runs tests on the module expanded_repeats.py to check the outputs are as expected.
-
-It checks known edge-case HGVS compliant variant strings.
-Additional functionality to add:
-- Check error handling
-- Check correct errors for non-HGVS compliant strings.
-
-"""
-import unittest
 from unittest import TestCase
+import unittest
 from VariantValidator.modules import expanded_repeats
 from VariantValidator.modules.expanded_repeats import RepeatSyntaxError
 from VariantValidator import Validator
 vv = Validator()
 vv.alt_aln_method = "splign"
 
-
-class TestExpandedRepeats(unittest.TestCase):
-    """Tests for the internal expanded_repeats.py module, to directly check
-    that the syntax checker returns the expected results for each variant case.
-    Including known edge-cases that weren't previously handled.
-
-    Attributes
-    ----------
-    Variants with known strings and expected results.
-    Returns
-    ----------
-    Number of tests completed successfully.
-    """
-
+class TestExpandedRepeats(unittest.TestCase
+                          ):
     def test_basic_syntax_RSG(self):
-        """
-        Test for handling basic syntax of variant string.
-        """
         variant_str = "NG_012232.1:g.4T[20]"
         my_variant = expanded_repeats.TandemRepeats.parse_repeat_variant(variant_str,  "GRCh37", "all", vv)
-        my_variant.reformat_reference()
-        my_variant.check_genomic_or_coding()
+        my_variant.reformat_reference() # Reference reformat
+        my_variant.check_genomic_or_coding() # Check if genomic or coding
         formatted = my_variant.reformat(vv)
         assert str(formatted) == "NG_012232.1:g.3_6T[20]"
         assert my_variant.variant_str == "NG_012232.1:g.4T[20]"
-        # checks correct transcript ref
+        # checks correct transcript ref.
         assert my_variant.reference == "NG_012232.1"
-        # checks correct position
+        # checks correct position.
         assert str(my_variant.variant_position) == "3_6"
-        # checks repeat seq
+        # checks repeat seq.
         assert my_variant.repeat_sequence == "T"
-        # checks correct suffix
-        assert my_variant.copy_number == "20"
-        # checks number of repeats is str and correct
-        assert my_variant.after_the_bracket == ""
-        # checks nothing is after the bracket
+        # checks correct suffix.
+        assert my_variant.copy_number == '20'
+        # checks number of repeats is str and correct.
+        assert my_variant.after_the_bracket == ''
+        # checks nothing is after the bracket.
 
     def test_basic_syntax_ENSG(self):
-        """
-        Test for handling basic syntax of ENSG variant string.
-        """
         # changed from previous version of "ENST00000263121.12:c.1082TCT[2]"
         # (pre-full exon handling) after verifying that coordinates matched by
         # testing "ENST00000263121.12:c.*62_*67delinsTCTTCT" transformed into
@@ -65,51 +36,52 @@ class TestExpandedRepeats(unittest.TestCase):
         variant_str = "ENST00000263121.12:c.*62_*67TCT[2]"
         my_variant = expanded_repeats.TandemRepeats.parse_repeat_variant(
                                     variant_str,  "GRCh37", "all", vv)
-        my_variant.reformat_reference()
-        my_variant.check_genomic_or_coding()
+        my_variant.reformat_reference() # reference update
+        my_variant.check_genomic_or_coding() # genomic or coding check
         formatted = my_variant.reformat(vv)
         assert str(formatted) == "ENST00000263121.12:c.*62_*67TCT[2]"
         assert my_variant.variant_str == "ENST00000263121.12:c.*62_*67TCT[2]"
-        assert my_variant.prefix == "c"
+        assert my_variant.prefix == 'c'
         assert my_variant.reference == "ENST00000263121.12"
-        # checks correct ref name
+        # checks correct ref name.
         assert str(my_variant.variant_position) == "*62_*67"
-        # checks correct position
-        assert my_variant.repeat_sequence == "TCT"
-        # checks repeat seq
-        assert my_variant.copy_number == "2"
-        # checks number of repeats is str and correct
-        assert my_variant.after_the_bracket == ""
-        # checks nothing is after the bracket
+        # checks correct position.
+        assert my_variant.repeat_sequence == 'TCT'
+        # checks repeat seq.
+        assert my_variant.copy_number == '2'
+        # checks number of repeats is str and correct.
+        assert my_variant.after_the_bracket == ''
+        # checks nothing is after the bracket.
 
     def test_basic_syntax_NM(self):
-        """
+        '''
         Test for handling basic syntax with a NM_ 'c' type variant string.
-        """
+        '''
         variant_str = "NM_000492.4:c.1210-34TG[11]"
         my_variant = expanded_repeats.TandemRepeats.parse_repeat_variant(variant_str, "GRCh38", "all", vv)
         assert str(my_variant.variant_position) == "1210-34"
-        my_variant.reformat_reference()
-        my_variant.check_genomic_or_coding()
+        my_variant.reformat_reference() # Reference reformat
+        my_variant.check_genomic_or_coding() # Check genomic or coding
         formatted = my_variant.reformat(vv)
         assert str(formatted) == "NM_000492.4:c.1210-34_1210-13TG[11]"
         assert my_variant.variant_str == "NM_000492.4:c.1210-34TG[11]"
-        assert my_variant.prefix == "c"
+        assert my_variant.prefix == 'c'
         assert my_variant.reference == "NM_000492.4"
-        # checks correct ref name
+        # checks correct ref name.
         assert str(my_variant.variant_position) == "1210-34_1210-13"
-        # checks correct position
-        assert my_variant.repeat_sequence == "TG"
-        # checks repeat seq
-        assert my_variant.copy_number == "11"
-        # checks number of repeats is str and correct
-        assert my_variant.after_the_bracket == ""
-        # checks nothing is after the bracket
+        # checks correct position.
+        assert my_variant.repeat_sequence == 'TG'
+        # checks repeat seq.
+        assert my_variant.copy_number == '11'
+        # checks number of repeats is str and correct.
+        assert my_variant.after_the_bracket == ''
+        # checks nothing is after the bracket.
 
-    def test_getting_full_range_from_single_pos(self):
-        """
-        Test to full range is calculated correctly
-        """
+    def test_getting_full_range_from_single_pos(
+            self):
+        '''
+        Test to full range is calculated correctly.
+        '''
         variant_str = "NM_003073.5:c.1085AGA[2]"
         my_variant = expanded_repeats.TandemRepeats.parse_repeat_variant(
                                     variant_str,  "GRCh37", "all", vv)
@@ -117,14 +89,15 @@ class TestExpandedRepeats(unittest.TestCase):
         seq_range = expanded_repeats.TandemRepeats.get_range_from_single_or_start_pos(my_variant, vv)
         self.assertEqual(str(seq_range), "1289_1297")
 
-    def test_empty_string(self):
-        """
-        Test for handling empty string.
-        """
-        variant_str = ""
+    def test_empty_string(
+            self):
+        '''
+        Test for handling empty string
+        '''
+        variant_str = ''
         my_variant = expanded_repeats.TandemRepeats.parse_repeat_variant(
                                     variant_str, "GRCh37", "all", vv)
-        assert my_variant == False
+        assert my_variant == False # Empty
 
     def test_convert_tandem(self):
         """
@@ -1371,9 +1344,8 @@ class TestExpandedRepeaLocusReferenceGenomic(TestCase):
         assert results["NM_002111.8:c.54_116GCA[21]"]["validation_warnings"] ==    ['ExpandedRepeatError: The coordinates for the repeat region are stated incorrectly in the submitted description LRG_763t1:c.54GCA[21]. The corrected description is NM_002111.8:c.54_116GCA[21]', 'ExpandedRepeatWarning: NM_002111.8:c.54_116GCA[21] should only be used as an annotation for the core HGVS descriptions provided', 'GappedAlignmentWarning: Variation described in the context of an imperfect alignment of NM_002111.8 with NC_000004.11 (genome build GRCh37)', 'GappedAlignmentWarning: NM_002111.8 contains 6 extra bases between c.51_58 than NC_000004.11']
 
 
-if __name__ == "__main__":
-    unittest.main()
-
+if __name__ == "__main__": # Run
+    unittest.main() # Run
 
 # Copyright (C) 2016-2026 VariantValidator Contributors
 # This file is part of VariantValidator and is distributed under the
@@ -1381,4 +1353,3 @@ if __name__ == "__main__":
 # later version. See the LICENSE file in the project root for the full
 # licence terms.
 # SPDX-License-Identifier: AGPL-3.0-or-later
-

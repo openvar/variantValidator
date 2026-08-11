@@ -1,46 +1,52 @@
-# VariantValidator .gitignore
+# Development
 
-# Development scripts
-VariantValidator/vvTest.py
+VariantValidator/vvTes[t].py
 
-# Python bytecode
-*.pyc
-__pycache__/
+# Python
 
-# Build artefacts
-build/
-dist/
-*.egg-info/
-.eggs/
+*.[p]yc
+**pycache**/
 
-# IDEs
-.idea/
+# Build
 
-# Test and coverage output
-.coverage
-htmlcov/
-.pytest_cache/
-.mypy_cache/
-VariantValidator/testing/outputs*
+[b]uild/
+[d]ist/
+*.[e]gg-info/
+.[e]ggs/
 
-# MkDocs
-site/
+# IDE
+
+[.]idea/
+
+# Testing and coverage
+
+.[c]overage
+htmlco[v]/
+.[p]ytest_cache/
+.[m]ypy_cache/
+VariantValidator/testing/output[s]*
+
+# Documentation
+
+sit[e]/
 
 # macOS
-.DS_Store
+
+.[D]S_Store
 
 # Temporary files
-*.bak
-temp.py
+
+*.[b]ak
+tem[p].py
 
 # Local databases
-seqrepo/
-Users/
-*.sql
-validator_2021-07-21.sql
-VVTA_2021_2_noseq.psql.gz
 
-# LOVD HGVS Syntax Checker runtime files
-VariantValidator/php/
-# LOVD HGVS Syntax Checker runtime files
+seqrep[o]/
+Use[r]s/
+*.[s]ql
+validator_2021-07-21.[s]ql
+VVTA_2021_2_noseq.psql.[g]z
+
+# LOVD HGVS Syntax Checker
+
 VariantValidator/php/
