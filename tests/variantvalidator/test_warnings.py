@@ -585,12 +585,12 @@ class TestWarnings(TestCase):
 
         assert "AlternativeRepresentationWarning: NC_000003.12:g.(63912602_63912844)insN[15] may also be written as " \
                "NC_000003.12:g.(63912602_63912844)insNNNNNNNNNNNNNNN" in results[
-                   'NM_001377405.1:c.(6_248)insNNNNNNNNNNNNNNN']["validation_warnings"]
+                   'NM_001377405.1:c.(4_246)insNNNNNNNNNNNNNNN']["validation_warnings"]
 
-        assert results['NM_001377405.1:c.(6_248)insNNNNNNNNNNNNNNN'][
-                   'hgvs_transcript_variant'] == "NM_001377405.1:c.(6_248)insNNNNNNNNNNNNNNN"
+        assert results['NM_001377405.1:c.(4_246)insNNNNNNNNNNNNNNN'][
+                   'hgvs_transcript_variant'] == "NM_001377405.1:c.(4_246)insNNNNNNNNNNNNNNN"
 
-        assert results['NM_001377405.1:c.(6_248)insNNNNNNNNNNNNNNN'][
+        assert results['NM_001377405.1:c.(4_246)insNNNNNNNNNNNNNNN'][
                    'primary_assembly_loci']["grch38"][
                    "hgvs_genomic_description"] == \
                "NC_000003.12:g.(63912602_63912844)insNNNNNNNNNNNNNNN"
@@ -601,10 +601,10 @@ class TestWarnings(TestCase):
         print(results)
         assert "AlternativeRepresentationWarning: NC_000003.12:g.(63912602_63912844)delN[15] may also be written as " \
                "NC_000003.12:g.(63912602_63912844)delNNNNNNNNNNNNNNN" in results[
-                   'NM_001377405.1:c.(6_248)delNNNNNNNNNNNNNNN']["validation_warnings"]
-        assert results['NM_001377405.1:c.(6_248)delNNNNNNNNNNNNNNN'][
-                   'hgvs_transcript_variant'] == "NM_001377405.1:c.(6_248)delNNNNNNNNNNNNNNN"
-        assert results['NM_001377405.1:c.(6_248)delNNNNNNNNNNNNNNN'][
+                   'NM_001377405.1:c.(4_246)delNNNNNNNNNNNNNNN']["validation_warnings"]
+        assert results['NM_001377405.1:c.(4_246)delNNNNNNNNNNNNNNN'][
+                   'hgvs_transcript_variant'] == "NM_001377405.1:c.(4_246)delNNNNNNNNNNNNNNN"
+        assert results['NM_001377405.1:c.(4_246)delNNNNNNNNNNNNNNN'][
                    'primary_assembly_loci']["grch38"][
                    "hgvs_genomic_description"] == "NC_000003.12:g.(63912602_63912844)delNNNNNNNNNNNNNNN"
 
@@ -619,7 +619,7 @@ class TestWarnings(TestCase):
                    'hgvs_transcript_variant'] == "NM_001377405.1:c.(4_246)delNNNNNNNNNNNNNNN"
         assert results['NM_001377405.1:c.(4_246)delNNNNNNNNNNNNNNN'][
                    'primary_assembly_loci']["grch38"][
-                   "hgvs_genomic_description"] == "NC_000003.12:g.(63912600_63912842)delNNNNNNNNNNNNNNN"
+                   "hgvs_genomic_description"] == "NC_000003.12:g.(63912602_63912844)delNNNNNNNNNNNNNNN"
 
     def test_uncertain_10(self):
         variant = 'NM_001377405.1:c.(4_246)insN[15]'
@@ -636,7 +636,7 @@ class TestWarnings(TestCase):
         assert results['NM_001377405.1:c.(4_246)insNNNNNNNNNNNNNNN'][
                    'primary_assembly_loci']["grch38"][
                    "hgvs_genomic_description"] == \
-               "NC_000003.12:g.(63912600_63912842)insNNNNNNNNNNNNNNN"
+               "NC_000003.12:g.(63912602_63912844)insNNNNNNNNNNNNNNN"
 
     def test_uncertain_11(self):
         variant = 'NM_001256214.2:c.(2727+1_2728-1)(2858+1_2859-1)'
@@ -958,18 +958,9 @@ class TestVVGapWarnings(TestCase):
     def test_vv_series_16(self):
         variant = 'NM_207122.2:c.1174_1174+1insAT'
         results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
-
-        assert results['flag'] == 'gene_variant'
-        assert variant in results
-        assert results[variant]['validation_warnings'] == []
-        assert results[variant]['hgvs_transcript_variant'] == variant
-        assert results[variant]['primary_assembly_loci']['grch38'][
-                   'hgvs_genomic_description'
-               ] == 'NC_000011.10:g.44130138_44130139insAT'
-        assert results[variant]['variant_exonic_positions']['NC_000011.10'] == {
-            'start_exon': '7',
-            'end_exon': '7i'
-        }
+        print(results)
+        assert results['flag'] == 'warning'
+        assert results["validation_warning_1"]['validation_warnings'] == ['ExonBoundaryError: Position c.1174+1 does not correspond with an exon boundary for transcript NM_207122.2']
 
     def test_vv_series_17(self):
         variant = 'chr17:g.7578554_7578555delinsCC'

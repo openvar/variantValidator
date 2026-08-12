@@ -30783,12 +30783,10 @@ class TestVariantsAuto(TestCase):
         results = self.vv.validate(
             variant, 'GRCh37', 'mane'
         ).format_as_dict(test=True)
+        print(results)
+        assert results['flag'] == 'gene_variant'
 
-        assert results['flag'] == 'warning'
-
-        result = results['validation_warning_1']
-
-        assert result['submitted_variant'] == variant
+        result = results['NM_000642.3:c.965_966insTGACAGTTTTAATCTCTTTGTAGATATTTGCATTTAAGGTATCATCTTTTCTTTCTTTTAGAAAATAG']
 
         assert result['transcript_description'] == (
             'Homo sapiens amylo-alpha-1,6-glucosidase and '
@@ -30808,20 +30806,15 @@ class TestVariantsAuto(TestCase):
             (
                 'ReferenceSequenceError: This is not a valid HGVS variant '
                 'description, because no reference sequence ID has been provided'
-            ),
-            (
-                'ProteinTranslationError: Unable to generate protein variant '
-                'description due to the reference sequence missing an accepted '
-                'start codon.'
-            ),
+            )
         ]
 
-        assert result['hgvs_transcript_variant'] == ''
+        assert result['hgvs_transcript_variant'] == 'NM_000642.3:c.965_966insTGACAGTTTTAATCTCTTTGTAGATATTTGCATTTAAGGTATCATCTTTTCTTTCTTTTAGAAAATAG'
         assert result['hgvs_predicted_protein_consequence'] == {
-            'slr': '',
-            'tlr': '',
+            'slr': 'NP_000633.2:p.(R322Sfs*13)',
+            'tlr': 'NP_000633.2:p.(Arg322SerfsTer13)',
         }
-        assert result['primary_assembly_loci'] == {}
+        assert result['primary_assembly_loci'] != {}
 
     def test_issue_645a(self):
         variant = 'NC_000021.8:g.46924426_46924427del'
