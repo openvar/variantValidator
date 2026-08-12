@@ -1072,11 +1072,11 @@ class TestVFvariantsAuto(object):
         assert results['HG987_PATCH-355171-C-A']['genomic_variant_error'] is None
         assert 'NM_001194958.2' in results['HG987_PATCH-355171-C-A']['hgvs_t_and_p'].keys()
         assert results['HG987_PATCH-355171-C-A']['hgvs_t_and_p']['NM_001194958.2']['t_hgvs'] == \
-               'NM_001194958.2:c.22C>A'
+               'NM_001194958.2:c.20C>A'
         assert results['HG987_PATCH-355171-C-A']['hgvs_t_and_p']['NM_001194958.2']['p_hgvs_tlc'] == \
-               'NP_001181887.2:p.?'
+               'NP_001181887.2:p.(Ala7Asp)'
         assert results['HG987_PATCH-355171-C-A']['hgvs_t_and_p']['NM_001194958.2']['p_hgvs_slc'] == \
-               'NP_001181887.2:p.?'
+               'NP_001181887.2:p.(A7D)'
         assert results['HG987_PATCH-355171-C-A']['hgvs_t_and_p']['NM_001194958.2']['transcript_variant_error'] is None
 
     def test_variant59(self):

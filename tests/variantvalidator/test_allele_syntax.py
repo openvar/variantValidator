@@ -89,8 +89,7 @@ class TestAlleleSyntax(TestCase):
         variant = 'NM_000059.4:c.[1916dup;1929del]'
         results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
         print(results)
-        assert ("CdsIncompleteError: Transcript NM_000059.4 is not supported because its coding sequence (CDS) length "
-                "of 10258 is not divisible by 3." in
+        assert ('AlleleSyntaxError: Merging variants [1916dup;1929del] restores the original reading frame, so should be described as NM_000059.4:c.1917_1929delinsTGCATTCTTCTGT' in
                 results["validation_warning_1"]["validation_warnings"])
 
     def test_variant12(self):

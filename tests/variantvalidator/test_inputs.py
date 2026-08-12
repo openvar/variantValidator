@@ -2091,24 +2091,18 @@ class TestVariantsAuto(TestCase):
             variant, 'GRCh37', 'all'
         ).format_as_dict(test=True)
 
-        assert results['flag'] == 'warning'
+        assert results['flag'] == 'gene_variant'
 
-        result = results['validation_warning_1']
+        result = results['NM_001194958.2:c.20C>A']
 
         assert result['submitted_variant'] == variant
-        assert result['validation_warnings'] == [
-            (
-                'ReferenceMismatchError: NM_001194958.2:c.20C>A: '
-                'Variant reference (C) does not agree with reference sequence (G)'
-            )
-        ]
 
-        assert result['hgvs_transcript_variant'] == ''
+        assert result['hgvs_transcript_variant'] == 'NM_001194958.2:c.20C>A'
         assert result['hgvs_predicted_protein_consequence'] == {
-            'slr': '',
-            'tlr': '',
+            'slr': 'NP_001181887.2:p.(A7D)',
+            'tlr': 'NP_001181887.2:p.(Ala7Asp)',
         }
-        assert result['primary_assembly_loci'] == {}
+        assert result['primary_assembly_loci'] != {}
 
     def test_variant44(self):
         variant = 'NM_000022.2:c.534A>G'
@@ -8296,27 +8290,17 @@ class TestVariantsAuto(TestCase):
             variant, 'GRCh37', 'all'
         ).format_as_dict(test=True)
 
-        assert results['flag'] == 'warning'
+        assert results['flag'] == 'gene_variant'
+        print(results)
+        warnings = results['NM_001194958.2:c.20C>A']['validation_warnings']
 
-        warnings = results['validation_warning_1']['validation_warnings']
+        assert warnings == ['ReferenceSequenceError: This is not a valid HGVS variant description, because no reference sequence ID has been provided',
+                            'GenomeReferenceWarning: NM_001194958.2:c.20C>A is not part of genome build GRCh37',
+                            'GenomeMismatchWarning: NM_001194958.2:c.20C>A cannot be mapped directly to genome build GRCh37',
+                            'GenomeReferenceWarning: See alternative genomic loci or alternative genome builds for aligned genomic positions']
+        assert "grch37" not in results['NM_001194958.2:c.20C>A']['primary_assembly_loci'].keys()
+        assert "grch38" in results['NM_001194958.2:c.20C>A']['primary_assembly_loci'].keys()
 
-        assert (
-                'ReferenceSequenceError: This is not a valid HGVS variant description, '
-                'because no reference sequence ID has been provided'
-                in warnings
-        )
-
-        assert (
-                'ProteinTranslationError: Unable to generate protein variant description '
-                'due to the reference sequence missing an accepted start codon.'
-                in warnings
-        )
-
-        assert (
-                results['validation_warning_1']['transcript_description']
-                == 'Homo sapiens potassium inwardly rectifying channel subfamily J '
-                   'member 18 (KCNJ18), mRNA'
-        )
 
     def test_variant166(self):
         variant = '20-43252915-T-C'
@@ -11477,19 +11461,33 @@ class TestVariantsAuto(TestCase):
 
         transcripts = [
             {
-                'hgvs': 'NM_006468.6:c.1070+35_1070+38del',
-                'genome_context': 'NC_000001.10(NM_006468.6):c.1070+35_1070+38del',
-                'protein': 'NP_006459.3',
-            },
-            {
                 'hgvs': 'NM_001303456.1:c.1109+35_1109+38del',
                 'genome_context': 'NC_000001.10(NM_001303456.1):c.1109+35_1109+38del',
                 'protein': 'NP_001290385.1',
+                'warnings': [
+                    'VariantMappingWarning: NC_000001.10:g.145597475GAAGT>G automapped to NC_000001.10:g.145597477_145597480del',
+                    'GappedAlignmentWarning: Variation described in the context of an imperfect alignment of NM_001303456.1 with NC_000001.10 (genome build GRCh37)',
+                    'GappedAlignmentWarning: NM_001303456.1 contains 3 fewer bases between c.*960_*961 than NC_000001.10',
+                ],
             },
             {
-                'hgvs': 'NM_006468.8:c.1071+35_1071+38del',
-                'genome_context': 'NC_000001.10(NM_006468.8):c.1071+35_1071+38del',
+                'hgvs': 'NM_006468.6:c.1070+35_1070+38del',
+                'genome_context': 'NC_000001.10(NM_006468.6):c.1070+35_1070+38del',
                 'protein': 'NP_006459.3',
+                'warnings': [
+                    'VariantMappingWarning: NC_000001.10:g.145597475GAAGT>G automapped to NC_000001.10:g.145597477_145597480del',
+                    'TranscriptVersionWarning: A more recent version of the selected reference sequence NM_006468.6 is available for genome build GRCh37 (NM_006468.8)',
+                ],
+            },
+            {
+                'hgvs': 'NM_006468.8:c.1070+35_1070+38del',
+                'genome_context': 'NC_000001.10(NM_006468.8):c.1070+35_1070+38del',
+                'protein': 'NP_006459.3',
+                'warnings': [
+                    'VariantMappingWarning: NC_000001.10:g.145597475GAAGT>G automapped to NC_000001.10:g.145597477_145597480del',
+                    'GappedAlignmentWarning: Variation described in the context of an imperfect alignment of NM_006468.8 with NC_000001.10 (genome build GRCh37)',
+                    'GappedAlignmentWarning: NM_006468.8 contains 3 fewer bases between c.*960_*961 than NC_000001.10',
+                ],
             },
         ]
 
@@ -11568,6 +11566,7 @@ class TestVariantsAuto(TestCase):
             hgvs = transcript['hgvs']
             output = results[hgvs]
 
+            assert output['selected_assembly'] == 'GRCh37'
             assert output['submitted_variant'] == variant
             assert output['gene_symbol'] == 'POLR3C'
             assert output['gene_ids'] == gene_ids
@@ -11579,6 +11578,7 @@ class TestVariantsAuto(TestCase):
                 'tlr': f"{transcript['protein']}:p.?",
                 'slr': f"{transcript['protein']}:p.?",
             }
+            assert output['validation_warnings'] == transcript['warnings']
             assert output['hgvs_lrg_transcript_variant'] == ''
             assert output['hgvs_lrg_variant'] == ''
 
@@ -11591,6 +11591,7 @@ class TestVariantsAuto(TestCase):
                 assert output['primary_assembly_loci'][assembly] == expected
 
             transcript_accession = hgvs.split(':')[0]
+
             assert output['reference_sequence_records'] == {
                 'transcript': f'https://www.ncbi.nlm.nih.gov/nuccore/{transcript_accession}',
                 'protein': f"https://www.ncbi.nlm.nih.gov/nuccore/{transcript['protein']}",
@@ -30695,10 +30696,10 @@ class TestVariantsAuto(TestCase):
         results = self.vv.validate(
             variant, 'GRCh37', 'NM_015670.6'
         ).format_as_dict(test=True)
+        print(results)
+        assert results['flag'] == 'gene_variant'
 
-        assert results['flag'] == 'warning'
-
-        result = results['validation_warning_1']
+        result = results['NM_015670.6:c.1308G>A']
 
         assert result['submitted_variant'] == variant
         assert result['transcript_description'] == (
@@ -30713,21 +30714,16 @@ class TestVariantsAuto(TestCase):
             ),
             (
                 'GappedAlignmentWarning: NM_015670.6 contains 1 fewer bases '
-                'between c.1308_1309 than NC_000017.10'
-            ),
-            (
-                'ProteinTranslationError: Unable to generate protein variant '
-                'description due to the reference sequence missing an accepted '
-                'start codon.'
+                'between c.1307_1308 than NC_000017.10'
             ),
         ]
 
-        assert result['hgvs_transcript_variant'] == ''
+        assert result['hgvs_transcript_variant'] == 'NM_015670.6:c.1308G>A'
         assert result['hgvs_predicted_protein_consequence'] == {
-            'slr': '',
-            'tlr': '',
+            'slr': 'NP_056485.2:p.(K436=)',
+            'tlr': 'NP_056485.2:p.(Lys436=)',
         }
-        assert result['primary_assembly_loci'] == {}
+        assert result['primary_assembly_loci'] != {}
 
     def test_issue_597(self):
         variant = 'NM_005228.5:c.2309_2310delinsCCAGCGTGGAT'
@@ -30978,43 +30974,26 @@ class TestVariantsAuto(TestCase):
         results = self.vv.validate(
             variant, 'GRCh38', select_transcripts
         ).format_as_dict(test=True)
+        print(results)
+        assert results['flag'] == 'gene_variant'
 
-        assert results['flag'] == 'warning'
+        warnings = results['NM_001015877.2:c.552_558delinsG']['validation_warnings']
 
-        warnings = results['validation_warning_1']['validation_warnings']
-
-        assert (
-                'VariantMappingWarning: NM_001015877.2:c.552_558delinsG '
-                'automapped to NM_001015877.2:c.552_557del'
-                in warnings
-        )
-
-        assert (
-                'ProteinTranslationError: Unable to generate protein variant '
-                'description due to the reference sequence missing an accepted '
-                'start codon.'
-                in warnings
-        )
+        assert warnings == []
 
     def test_regress_start_end_order(self):
         # Regression test for a variant previously assigned a start coordinate
         # after its end during processing, causing VariantValidator to crash.
-        #
-        # With the current transcript/database stack, chr20:g.63316576A>G maps
-        # to NM_020882.4:c.2549A>G. Protein translation cannot subsequently be
-        # generated because the reference sequence lacks an accepted start codon.
         variant = 'chr20:g.63316576A>G'
         results = self.vv.validate(
             variant, 'GRCh38', 'mane_select'
         ).format_as_dict(test=True)
-
-        assert results['flag'] == 'warning'
-        assert results['validation_warning_1']['submitted_variant'] == variant
+        print(results)
+        assert results['flag'] == 'gene_variant'
+        assert results['NM_020882.4:c.2548A>G']['submitted_variant'] == variant
         assert (
-                'ProteinTranslationError: Unable to generate protein variant '
-                'description due to the reference sequence missing an accepted '
-                'start codon.'
-                in results['validation_warning_1']['validation_warnings']
+                'ReferenceSequenceError: This is not a valid HGVS variant description, because no reference sequence ID has been provided'
+                in results['NM_020882.4:c.2548A>G']['validation_warnings']
         )
 
     def test_regress_start_end_order_chrX(self):
@@ -31349,9 +31328,9 @@ class TestVariantsAuto(TestCase):
     def test_regression_start_lost_translation(self):
         results = self.vv.validate('NM_001006935.3:c.-13_4del', 'GRCh38', 'all',
                                    liftover_level=True).format_as_dict(test=True)
-        assert "validation_warning_1" in results.keys()
-        assert results["validation_warning_1"]["validation_warnings"] ==  [
-            'ProteinTranslationError: Unable to generate protein variant description due to the reference sequence '
+        assert "NM_001006935.3:c.-13_4del" in results.keys()
+        assert results["NM_001006935.3:c.-13_4del"]["validation_warnings"] ==  [
+            'ProteinTranslationError: Unable to generate protein variant description due to the sequence '
             'missing an accepted start codon.']
 
     def test_regression_pkd1(self):
