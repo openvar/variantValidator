@@ -4,14 +4,88 @@ from . import vvDBGet
 
 class Mixin(vvDBGet.Mixin):
     """
-    This object is a function container for inserting objects into the database.
+    This object is a function container for inserting and updating
+    objects in the database.
+
+    Database write operations honour the effective database permissions
+    detected by vvDBInit.Mixin.
+
+    When INSERT/UPDATE/DELETE access is unavailable, the operation is
+    skipped cleanly and returns "false" rather than attempting SQL and
+    raising a database permission error.
     """
 
+    READ_ONLY_RESULT = "false"
+
+    def _write_allowed(
+        self,
+        privilege,
+    ):
+        """
+        Return whether the requested database write privilege is
+        available.
+
+        Read-only deployments deliberately skip write operations rather
+        than attempting them and generating MySQL permission errors.
+        """
+
+        if self.can_write(
+            privilege,
+        ):
+            return True
+
+        self.logger.warning(
+            "Skipping database %s operation because "
+            "database write access is unavailable for %s.",
+            privilege,
+            self.dbConfig.get(
+                "database",
+                "",
+            ),
+        )
+
+        return False
+
+    @property
+    def logger(self):
+        """
+        Use the module logger lazily so the existing Mixin hierarchy does
+        not require another logger attribute to be initialised.
+        """
+
+        import logging
+
+        return logging.getLogger(
+            __name__,
+        )
+
     @handleCursor
-    def insert(self, entry, data, table):
+    def insert(
+        self,
+        entry,
+        data,
+        table,
+    ):
+        """
+        Insert a transcript_info record.
+
+        Returns:
+            "true" when the row is written.
+            "Unknown error" when the INSERT executes but does not produce
+            a lastrowid.
+            "false" when INSERT access is unavailable.
+        """
+
+        if not self._write_allowed(
+            "INSERT",
+        ):
+            return self.READ_ONLY_RESULT
+
         # Connect and create cursor
         conn = self.get_conn()
-        cursor = self.get_cursor(conn)
+        cursor = self.get_cursor(
+            conn,
+        )
 
         if table == "transcript_info":
             query = (
@@ -20,6 +94,7 @@ class Mixin(vvDBGet.Mixin):
                 "hgncSymbol, utaSymbol, updated"
                 ") VALUES (%s, %s, %s, %s, %s, %s, NOW())"
             )
+
             cursor.execute(
                 query,
                 (
@@ -44,10 +119,26 @@ class Mixin(vvDBGet.Mixin):
         return success
 
     @handleCursor
-    def insert_refseq_gene_data(self, rsg_data):
+    def insert_refseq_gene_data(
+        self,
+        rsg_data,
+    ):
+        """
+        Insert RefSeqGene data.
+
+        Returns "false" when INSERT access is unavailable.
+        """
+
+        if not self._write_allowed(
+            "INSERT",
+        ):
+            return self.READ_ONLY_RESULT
+
         # Connect and create cursor
         conn = self.get_conn()
-        cursor = self.get_cursor(conn)
+        cursor = self.get_cursor(
+            conn,
+        )
 
         query = (
             "INSERT INTO refSeqGene_loci("
@@ -56,6 +147,7 @@ class Mixin(vvDBGet.Mixin):
             "updated"
             ") VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())"
         )
+
         cursor.execute(
             query,
             (
@@ -85,16 +177,31 @@ class Mixin(vvDBGet.Mixin):
         return success
 
     @handleCursor
-    def insert_refseq_gene_id_from_lrg_id(self, lrg_rs_lookup):
+    def insert_refseq_gene_id_from_lrg_id(
+        self,
+        lrg_rs_lookup,
+    ):
+        """
+        Insert the LRG to RefSeqGene lookup record.
+        """
+
+        if not self._write_allowed(
+            "INSERT",
+        ):
+            return self.READ_ONLY_RESULT
+
         # Connect and create cursor
         conn = self.get_conn()
-        cursor = self.get_cursor(conn)
+        cursor = self.get_cursor(
+            conn,
+        )
 
         query = (
             "INSERT INTO LRG_RSG_lookup("
             "lrgID, hgncSymbol, RefSeqGeneID, status"
             ") VALUES (%s, %s, %s, %s)"
         )
+
         cursor.execute(
             query,
             (
@@ -117,16 +224,31 @@ class Mixin(vvDBGet.Mixin):
         return success
 
     @handleCursor
-    def insert_lrg_transcript_data(self, lrgtx_to_rst_id):
+    def insert_lrg_transcript_data(
+        self,
+        lrgtx_to_rst_id,
+    ):
+        """
+        Insert the LRG transcript mapping.
+        """
+
+        if not self._write_allowed(
+            "INSERT",
+        ):
+            return self.READ_ONLY_RESULT
+
         # Connect and create cursor
         conn = self.get_conn()
-        cursor = self.get_cursor(conn)
+        cursor = self.get_cursor(
+            conn,
+        )
 
         query = (
             "INSERT INTO LRG_transcripts("
             "LRGtranscriptID, RefSeqTranscriptID"
             ") VALUES (%s, %s)"
         )
+
         cursor.execute(
             query,
             (
@@ -147,19 +269,38 @@ class Mixin(vvDBGet.Mixin):
         return success
 
     @handleCursor
-    def insert_lrg_protein_data(self, lrg_p, rs_p):
+    def insert_lrg_protein_data(
+        self,
+        lrg_p,
+        rs_p,
+    ):
+        """
+        Insert the LRG protein mapping.
+        """
+
+        if not self._write_allowed(
+            "INSERT",
+        ):
+            return self.READ_ONLY_RESULT
+
         # Connect and create cursor
         conn = self.get_conn()
-        cursor = self.get_cursor(conn)
+        cursor = self.get_cursor(
+            conn,
+        )
 
         query = (
             "INSERT INTO LRG_proteins("
             "LRGproteinID, RefSeqProteinID"
             ") VALUES (%s, %s)"
         )
+
         cursor.execute(
             query,
-            (lrg_p, rs_p),
+            (
+                lrg_p,
+                rs_p,
+            ),
         )
 
         if cursor.lastrowid:
@@ -174,10 +315,24 @@ class Mixin(vvDBGet.Mixin):
         return success
 
     @handleCursor
-    def insert_gene_stable_ids(self, data):
+    def insert_gene_stable_ids(
+        self,
+        data,
+    ):
+        """
+        Insert stable gene identifiers.
+        """
+
+        if not self._write_allowed(
+            "INSERT",
+        ):
+            return self.READ_ONLY_RESULT
+
         # Connect and create cursor
         conn = self.get_conn()
-        cursor = self.get_cursor(conn)
+        cursor = self.get_cursor(
+            conn,
+        )
 
         query = (
             "INSERT INTO stableGeneIds("
@@ -185,6 +340,7 @@ class Mixin(vvDBGet.Mixin):
             "ucsc_id, vega_id, ccds_ids"
             ") VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
         )
+
         cursor.execute(
             query,
             (
@@ -211,10 +367,25 @@ class Mixin(vvDBGet.Mixin):
         return success
 
     @handleCursor
-    def update(self, entry, data):
+    def update(
+        self,
+        entry,
+        data,
+    ):
+        """
+        Update transcript information.
+        """
+
+        if not self._write_allowed(
+            "UPDATE",
+        ):
+            return self.READ_ONLY_RESULT
+
         # Connect and create cursor
         conn = self.get_conn()
-        cursor = self.get_cursor(conn)
+        cursor = self.get_cursor(
+            conn,
+        )
 
         query = (
             "UPDATE transcript_info SET "
@@ -222,6 +393,7 @@ class Mixin(vvDBGet.Mixin):
             "hgncSymbol=%s, utaSymbol=%s, updated=NOW() "
             "WHERE refSeqID=%s"
         )
+
         cursor.execute(
             query,
             (
@@ -241,16 +413,31 @@ class Mixin(vvDBGet.Mixin):
         return "true"
 
     @handleCursor
-    def update_refseq_gene_data(self, rsg_data):
+    def update_refseq_gene_data(
+        self,
+        rsg_data,
+    ):
+        """
+        Update RefSeqGene information.
+        """
+
+        if not self._write_allowed(
+            "UPDATE",
+        ):
+            return self.READ_ONLY_RESULT
+
         # Connect and create cursor
         conn = self.get_conn()
-        cursor = self.get_cursor(conn)
+        cursor = self.get_cursor(
+            conn,
+        )
 
         query = (
             "UPDATE refSeqGene_loci SET "
             "hgncSymbol=%s, updated=NOW() "
             "WHERE refSeqGeneID=%s"
         )
+
         cursor.execute(
             query,
             (
@@ -266,10 +453,24 @@ class Mixin(vvDBGet.Mixin):
         return "true"
 
     @handleCursor
-    def update_gene_stable_ids(self, gene_stable_ids):
+    def update_gene_stable_ids(
+        self,
+        gene_stable_ids,
+    ):
+        """
+        Update stable gene identifiers.
+        """
+
+        if not self._write_allowed(
+            "UPDATE",
+        ):
+            return self.READ_ONLY_RESULT
+
         # Connect and create cursor
         conn = self.get_conn()
-        cursor = self.get_cursor(conn)
+        cursor = self.get_cursor(
+            conn,
+        )
 
         query = (
             "UPDATE stableGeneIds SET "
@@ -277,6 +478,7 @@ class Mixin(vvDBGet.Mixin):
             "omim_id=%s, ucsc_id=%s, vega_id=%s, ccds_ids=%s "
             "WHERE hgnc_id=%s"
         )
+
         cursor.execute(
             query,
             (
@@ -298,12 +500,29 @@ class Mixin(vvDBGet.Mixin):
         return "true"
 
     @handleCursor
-    def update_db_version(self, db_version):
+    def update_db_version(
+        self,
+        db_version,
+    ):
+        """
+        Update the VV database version record.
+        """
+
+        if not self._write_allowed(
+            "UPDATE",
+        ):
+            return self.READ_ONLY_RESULT
+
         # Connect and create cursor
         conn = self.get_conn()
-        cursor = self.get_cursor(conn)
+        cursor = self.get_cursor(
+            conn,
+        )
 
-        query = "UPDATE version SET current_version=%s"
+        query = (
+            "UPDATE version SET current_version=%s"
+        )
+
         cursor.execute(
             query,
             (db_version,),
@@ -318,7 +537,7 @@ class Mixin(vvDBGet.Mixin):
 
 # Copyright (C) 2016-2026 VariantValidator Contributors
 # This file is part of VariantValidator and is distributed under the
-# GNU Affero General Public License, version 3 or (at your option) any
+# GNU Affero General Public License version 3 (or at your option) any
 # later version. See the LICENSE file in the project root for the full
 # licence terms.
 # SPDX-License-Identifier: AGPL-3.0-or-later

@@ -7,9 +7,15 @@ from VariantValidator.modules import vvDBInsert
 # ------------------- Fixtures -------------------
 
 def dummy_init(self, db_config):
-    """Patch vvDBGet.Mixin.__init__ to avoid creating real DB pool."""
+    """Patch vvDBGet.Mixin.__init__ to avoid creating a real DB pool."""
     self.pool = None
-    self.db_config = db_config
+    self.dbConfig = db_config
+    self.write_permissions = {
+        "INSERT": True,
+        "UPDATE": True,
+        "DELETE": True,
+    }
+    self.write_enabled = True
 
 
 @pytest.fixture
