@@ -1,4 +1,4 @@
-# VariantValidator <img src="/static/img/logos/VV_logo.png" height="60" align="right"/>
+# VariantValidator <img src="/docs/static/img/logos/VV_logo.png" height="60" align="right"/>
 
 
 
