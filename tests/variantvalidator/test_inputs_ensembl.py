@@ -629,6 +629,13 @@ class TestVariantsEnsembl(TestCase):
         #     'hgvs_genomic_description': 'NC_000016.10:g.2049574del',
         #     'vcf': {'chr': '16', 'pos': '2049571', 'ref': 'TC', 'alt': 'T'}}
 
+    def test_regression_mito(self):
+        variant = 'NC_012920.1(MT-ND4):m.11232T>C'  # ENST00000340539.5 contains 3 fewer bases between NC_000002.11
+        results = self.vv.validate(variant, 'GRCh38', 'all', transcript_set="ensembl").format_as_dict(test=True)
+        print(results)
+        assert "ENST00000361381.2:c.473T>C" in results.keys()
+        assert results["ENST00000361381.2:c.473T>C"]["primary_assembly_loci"]["grch38"]["hgvs_genomic_description"] == "NC_012920.1:m.11232T>C"
+
 
 # Copyright (C) 2016-2026 VariantValidator Contributors
 # This file is part of VariantValidator and is distributed under the

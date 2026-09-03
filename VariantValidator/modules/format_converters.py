@@ -1695,6 +1695,8 @@ def mitochondrial(variant, validator):
     Check whether the variant is mitochondrial, ensure the correct reference
     sequence type is used, and retain the mitochondrial HGVS object.
     """
+    logger.info(f"Checking whether {variant.quibble} is mitochondrial")
+
     mitochondrial_accessions = ('NC_012920.1', 'NC_001807.4')
 
     if (
@@ -1786,6 +1788,8 @@ def mitochondrial(variant, validator):
             variant.reverse_normalizer,
             validator.select_transcripts
         )
+
+        logger.info(f"Mitochondrial transcripts: {rel_var}")
 
         # Retain the mitochondrial HGVS object.
         variant.hgvs_genomic = hgvs_mito
