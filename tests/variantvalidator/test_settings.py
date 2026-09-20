@@ -7,6 +7,8 @@ from VariantValidator import settings
 from VariantValidator.settings import (
     LOG_FILE,
     LOGGING_CONFIG,
+    VALIDATOR_MYSQL_POOL_SIZE,
+    VVTA_POSTGRES_POOL_SIZE,
     vvDB_GET_CACHE,
     vvDB_GET_CACHE_SIZE,
 )
@@ -40,6 +42,41 @@ def test_environment_cache_overrides(monkeypatch):
     assert settings.vvHGVS_HDP_CACHE is False
     assert settings.vvHGVS_HDP_CACHE_SIZE == 999
 
+
+def test_environment_database_pool_overrides(monkeypatch):
+    """
+    Verify that database connection pool sizes are correctly
+    overridden by environment variables.
+    """
+    monkeypatch.setenv("VALIDATOR_MYSQL_POOL_SIZE", "5")
+    monkeypatch.setenv("VVTA_POSTGRES_POOL_SIZE", "7")
+
+    importlib.reload(settings)
+
+    assert settings.VALIDATOR_MYSQL_POOL_SIZE == 5
+    assert settings.VVTA_POSTGRES_POOL_SIZE == 7
+
+
+def test_database_pool_defaults(monkeypatch):
+    """
+    Verify that database connection pool sizes default to 1 when
+    no environment overrides are provided.
+    """
+    monkeypatch.delenv(
+        "VALIDATOR_MYSQL_POOL_SIZE",
+        raising=False,
+    )
+    monkeypatch.delenv(
+        "VVTA_POSTGRES_POOL_SIZE",
+        raising=False,
+    )
+
+    importlib.reload(settings)
+
+    assert settings.VALIDATOR_MYSQL_POOL_SIZE == 1
+    assert settings.VVTA_POSTGRES_POOL_SIZE == 1
+
+
 def test_environment_test_config_override(monkeypatch):
     """
     Verify that the VariantValidator configuration file location can
@@ -56,6 +93,7 @@ def test_environment_test_config_override(monkeypatch):
         settings.get_config_dir()
         == "/tmp/test_variantvalidator.ini"
     )
+
 
 def test_get_config_dir_default(monkeypatch):
     """
@@ -139,6 +177,13 @@ class TestSettings(TestCase):
         assert isinstance(vvDB_GET_CACHE_SIZE, int)
         assert vvDB_GET_CACHE_SIZE > 0
 
+    def test_database_pool_sizes_are_positive_integers(self):
+        assert isinstance(VALIDATOR_MYSQL_POOL_SIZE, int)
+        assert VALIDATOR_MYSQL_POOL_SIZE > 0
+
+        assert isinstance(VVTA_POSTGRES_POOL_SIZE, int)
+        assert VVTA_POSTGRES_POOL_SIZE > 0
+
     def test_vvdb_get_cache_environment_true(self):
         values = (
             "true",
@@ -191,11 +236,3 @@ class TestSettings(TestCase):
             assert settings.vvDB_GET_CACHE_SIZE == 12345
 
         importlib.reload(settings)
-
-
-# Copyright (C) 2016-2026 VariantValidator Contributors
-# This file is part of VariantValidator and is distributed under the
-# GNU Affero General Public License, version 3 or (at your option) any
-# later version. See the LICENSE file in the project root for the full
-# licence terms.
-# SPDX-License-Identifier: AGPL-3.0-or-later

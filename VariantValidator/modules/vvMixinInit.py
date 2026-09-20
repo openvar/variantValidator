@@ -131,7 +131,7 @@ class Mixin:
         # HGVS global configuration
         # --------------------------------------------------------------
 
-        vvhgvs.global_config.uta.pool_max = 25
+        vvhgvs.global_config.uta.pool_max = settings.VVTA_POSTGRES_POOL_SIZE
         vvhgvs.global_config.formatting.max_ref_length = 1000000
 
         if settings.vvHGVS_HDP_CACHE:

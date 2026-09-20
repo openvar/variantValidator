@@ -43,6 +43,53 @@ Configuration precedence
    precedence configuration is supplied.
 
 ===============================================================================
+Database connection pool configuration
+===============================================================================
+
+VariantValidator uses connection pooling for its database connections.
+
+The pool sizes below apply to each Validator or Formatter instance. They
+control how many database connections that individual object may maintain.
+
+The application-level ElasticPool used by services such as REST VariantValidator2
+controls how many Validator or Formatter objects are created and reused.
+Consequently, these database pool sizes should not be confused with the
+application-level object pool size.
+
+By default, each object uses a database connection pool of size 1. This
+provides connection reuse without unnecessarily creating multiple database
+connections within an individual Validator or Formatter instance.
+
+Settings:
+
+    VALIDATOR_MYSQL_POOL_SIZE
+        Maximum number of MySQL connections available to a Validator
+        instance.
+
+        Default: 1
+
+        Environment override:
+            VALIDATOR_MYSQL_POOL_SIZE
+
+    VVTA_POSTGRES_POOL_SIZE
+        Maximum number of PostgreSQL/UTA connections available to a
+        Validator or Formatter instance.
+
+        Default: 1
+
+        Environment override:
+            VVTA_POSTGRES_POOL_SIZE
+
+A pool size of 1 is appropriate for the current VariantValidator object
+pooling architecture, where concurrency is provided by recycling multiple
+independent Validator or Formatter objects rather than by maintaining a
+large database connection pool within each object.
+
+A larger value may be configured through the environment when an application
+has a specific requirement for concurrent database operations within a
+single object.
+
+===============================================================================
 Cache configuration
 ===============================================================================
 
@@ -151,8 +198,8 @@ If no log file is specified, VariantValidator writes to:
 
     ~/.vv_errorlog
 
-Applications may override the configured console and/or file logging
-levels for the current process by calling:
+Applications may override the configured console and/or file logging levels
+for the current process by calling:
 
     VariantValidator.logger.configure_logging(
         console_level=...,
@@ -167,6 +214,26 @@ in this module.
 
 import os
 from configparser import ConfigParser
+
+# =============================================================================
+# Database connection pool configuration
+#
+# These settings control the maximum number of database connections that may
+# be maintained by an individual Validator or Formatter instance.
+#
+# The application-level object pool is responsible for managing concurrency
+# between Validator/Formatter instances. A database pool size of 1 therefore
+# provides connection reuse while avoiding unnecessary connection
+# multiplication within each object.
+# =============================================================================
+
+VALIDATOR_MYSQL_POOL_SIZE = int(
+    os.environ.get("VALIDATOR_MYSQL_POOL_SIZE", "1")
+)
+
+VVTA_POSTGRES_POOL_SIZE = int(
+    os.environ.get("VVTA_POSTGRES_POOL_SIZE", "1")
+)
 
 # =============================================================================
 # Cache configuration
@@ -277,7 +344,11 @@ if log_dir:
 # ----------------------------------------
 # GLOBAL LOGGING SWITCH
 # ----------------------------------------
-logging_enabled = config.get('logging', 'log', fallback='true').lower() not in ('false', '0', 'no', 'off')
+logging_enabled = config.get(
+    'logging',
+    'log',
+    fallback='true'
+).lower() not in ('false', '0', 'no', 'off')
 
 
 # ----------------------------------------
@@ -343,6 +414,6 @@ LOGGING_CONFIG = {
 # Copyright (C) 2016-2026 VariantValidator Contributors
 # This file is part of VariantValidator and is distributed under the
 # GNU Affero General Public License, version 3 or (at your option) any
-# later version. See the LICENSE file in the project root for the full
-# licence terms.
+# later version. See the LICENSE file in the project root for the
+# full licence terms.
 # SPDX-License-Identifier: AGPL-3.0-or-later

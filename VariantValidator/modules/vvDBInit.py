@@ -2,6 +2,7 @@ import logging
 import random
 import re
 import time
+from VariantValidator import settings
 
 
 logger = logging.getLogger(__name__)
@@ -78,7 +79,7 @@ class Mixin:
         # Prefer MySQL Connector/Python when available.
         if MySQLConnectionPool is not None:
             self.pool = MySQLConnectionPool(
-                pool_size=5,
+                pool_size=settings.VALIDATOR_MYSQL_POOL_SIZE,
                 **self.dbConfig,
             )
 
@@ -89,7 +90,7 @@ class Mixin:
         # Otherwise fall back to MariaDB.
         if MariaDBConnectionPool is not None:
             pool_kwargs = {
-                "pool_size": 5,
+                "pool_size": settings.VALIDATOR_MYSQL_POOL_SIZE,
                 "pool_reset_connection": False,
                 "host": self.dbConfig["host"],
                 "user": self.dbConfig["user"],

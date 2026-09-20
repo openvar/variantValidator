@@ -8,6 +8,7 @@ import importlib
 import sys
 
 import VariantValidator.modules.vvDBInit as vvDBInit
+from VariantValidator import settings
 
 
 @pytest.fixture
@@ -47,7 +48,7 @@ def test_init_db_mysql_pool(mock_pool, db_config):
     obj.init_db()
 
     mock_pool.assert_called_once_with(
-        pool_size=5,
+        pool_size=settings.VALIDATOR_MYSQL_POOL_SIZE,
         **db_config
     )
 
