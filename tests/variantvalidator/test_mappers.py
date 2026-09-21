@@ -1227,7 +1227,7 @@ class TestFinalTxToMultipleGenomicUnit(TestCase):
 
     def test_old_ncbi_reference_is_skipped(self):
         self.variant.map_dat.mapping_options.return_value = [
-            ("NM_000001.1", "NC_001807.4", "splign"),
+            ("NM_000001.1", "NC_001807.3", "splign"),
         ]
 
         result = final_tx_to_multiple_genomic(

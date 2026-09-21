@@ -953,12 +953,22 @@ class Mixin:
             )
 
         else:
-            modified_aa = None
+            # Check for mitochondrial genes
+            info = self.hdp.get_tx_mapping_options(hgvs_transcript.ac)
+            if info[0][1] in ("NC_012920.1", "NC_001807.4"):
+                modified_aa = "Mito"
 
-            logger.info(
-                "No modified amino acid identified, "
-                "use standard translation dict"
-            )
+                logger.info(
+                    "Mitochondrial gene identified, "
+                    "use Mito translation dict"
+                )
+            else:
+                modified_aa = None
+
+                logger.info(
+                    "No modified amino acid identified, "
+                    "use standard translation dict"
+                )
 
         logger.info(
             "Translating reference and variant CDS outcomes"

@@ -1075,6 +1075,8 @@ def final_tx_to_multiple_genomic(variant, validator, tx_variant, liftover_level=
     mapping_options = variant.map_dat.mapping_options(variant.hgvs_coding.ac,hdp=validator.hdp)
     mapping_options = sorted(mapping_options, key=itemgetter(1))
 
+    logger.info(f'Mapping options for {variant.hgvs_coding.ac}: {mapping_options}')
+
     for alt_chr in mapping_options:
         if liftover_level is None:
             multi_list.append(variant.genomic_g.ac)
@@ -1087,11 +1089,14 @@ def final_tx_to_multiple_genomic(variant, validator, tx_variant, liftover_level=
                 multi_list.append(alt_chr[1])
 
     for alt_chr in multi_list:
-        logger.debug("Trying to do final gap mapping with %s", alt_chr)
+        logger.info("Trying to do final gap mapping with %s", alt_chr)
 
         # Loop out NCBI36 refs
         if alt_chr.startswith('NC_') and not alt_chr.startswith('NC_000'):
-            continue
+            if alt_chr == 'NC_012920.1' or alt_chr == 'NC_001807.4':
+                pass
+            else:
+                continue
 
         try:
             # Re set ori
