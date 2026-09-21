@@ -37,6 +37,14 @@ PROT_TRANSLATION_DICT = {
 PROT_TRANSLATION_DICT_SEL = copy.copy(PROT_TRANSLATION_DICT)
 PROT_TRANSLATION_DICT_SEL['TGA'] = 'U'
 
+PROT_TRANSLATION_DICT_MITO = copy.copy(PROT_TRANSLATION_DICT)
+PROT_TRANSLATION_DICT_MITO.update({
+    'AGA': '*',
+    'AGG': '*',
+    'ATA': 'M',
+    'TGA': 'W'
+})
+
 DNA_TRANS_TBL = str.maketrans("ACTG", "TGAC")
 
 def simple_dna_revcomp(dna):
@@ -618,6 +626,9 @@ def translate(ed_seq, cds_start, modified_aa=None, tolerate_no_stop_cds=False):
     if modified_aa == "Sec":
         use_dict = PROT_TRANSLATION_DICT_SEL
         stops = ['TAA', 'TAG']
+    elif modified_aa == "Mito":
+        use_dict = PROT_TRANSLATION_DICT_MITO
+        stops = ['TAA', 'TAG', 'AGA', 'AGG']
     else:
         use_dict = PROT_TRANSLATION_DICT
         stops = ['TAA', 'TAG', 'TGA']
