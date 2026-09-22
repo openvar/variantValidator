@@ -200,26 +200,126 @@ class Mixin:
         os.environ["HGVS_SEQREPO_DIR"] = self.seqrepoPath
 
         # --------------------------------------------------------------
-        # UTA configuration
+        # Database configuration helpers
         # --------------------------------------------------------------
 
-        psql_host_or_socketfile = (
-            config["postgres"]["host"].replace("/", "%2F")
+        def _normalise_port(config, section):
+            """
+            Return the configured database port as an integer.
+
+            Supports a normal port value, e.g.:
+                5432
+
+            and a colon-delimited value, e.g.:
+                tcshaip:europe-west1:vv-vvta-replica:5432
+                -> 5432
+
+            The port always comes from configuration.
+            Invalid configuration raises ValueError.
+            """
+            port = config[section]["port"]
+
+            if ":" in port:
+                port = port.rsplit(":", 1)[-1]
+
+            return int(port)
+
+        # --------------------------------------------------------------
+        # VVTA configuration
+        # --------------------------------------------------------------
+
+        psql_host = config["postgres"]["host"]
+        psql_port = _normalise_port(
+            config,
+            "postgres",
         )
 
-        os.environ["UTA_DB_URL"] = (
-            "postgresql://%s:%s@%s:%s/%s/%s"
-            % (
-                config["postgres"]["user"],
-                config["postgres"]["password"],
-                psql_host_or_socketfile,
-                config["postgres"]["port"],
-                config["postgres"]["database"],
-                config["postgres"]["version"],
+        # Reproduce Dave's effective psycopg2 behaviour:
+        #
+        #     Cloud SQL instance name:
+        #         tcshaip:europe-west1:vv-vvta-replica
+        #         -> /cloudsql/tcshaip:europe-west1:vv-vvta-replica
+        #
+        #     Normal TCP host:
+        #         10.73.203.5
+        #         -> 10.73.203.5
+        #
+        # Dave's postgres.unix_socket value is not used to override
+        # postgres.host. His ConfigParser patch suppresses it when a normal
+        # host is configured, and the original Mixin builds the VVTA URL
+        # from postgres.host.
+
+        if (
+                ":" in psql_host
+                and not psql_host.startswith("/")
+        ):
+            psql_host_or_socketfile = "/cloudsql/" + psql_host
+        else:
+            psql_host_or_socketfile = psql_host
+
+        if psql_host_or_socketfile.startswith("/"):
+            # UTA's URL parser cannot safely handle the colons in a Cloud SQL
+            # Unix socket path as a normal URL hostname. Encode the path and
+            # supply the parsed URL object directly, replacing Dave's global
+            # psycopg2 host interceptor.
+            class _UTASocketURL:
+                scheme = "postgresql"
+                hostname = psql_host_or_socketfile
+                port = psql_port
+                database = config["postgres"]["database"]
+                username = config["postgres"]["user"]
+                password = config["postgres"]["password"]
+                schema = config["postgres"]["version"]
+
+                def __str__(self):
+                    encoded_hostname = (
+                        self.hostname
+                        .replace("/", "%2F")
+                        .replace(":", "%3A")
+                    )
+
+                    return (
+                            "postgresql://%s:%s@%s:%s/%s/%s"
+                            % (
+                                self.username,
+                                self.password,
+                                encoded_hostname,
+                                self.port,
+                                self.database,
+                                self.schema,
+                            )
+                    )
+
+            url = _UTASocketURL()
+
+            self.utaPath = str(url)
+            os.environ["UTA_DB_URL"] = self.utaPath
+
+            self.hdp = vvhgvs.dataproviders.uta.UTA_postgresql(
+                url=url,
+                pooling=True,
             )
-        )
 
-        self.utaPath = os.environ["UTA_DB_URL"]
+        else:
+            # Normal TCP PostgreSQL connection.
+            self.utaPath = (
+                    "postgresql://%s:%s@%s:%s/%s/%s"
+                    % (
+                        config["postgres"]["user"],
+                        config["postgres"]["password"],
+                        psql_host_or_socketfile,
+                        psql_port,
+                        config["postgres"]["database"],
+                        config["postgres"]["version"],
+                    )
+            )
+
+            os.environ["UTA_DB_URL"] = self.utaPath
+
+            self.hdp = vvhgvs.dataproviders.uta.connect(
+                db_url=self.utaPath,
+                pooling=True,
+            )
 
         # --------------------------------------------------------------
         # VariantValidator database
@@ -231,9 +331,15 @@ class Mixin:
             "user": config["mysql"]["user"],
             "password": config["mysql"]["password"],
             "host": config["mysql"]["host"],
-            "port": int(config["mysql"]["port"]),
+            "port": _normalise_port(
+                config,
+                "mysql",
+            ),
             "database": config["mysql"]["database"],
             "raise_on_warnings": True,
+            # Reproduce Dave's MySQL driver workaround.
+            "use_pure": True,
+            "connection_timeout": 15,
         }
 
         mysql_unix_socket = config.get(
@@ -289,11 +395,8 @@ class Mixin:
         self.no_norm_evm = None
 
         # --------------------------------------------------------------
-        # HGVS data providers
+        # UTA Schema
         # --------------------------------------------------------------
-
-        # Create the HGVS data provider.
-        self.hdp = vvhgvs.dataproviders.uta.connect(pooling=True)
 
         self.utaSchema = str(
             self.hdp.data_version()

@@ -53,16 +53,18 @@ class TestVVMixinInit(TestCase):
 
         self.assertIsNone(getattr(mixin, "pool", None))
 
+    @patch("VariantValidator.modules.vvMixinInit.vvhgvs.dataproviders.uta.connect")
     @patch("VariantValidator.modules.vvMixinInit.os.path.exists")
     @patch("VariantValidator.modules.vvMixinInit.settings.get_config_dir")
     @patch("VariantValidator.modules.vvMixinInit.ConfigParser")
     @patch("VariantValidator.modules.vvMixinInit.Database")
     def test_database_version_mismatch(
-        self,
-        mock_database,
-        mock_configparser,
-        mock_get_config_dir,
-        mock_exists,
+            self,
+            mock_database,
+            mock_configparser,
+            mock_get_config_dir,
+            mock_exists,
+            mock_uta_connect,
     ):
         mock_get_config_dir.return_value = "/tmp/config.ini"
         mock_exists.return_value = True
@@ -103,8 +105,24 @@ class TestVVMixinInit(TestCase):
         db = mock_database.return_value
         db.get_db_version.return_value = ("wrong_version",)
 
-        with self.assertRaises(InitialisationError):
+        with self.assertRaises(InitialisationError) as context:
             Mixin()
+
+        self.assertIn(
+            "Config error: VVDb version in config file is incorrect.",
+            str(context.exception),
+        )
+        self.assertIn(
+            "VDb version is wrong_version",
+            str(context.exception),
+        )
+
+        mock_database.assert_called_once()
+        db.get_db_version.assert_called_once()
+        mock_uta_connect.assert_called_once_with(
+            db_url="postgresql://user:pass@localhost:5432/uta/uta_1",
+            pooling=True,
+        )
 
     @patch("VariantValidator.modules.vvMixinInit.os.path.exists")
     @patch("VariantValidator.modules.vvMixinInit.settings.get_config_dir")
@@ -260,14 +278,13 @@ class TestVVMixinInit(TestCase):
     @patch("VariantValidator.modules.vvMixinInit.Database")
     @patch("VariantValidator.modules.vvMixinInit.vvhgvs")
     def test_environment_variables(
-        self,
-        mock_vvhgvs,
-        mock_database,
-        mock_configparser,
-        mock_get_config_dir,
-        mock_exists,
+            self,
+            mock_vvhgvs,
+            mock_database,
+            mock_configparser,
+            mock_get_config_dir,
+            mock_exists,
     ):
-
         mock_get_config_dir.return_value = "/tmp/config.ini"
         mock_exists.return_value = True
 
@@ -325,9 +342,9 @@ class TestVVMixinInit(TestCase):
             "/tmp/VV_SR",
         )
 
-        self.assertIn(
-            "postgresql://user:pass@localhost:5432/uta/uta_1",
-            os.environ["UTA_DB_URL"],
+        mock_vvhgvs.dataproviders.uta.connect.assert_called_once_with(
+            db_url="postgresql://user:pass@localhost:5432/uta/uta_1",
+            pooling=True,
         )
 
 def test_seqfetcher_cache_enabled(monkeypatch):

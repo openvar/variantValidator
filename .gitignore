@@ -26,6 +26,10 @@ htmlco[v]/
 .[m]ypy_cache/
 VariantValidator/testing/output[s]*
 
+# Profiling
+
+prof/
+
 # Documentation
 
 sit[e]/
