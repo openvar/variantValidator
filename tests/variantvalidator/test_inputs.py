@@ -31334,6 +31334,13 @@ class TestVariantsAuto(TestCase):
                                    liftover_level=True).format_as_dict(test=True)
         assert "NM_000296.4:c.11308_11309dup" in results.keys()
 
+    def test_regression_fs_immediate_ter(self):
+        results = self.vv.validate('NM_000070.2:c.1293_1297delinsC', 'GRCh38', 'all',
+                                   liftover_level=True).format_as_dict(test=True)
+        assert "NM_000070.2:c.1293_1297delinsC" in results.keys()
+        assert results["NM_000070.2:c.1293_1297delinsC"]["hgvs_predicted_protein_consequence"][
+                   "tlr"] == "NP_000061.1:p.(Ser432Ter)"
+
 
 # Copyright (C) 2016-2026 VariantValidator Contributors
 # This file is part of VariantValidator and is distributed under the

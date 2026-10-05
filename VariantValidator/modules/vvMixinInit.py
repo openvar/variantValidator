@@ -1565,6 +1565,8 @@ class Mixin:
         ):
             frameshift = False
 
+            logger.info("Checking for frameshifts")
+
             if naughty_edit.type == "dup":
                 length = (
                     naughty_pos.end.base
@@ -1589,7 +1591,13 @@ class Mixin:
                     - len(naughty_edit.ref or "")
                 ) % 3 != 0
 
+            # Adapt for termination immediately caused by frame shifting
+            if pro_inv_info["prot_ins_seq"].startswith("*"):
+                frameshift = False
+
             if frameshift:
+                logger.info("Frame-shift identified")
+
                 ref = pro_inv_info["prot_del_seq"][0]
                 alt = pro_inv_info["prot_ins_seq"][0]
 
