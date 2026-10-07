@@ -750,13 +750,13 @@ class Mixin(vvMixinConverters.Mixin):
 
                     # COLLECT gene symbol, name and ACCESSION INFORMATION
                     # Gene symbol
-                    if my_variant.reftype != ':g.':
+                    if my_variant.reftype != ':g.' and my_variant.reftype != ':m.':
                         toskip = self._get_transcript_info(my_variant)
                         if toskip:
                             continue
 
                     # Now start mapping from genome to transcripts
-                    if my_variant.reftype == ':g.':
+                    if my_variant.reftype == ':g.' or my_variant.reftype == ':m.':
                         try:
                             toskip = mappers.gene_to_transcripts(my_variant, self, select_transcripts_dict, batch_list)
                         except IndexError:
@@ -976,6 +976,7 @@ class Mixin(vvMixinConverters.Mixin):
                                                                           self,
                                                                           hgvs_tx_variant,
                                                                           liftover_level=liftover_level)
+                    logger.info(f"multi_gen_vars: {multi_gen_vars}")
 
                 else:
                     # HGVS genomic in the absence of a transcript variant
@@ -983,6 +984,7 @@ class Mixin(vvMixinConverters.Mixin):
                         multi_gen_vars = [hgvs_genomic_variant]
                     else:
                         multi_gen_vars = []
+
                 # Dictionaries of genomic loci
                 alt_genomic_dicts = []
                 primary_genomic_dicts = {}
@@ -1024,12 +1026,15 @@ class Mixin(vvMixinConverters.Mixin):
                         if 'NC_000' not in alt_gen_var.ac and 'NC_012920.1' not in alt_gen_var.ac and \
                                 'NC_001807.4' not in alt_gen_var.ac:
                             continue
-                        primary =True
+                        primary = True
                     elif 'NC_' not in alt_gen_var.ac and par is False:
                         pass
                     elif 'NC_000023' in alt_gen_var.ac and par is True:
                         primary =True
                     if primary:
+                        # Restore mito type
+                        if alt_gen_var.ac == "NC_012920.1" or alt_gen_var.ac == "NC_001807.4":
+                            alt_gen_var.type = "m"
                         for genome_build in vcf_dict['chrs_by_genome']:
                             primary_genomic_dicts[genome_build] = {
                                 'hgvs_genomic_description': alt_gen_var,
